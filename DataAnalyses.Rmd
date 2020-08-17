@@ -1,8 +1,1150 @@
 ---
 title: "Data Analyses"
 output: github_document
+author: "Devon Birdseye"
+date: "08/07/2020"
 ---
-
+#Setup
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+```{r set seed}
+set.seed(586)
+```
+```{r libraries}
+library(readr)
+library(tibble)
+library(plyr)
+library(EnvStats)
+library(ggplot2)
+library(reshape2)
+library(cowplot)
+```
+```{r define paths}
+#Path to input data
+PathToData <- "Data/"
+#Path to output plots
+PathToPlots <- "Plots/"
+```
+
+
+#Import protein data
+```{r import protein data}
+#Import protein data
+tmt <- read.csv(paste0(PathToData,"Leaf Paper Data 050520-processed.csv"), stringsAsFactors = F)
+#re-define protein column to shortened name
+tmt <- tmt[,1:184]
+tmt <- tmt[,-182]
+colnames(tmt)[182] <- "Protein"
+#make new column for gene accession without transcript id
+tmt$Gene <- substr(tmt$Accession, start = 1, stop = 14)
+#Remove polymorphic peptides
+tmt.withPolymorphic <- tmt
+tmt <- tmt[-(grep("only", tmt$Accession)),]
+#Convert to numeric
+for(i in 1:170){
+  tmt[,i] <- as.numeric(tmt[,i])
+}
+#Convert NAs to 0
+tmt[is.na(tmt)] <- 0
+```
+
+#Subset protein experiments
+```{r subset BxM seedling leaf from original experiment}
+#BxM from Original Experiment (OG)
+tmt.BxM.OG <- tmt[,c(171:176,181:183,12:20)]
+#Remove proteins not detected in any of the samples
+tmt.BxM.OG <- tmt.BxM.OG[rowSums(tmt.BxM.OG[,10:18]) > 0,]
+#Calculate averages of bio reps
+tmt.BxM.OG$B73avg <- rowMeans(tmt.BxM.OG[,10:12])
+tmt.BxM.OG$Mo17avg <- rowMeans(tmt.BxM.OG[,13:15])
+tmt.BxM.OG$HYBavg <- rowMeans(tmt.BxM.OG[,16:18])
+tmt.BxM.OG$MPavg <- rowMeans(tmt.BxM.OG[,c(10:15)])
+#calculate ratios
+tmt.BxM.OG$HYB.MP <- tmt.BxM.OG$HYBavg/tmt.BxM.OG$MPavg
+tmt.BxM.OG$l2.BM.MP <- log2(tmt.BxM.OG$HYB.MP)
+tmt.BxM.OG$B73.Mo17 <- tmt.BxM.OG$B73avg/tmt.BxM.OG$Mo17avg
+tmt.BxM.OG$l2.B73.Mo17 <-log2(tmt.BxM.OG$B73.Mo17)
+#save
+saveRDS(tmt.BxM.OG, "tmt.BxM.OG")
+```
+```{r subset BxM from 6-hybrid experiment}
+#BxM from 6-hybrid experiment (6H)
+tmt.BxM.6H <- tmt[,c(171:176,181:183,31,41,51,33,43,53,35,45,55)]
+#Remove proteins not detected in any of the samples
+tmt.BxM.6H <- tmt.BxM.6H[rowSums(tmt.BxM.6H[,10:18]) > 0,]
+#Calculate averages of bio reps
+tmt.BxM.6H$B73avg <- rowMeans(tmt.BxM.6H[,10:12])
+tmt.BxM.6H$Mo17avg <- rowMeans(tmt.BxM.6H[,13:15])
+tmt.BxM.6H$HYBavg <- rowMeans(tmt.BxM.6H[,16:18])
+tmt.BxM.6H$MPavg <- rowMeans(tmt.BxM.6H[,c(10:15)])
+#calculate ratios
+tmt.BxM.6H$HYB.MP <- tmt.BxM.6H$HYBavg/tmt.BxM.6H$MPavg
+tmt.BxM.6H$l2.BM.MP <- log2(tmt.BxM.6H$HYB.MP)
+tmt.BxM.6H$B73.Mo17 <- tmt.BxM.6H$B73avg/tmt.BxM.6H$Mo17avg
+tmt.BxM.6H$l2.B73.Mo17 <-log2(tmt.BxM.6H$B73.Mo17)
+#save
+saveRDS(tmt.BxM.6H, "tmt.BxM.6H")
+```
+```{r subset BxM from RIL experiment}
+#BxM from RIL experiment (RIL)
+tmt.BxM.RIL <- tmt[,c(171:176,181:183,81:90)]
+#Remove proteins not detected in any of the samples
+tmt.BxM.RIL <- tmt.BxM.RIL[rowSums(tmt.BxM.RIL[,10:19]) > 0,]
+#Calculate averages of bio reps
+tmt.BxM.RIL$B73avg <- rowMeans(tmt.BxM.RIL[,10:12])
+tmt.BxM.RIL$Mo17avg <- rowMeans(tmt.BxM.RIL[,13:15])
+tmt.BxM.RIL$HYBavg <- rowMeans(tmt.BxM.RIL[,16:19])
+tmt.BxM.RIL$MPavg <- rowMeans(tmt.BxM.RIL[,c(10:15)])
+#calculate ratios
+tmt.BxM.RIL$HYB.MP <- tmt.BxM.RIL$HYBavg/tmt.BxM.RIL$MPavg
+tmt.BxM.RIL$l2.BM.MP <- log2(tmt.BxM.RIL$HYB.MP)
+tmt.BxM.RIL$B73.Mo17 <- tmt.BxM.RIL$B73avg/tmt.BxM.RIL$Mo17avg
+tmt.BxM.RIL$l2.B73.Mo17 <-log2(tmt.BxM.RIL$B73.Mo17)
+#save
+saveRDS(tmt.BxM.RIL, "tmt.BxM.RIL")
+```
+```{r subset BxM from day vs. night experiment (day)}
+#BxM from Day vs. night experiment (DN)
+tmt.BxM.DN <- tmt[,c(171:176,181:183,62:70)]
+#Remove proteins not detected in any of the samples
+tmt.BxM.DN <- tmt.BxM.DN[rowSums(tmt.BxM.DN[,10:18]) > 0,]
+#Calculate averages of bio reps
+tmt.BxM.DN$B73avg <- rowMeans(tmt.BxM.DN[,10:12])
+tmt.BxM.DN$Mo17avg <- rowMeans(tmt.BxM.DN[,13:15])
+tmt.BxM.DN$HYBavg <- rowMeans(tmt.BxM.DN[,16:18])
+tmt.BxM.DN$MPavg <- rowMeans(tmt.BxM.DN[,c(10:15)])
+#calculate ratios
+tmt.BxM.DN$HYB.MP <- tmt.BxM.DN$HYBavg/tmt.BxM.DN$MPavg
+tmt.BxM.DN$l2.BM.MP <- log2(tmt.BxM.DN$HYB.MP)
+tmt.BxM.DN$B73.Mo17 <- tmt.BxM.DN$B73avg/tmt.BxM.DN$Mo17avg
+tmt.BxM.DN$l2.B73.Mo17 <-log2(tmt.BxM.DN$B73.Mo17)
+#save
+saveRDS(tmt.BxM.DN, "tmt.BxM.DN")
+```
+```{r subset all hybrids from 6-hybrid experiment}
+#Subset all hybrids from 6-hybrid experiment (6H)
+tmt.6H <- tmt[,c(171:176,181:183,31:60)]
+#Remove proteins not detected in any of the samples
+tmt.6H <- tmt.6H[rowSums(tmt.6H[,10:39]) > 0,]
+#calculate averages
+tmt.6H$B73 <- rowMeans(tmt.6H[,c(10,20,30)])
+tmt.6H$Mo17 <- rowMeans(tmt.6H[,c(12,22,32)])
+tmt.6H$B73xMo17 <- rowMeans(tmt.6H[,c(14,24,34)])
+tmt.6H$Mo17xB73 <- rowMeans(tmt.6H[,c(15,25,35)])
+tmt.6H$B84 <- rowMeans(tmt.6H[,c(11,21,31)])
+tmt.6H$B84xB73 <- rowMeans(tmt.6H[,c(16,26,36)])
+tmt.6H$B84xMo17 <- rowMeans(tmt.6H[,c(17,27,37)])
+tmt.6H$A682 <- rowMeans(tmt.6H[,c(13,23,33)])
+tmt.6H$A682xB73 <- rowMeans(tmt.6H[,c(18,28,38)])
+tmt.6H$A682xMo17 <- rowMeans(tmt.6H[,c(19,29,39)])
+#Calculate hyb/MP ratios
+tmt.6H$B73xMo17.MP <- tmt.6H$B73xMo17/rowMeans(tmt.6H[,40:41])
+tmt.6H$Mo17xB73.MP <- tmt.6H$Mo17xB73/rowMeans(tmt.6H[,40:41])
+tmt.6H$B84xB73.MP <- tmt.6H$B84xB73/rowMeans(tmt.6H[,c(40,44)])
+tmt.6H$B84xMo17.MP <- tmt.6H$B84xMo17/rowMeans(tmt.6H[,c(41,44)])
+tmt.6H$A682xB73.MP <- tmt.6H$A682xB73/rowMeans(tmt.6H[,c(40,47)])
+tmt.6H$A682xMo17.MP <- tmt.6H$A682xMo17/rowMeans(tmt.6H[,c(41,47)])
+#Calculate parent/parent ratios
+tmt.6H$B73.Mo17 <- tmt.6H$B73/tmt.6H$Mo17
+tmt.6H$Mo17.B73 <- tmt.6H$Mo17/tmt.6H$B73
+tmt.6H$B84.B73 <- tmt.6H$B84/tmt.6H$B73
+tmt.6H$B84.Mo17 <- tmt.6H$B84/tmt.6H$Mo17
+tmt.6H$A682.B73 <- tmt.6H$A682/tmt.6H$B73
+tmt.6H$A682.Mo17 <- tmt.6H$A682/tmt.6H$Mo17
+#Calculate log2 of all ratios
+tmt.6H$l2.B73xMo17.MP <- log2(tmt.6H$B73xMo17.MP)
+tmt.6H$l2.Mo17xB73.MP <- log2(tmt.6H$Mo17xB73.MP)
+tmt.6H$l2.B84xB73.MP <- log2(tmt.6H$B84xB73.MP)
+tmt.6H$l2.B84xMo17.MP <- log2(tmt.6H$B84xMo17.MP)
+tmt.6H$l2.A682xB73.MP <- log2(tmt.6H$A682xB73.MP)
+tmt.6H$l2.A682xMo17.MP <- log2(tmt.6H$A682xMo17.MP)
+tmt.6H$l2.B73.Mo17 <- log2(tmt.6H$B73.Mo17)
+tmt.6H$l2.Mo17.B73 <- log2(tmt.6H$Mo17.B73)
+tmt.6H$l2.B84.B73 <- log2(tmt.6H$B84.B73)
+tmt.6H$l2.B84.Mo17 <- log2(tmt.6H$B84.Mo17)
+tmt.6H$l2.A682.B73 <- log2(tmt.6H$A682.B73)
+tmt.6H$l2.A682.Mo17 <- log2(tmt.6H$A682.Mo17)
+#save
+saveRDS(tmt.6H, "tmt.6H")
+```
+```{r subset all hybrids from RIL experiment}
+#Subset all hybrids from RIL experiment (RIL)
+tmt.RIL <- tmt[,c(171:176,181:183,81:170)]
+#Remove proteins not detected in any of the samples
+tmt.RIL <- tmt.RIL[rowSums(tmt.RIL[,10:99]) > 0,]
+#Calculate averages
+tmt.RIL$BM.B73 <- rowMeans(tmt.RIL[,10:12], na.rm = T)
+tmt.RIL$BM.Mo17 <- rowMeans(tmt.RIL[,13:15], na.rm = T)
+tmt.RIL$BM.BM <- rowMeans(tmt.RIL[,16:19], na.rm = T)
+tmt.RIL$X14.B73 <- rowMeans(tmt.RIL[,20:23], na.rm = T)
+tmt.RIL$X14.Mo17<- rowMeans(tmt.RIL[,24:27], na.rm = T)
+tmt.RIL$X14.14 <- rowMeans(tmt.RIL[,28:31], na.rm = T)
+tmt.RIL$X14.14B <- rowMeans(tmt.RIL[,32:35], na.rm = T)
+tmt.RIL$X14.14M <- rowMeans(tmt.RIL[,36:39], na.rm = T)
+tmt.RIL$X16.B73 <- rowMeans(tmt.RIL[,40:43], na.rm = T)
+tmt.RIL$X16.Mo17<- rowMeans(tmt.RIL[,44:47], na.rm = T)
+tmt.RIL$X16.16 <- rowMeans(tmt.RIL[,48:51], na.rm = T)
+tmt.RIL$X16.16B <- rowMeans(tmt.RIL[,52:55], na.rm = T)
+tmt.RIL$X16.16M <- rowMeans(tmt.RIL[,56:59], na.rm = T)
+tmt.RIL$X21.B73 <- rowMeans(tmt.RIL[,60:63], na.rm = T)
+tmt.RIL$X21.Mo17<- rowMeans(tmt.RIL[,64:67], na.rm = T)
+tmt.RIL$X21.21 <- rowMeans(tmt.RIL[,68:71], na.rm = T)
+tmt.RIL$X21.21B <- rowMeans(tmt.RIL[,72:75], na.rm = T)
+tmt.RIL$X21.21M <- rowMeans(tmt.RIL[,76:79], na.rm = T)
+tmt.RIL$X317.B73 <- rowMeans(tmt.RIL[,80:83], na.rm = T)
+tmt.RIL$X317.Mo17<- rowMeans(tmt.RIL[,84:87], na.rm = T)
+tmt.RIL$X317.317 <- rowMeans(tmt.RIL[,88:91], na.rm = T)
+tmt.RIL$X317.317B <- rowMeans(tmt.RIL[,92:95], na.rm = T)
+tmt.RIL$X317.317M <- rowMeans(tmt.RIL[,96:99], na.rm = T)
+#Calculate hyb/mp ratios
+tmt.RIL$BM.BM.MP <- tmt.RIL$BM.BM/rowMeans(tmt.RIL[,100:101], na.rm = T)
+tmt.RIL$X14.14B.MP <- tmt.RIL$X14.14B/rowMeans(tmt.RIL[,c(103,105)], na.rm = T)
+tmt.RIL$X14.14M.MP <- tmt.RIL$X14.14M/rowMeans(tmt.RIL[,c(104,105)], na.rm = T)
+tmt.RIL$X16.16B.MP <- tmt.RIL$X16.16B/rowMeans(tmt.RIL[,c(108,110)], na.rm = T)
+tmt.RIL$X16.16M.MP <- tmt.RIL$X16.16M/rowMeans(tmt.RIL[,c(109,110)], na.rm = T)
+tmt.RIL$X21.21B.MP <- tmt.RIL$X21.21B/rowMeans(tmt.RIL[,c(113,115)], na.rm = T)
+tmt.RIL$X21.21M.MP <- tmt.RIL$X21.21M/rowMeans(tmt.RIL[,c(114,115)], na.rm = T)
+tmt.RIL$X317.317B.MP <- tmt.RIL$X317.317B/rowMeans(tmt.RIL[,c(118,120)], na.rm = T)
+tmt.RIL$X317.317M.MP <- tmt.RIL$X317.317M/rowMeans(tmt.RIL[,c(119,120)], na.rm = T)
+#Calculate parent/parent ratios
+tmt.RIL$BM.B73.Mo17 <- tmt.RIL$BM.B73/tmt.RIL$BM.Mo17
+tmt.RIL$X14.14.B73 <- tmt.RIL$X14.14/tmt.RIL$X14.B73
+tmt.RIL$X14.14.Mo17 <- tmt.RIL$X14.14/tmt.RIL$X14.Mo17
+tmt.RIL$X16.16.B73 <- tmt.RIL$X16.16/tmt.RIL$X16.B73
+tmt.RIL$X16.16.Mo17 <- tmt.RIL$X16.16/tmt.RIL$X16.Mo17
+tmt.RIL$X21.21.B73 <- tmt.RIL$X21.21/tmt.RIL$X21.B73
+tmt.RIL$X21.21.Mo17 <- tmt.RIL$X21.21/tmt.RIL$X21.Mo17
+tmt.RIL$X317.317.B73 <- tmt.RIL$X317.317/tmt.RIL$X317.B73
+tmt.RIL$X317.317.Mo17 <- tmt.RIL$X317.317/tmt.RIL$X317.Mo17
+#Calculate log2 of all ratios
+tmt.RIL$l2.BM.BM.MP <- log2(tmt.RIL$BM.BM.MP)
+tmt.RIL$l2.X14.14B.MP <- log2(tmt.RIL$X14.14B.MP)
+tmt.RIL$l2.X14.14M.MP <- log2(tmt.RIL$X14.14M.MP)
+tmt.RIL$l2.X16.16B.MP <- log2(tmt.RIL$X16.16B.MP)
+tmt.RIL$l2.X16.16M.MP <- log2(tmt.RIL$X16.16M.MP)
+tmt.RIL$l2.X21.21B.MP <- log2(tmt.RIL$X21.21B.MP)
+tmt.RIL$l2.X21.21M.MP <- log2(tmt.RIL$X21.21M.MP)
+tmt.RIL$l2.X317.317B.MP <- log2(tmt.RIL$X317.317B.MP)
+tmt.RIL$l2.X317.317M.MP <- log2(tmt.RIL$X317.317M.MP)
+tmt.RIL$l2.BM.B73.Mo17 <- log2(tmt.RIL$BM.B73.Mo17)
+tmt.RIL$l2.X14.14.B73 <- log2(tmt.RIL$X14.14.B73)
+tmt.RIL$l2.X14.14.Mo17  <- log2(tmt.RIL$X14.14.Mo17)
+tmt.RIL$l2.X16.16.B73 <- log2(tmt.RIL$X16.16.B73)
+tmt.RIL$l2.X16.16.Mo17  <- log2(tmt.RIL$X16.16.Mo17)
+tmt.RIL$l2.X21.21.B73 <- log2(tmt.RIL$X21.21.B73)
+tmt.RIL$l2.X21.21.Mo17  <- log2(tmt.RIL$X21.21.Mo17)
+tmt.RIL$l2.X317.317.B73 <- log2(tmt.RIL$X317.317.B73)
+tmt.RIL$l2.X317.317.Mo17  <- log2(tmt.RIL$X317.317.Mo17)
+#save
+saveRDS(tmt.RIL, "tmt.RIL")
+```
+```{r subset acs mutant experiment}
+#Subset acs mutant experiment (acs)
+tmt.acs <- tmt[,c(171:176,181:183,1:10)]
+#Remove proteins not detected in any of the samples
+tmt.acs <- tmt.acs[rowSums(tmt.acs[,10:19]) > 0,]
+#Calculate averages of bio reps - acs
+tmt.acs$B73avg <- rowMeans(tmt.acs[,10:14])
+tmt.acs$ACSavg <- rowMeans(tmt.acs[,15:19])
+#calculate ratio
+tmt.acs$ACS.B73 <- tmt.acs$ACSavg/tmt.acs$B73avg
+#calculate log2
+tmt.acs$l2.ACS.B73 <- log2(tmt.acs$ACS.B73)
+#merge with BxM from original data (OG)
+tmt.acs.OG <- merge.data.frame(tmt.acs, tmt.BxM.OG[,c(6,24)], by.x = "Accession", by.y = "Accession", all=F)
+#merge with BxM from 6-hybrid data (6H)
+tmt.acs.6H <- merge.data.frame(tmt.acs, tmt.BxM.6H[,c(6,24)], by.x = "Accession", by.y = "Accession", all=F)
+#merge with BxM from RIL data (RIL)
+tmt.acs.RIL <- merge.data.frame(tmt.acs, tmt.BxM.RIL[,c(6,25)], by.x = "Accession", by.y = "Accession", all=F)
+#merge with BxM from day vs. night data (DN)
+tmt.acs.DN <- merge.data.frame(tmt.acs, tmt.BxM.DN[,c(6,24)], by.x = "Accession", by.y = "Accession", all=F)
+#save
+saveRDS(tmt.acs, "tmt.acs")
+saveRDS(tmt.acs.OG, "tmt.acs.OG")
+saveRDS(tmt.acs.6H, "tmt.acs.6H")
+saveRDS(tmt.acs.RIL, "tmt.acs.RIL")
+saveRDS(tmt.acs.DN, "tmt.acs.DN")
+```
+#Import RNA data
+```{r import RNA data}
+#Original experiment
+cpm.OG <- read_tsv(paste0(PathToData, "cpm.tsv"))
+#6-hybrid experiment
+cpm.6H <- readRDS(paste0(PathToData, "rn20b.rds"))
+cpm.6H.tm <- cpm.6H$tm
+cpm.6H.tm_m <- cpm.6H$tm_m
+#RIL experiment
+cpm.RIL <- readRDS(paste0(PathToData, "rn20b2.rds"))
+cpm.RIL.tm <- cpm.RIL$tm
+cpm.RIL.tm_m <- cpm.RIL$tm_m
+```
+#Subset RNA experiments
+```{r subset BxM seedling leaf from original experiment}
+#Original experiment seedling leaf BxM
+cpm.BxM.OG <- as.data.frame(cpm.OG[,c(1,178:186)])
+colnames(cpm.BxM.OG) <- c("Gene", "B73.1", "B73.2", "B73.3", "Mo17.1", "Mo17.2", "Mo17.3", "BM.1", "BM.2", "BM.3")
+#Remove genes not detected
+cpm.BxM.OG <- cpm.BxM.OG[!(rowSums(cpm.BxM.OG[,2:10])==0),]
+#Limit to genes we detect as proteins
+cpm.BxM.OG <- cpm.BxM.OG[cpm.BxM.OG$Gene%in%tmt.BxM.OG$Gene,]
+#Calculate averages of bio reps
+cpm.BxM.OG$B73avg <- rowMeans(cpm.BxM.OG[,2:4])
+cpm.BxM.OG$Mo17avg <- rowMeans(cpm.BxM.OG[,5:7])
+cpm.BxM.OG$HYBavg <- rowMeans(cpm.BxM.OG[,8:10])
+cpm.BxM.OG$MPavg <- rowMeans(cpm.BxM.OG[,c(2:7)])
+#calculate ratios
+cpm.BxM.OG$HYB.MP <- cpm.BxM.OG$HYBavg/cpm.BxM.OG$MPavg
+cpm.BxM.OG$l2.BM.MP <- log2(cpm.BxM.OG$HYB.MP)
+cpm.BxM.OG$B73.Mo17 <- cpm.BxM.OG$B73avg/cpm.BxM.OG$Mo17avg
+cpm.BxM.OG$l2.B73.Mo17 <-log2(cpm.BxM.OG$B73.Mo17)
+#save
+saveRDS(cpm.BxM.OG, "cpm.BxM.OG")
+```
+```{r subset BxM from 6-hybrid experiment}
+cpm.6H.tm.B73.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR582",]
+cpm.6H.tm.B73.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR583",]
+cpm.6H.tm.B73.3 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR584",]
+cpm.6H.tm.M017.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR590",]
+cpm.6H.tm.M017.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR591",]
+cpm.6H.tm.M017.3 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR592",]
+cpm.6H.tm.BM.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR598",]
+cpm.6H.tm.BM.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR599",]
+cpm.6H.tm.BM.3 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR600",]
+cpm.BxM.6H <- data.frame("Gene"=cpm.6H.tm.B73.1$gid, "B73.1"=cpm.6H.tm.B73.1$CPM, "B73.2"=cpm.6H.tm.B73.2$CPM, "B73.3"=cpm.6H.tm.B73.3$CPM, "Mo17.1"=cpm.6H.tm.M017.1$CPM, "Mo17.2"=cpm.6H.tm.M017.2$CPM, "Mo17.3"=cpm.6H.tm.M017.3$CPM, "BM.1"=cpm.6H.tm.BM.1$CPM, "BM.2"=cpm.6H.tm.BM.2$CPM, "BM.3"=cpm.6H.tm.BM.3$CPM)
+#Remove genes not detected
+cpm.BxM.6H <- cpm.BxM.6H[!(rowSums(cpm.BxM.6H[,2:10])==0),]
+#limit to genes detected as proteins
+cpm.BxM.6H <- cpm.BxM.6H[cpm.BxM.6H$Gene%in%tmt.BxM.6H$Gene,]
+#Calculate averages of bio reps
+cpm.BxM.6H$B73avg <- rowMeans(cpm.BxM.6H[,2:4])
+cpm.BxM.6H$Mo17avg <- rowMeans(cpm.BxM.6H[,5:7])
+cpm.BxM.6H$HYBavg <- rowMeans(cpm.BxM.6H[,8:10])
+cpm.BxM.6H$MPavg <- rowMeans(cpm.BxM.6H[,c(2:7)])
+#calculate ratios
+cpm.BxM.6H$HYB.MP <- cpm.BxM.6H$HYBavg/cpm.BxM.6H$MPavg
+cpm.BxM.6H$l2.BM.MP <- log2(cpm.BxM.6H$HYB.MP)
+cpm.BxM.6H$B73.Mo17 <- cpm.BxM.6H$B73avg/cpm.BxM.6H$Mo17avg
+cpm.BxM.6H$l2.B73.Mo17 <-log2(cpm.BxM.6H$B73.Mo17)
+#save
+saveRDS(cpm.BxM.6H, "cpm.BxM.6H")
+```
+```{r subset BxM from RIL experiment}
+cpm.RIL.tm.B73.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR701",]
+cpm.RIL.tm.B73.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR702",]
+cpm.RIL.tm.B73.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR703",]
+cpm.RIL.tm.B73.4 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR704",]
+cpm.RIL.tm.Mo17.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR757",]
+cpm.RIL.tm.Mo17.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR758",]
+cpm.RIL.tm.Mo17.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR759",]
+cpm.RIL.tm.Mo17.4 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR760",]
+cpm.RIL.tm.BM.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR705",]
+cpm.RIL.tm.BM.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR707",]
+cpm.RIL.tm.BM.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR708",]
+cpm.RIL.tm.BM.4 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR761",]
+#combine
+cpm.BxM.RIL <- data.frame("Gene"=cpm.RIL.tm.B73.1$gid, "B73.1"=cpm.RIL.tm.B73.1$CPM, "B73.2"=cpm.RIL.tm.B73.2$CPM, "B73.3"=cpm.RIL.tm.B73.3$CPM, "B73.4"=cpm.RIL.tm.B73.4$CPM, "Mo17.1"=cpm.RIL.tm.Mo17.1$CPM, "Mo17.2"=cpm.RIL.tm.Mo17.2$CPM, "Mo17.3"=cpm.RIL.tm.Mo17.3$CPM, "Mo17.4"=cpm.RIL.tm.Mo17.4$CPM, "BM.1"=cpm.RIL.tm.BM.1$CPM, "BM.2"=cpm.RIL.tm.BM.2$CPM, "BM.3"=cpm.RIL.tm.BM.3$CPM, "BM.4"=cpm.RIL.tm.BM.4$CPM)
+#Remove genes not detected
+cpm.BxM.RIL <- cpm.BxM.RIL[!(rowSums(cpm.BxM.RIL[,2:13])==0),]
+#limit to genes detected as protein
+cpm.BxM.RIL <- cpm.BxM.RIL[cpm.BxM.RIL$Gene%in%tmt.BxM.RIL$Gene,]
+#Calculate averages of bio reps
+cpm.BxM.RIL$B73avg <- rowMeans(cpm.BxM.RIL[,2:5])
+cpm.BxM.RIL$Mo17avg <- rowMeans(cpm.BxM.RIL[,6:9])
+cpm.BxM.RIL$HYBavg <- rowMeans(cpm.BxM.RIL[,10:13])
+cpm.BxM.RIL$MPavg <- rowMeans(cpm.BxM.RIL[,c(2:9)])
+#calculate ratios
+cpm.BxM.RIL$HYB.MP <- cpm.BxM.RIL$HYBavg/cpm.BxM.RIL$MPavg
+cpm.BxM.RIL$l2.BM.MP <- log2(cpm.BxM.RIL$HYB.MP)
+cpm.BxM.RIL$B73.Mo17 <- cpm.BxM.RIL$B73avg/cpm.BxM.RIL$Mo17avg
+cpm.BxM.RIL$l2.B73.Mo17 <-log2(cpm.BxM.RIL$B73.Mo17)
+#save
+saveRDS(cpm.BxM.RIL, "cpm.BxM.RIL")
+```
+```{r subset all hybrids from 6-hybrid experiment}
+#subset
+cpm.6H.tm_m.B73 <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s027",]
+cpm.6H.tm_m.Mo17 <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s037",]
+cpm.6H.tm_m.BM <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s029",]
+cpm.6H.tm_m.MB <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s039",]
+cpm.6H.tm_m.A682 <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s021",]
+cpm.6H.tm_m.A682xB <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s023",]
+cpm.6H.tm_m.A682xM <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s025",]
+cpm.6H.tm_m.B84 <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s031",]
+cpm.6H.tm_m.B84xB <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s033",]
+cpm.6H.tm_m.B84xM <- cpm.6H.tm_m[cpm.6H.tm_m$SampleID=="s035",]
+#combine
+cpm.6H.all6 <- data.frame("Gene"=cpm.6H.tm_m.B73$gid, "B73"=cpm.6H.tm_m.B73$CPM, "Mo17"=cpm.6H.tm_m.Mo17$CPM, "BM"=cpm.6H.tm_m.BM$CPM, "MB"=cpm.6H.tm_m.MB$CPM, "A682"=cpm.6H.tm_m.A682$CPM, "A682xB"=cpm.6H.tm_m.A682xB$CPM, "A682xM"=cpm.6H.tm_m.A682xM$CPM, "B84"=cpm.6H.tm_m.B84$CPM, "B84xB"=cpm.6H.tm_m.B84xB$CPM, "B84xM"=cpm.6H.tm_m.B84xM$CPM)
+#Remove genes not detected
+cpm.6H.all6 <- cpm.6H.all6[!(rowSums(cpm.6H.all6[,2:11])==0),]
+#Calculate log2 hybrid/MP values
+cpm.6H.all6$l2.BM.MP <- log2(cpm.6H.all6$BM/(rowMeans(cpm.6H.all6[,2:3])))
+cpm.6H.all6$l2.MB.MP <- log2(cpm.6H.all6$MB/(rowMeans(cpm.6H.all6[,2:3])))
+cpm.6H.all6$l2.A682xB.MP <- log2(cpm.6H.all6$A682xB/rowMeans(cpm.6H.all6[,c(2,6)]))
+cpm.6H.all6$l2.A682xM.MP <- log2(cpm.6H.all6$A682xM/rowMeans(cpm.6H.all6[,c(3,6)]))
+cpm.6H.all6$l2.B84xB.MP <- log2(cpm.6H.all6$B84xB/rowMeans(cpm.6H.all6[,c(2,9)]))
+cpm.6H.all6$l2.B84xM.MP <- log2(cpm.6H.all6$B84xM/rowMeans(cpm.6H.all6[,c(3,9)]))
+#Calculate log2 parent/parent values
+cpm.6H.all6$l2.B73.Mo17 <- log2(cpm.6H.all6$B73/cpm.6H.all6$Mo17)
+cpm.6H.all6$l2.Mo17.B73 <- log2(cpm.6H.all6$Mo17/cpm.6H.all6$B73)
+cpm.6H.all6$l2.A682.B73 <- log2(cpm.6H.all6$A682/cpm.6H.all6$B73)
+cpm.6H.all6$l2.A682.Mo17 <- log2(cpm.6H.all6$A682/cpm.6H.all6$Mo17)
+cpm.6H.all6$l2.B84.B73 <- log2(cpm.6H.all6$B84/cpm.6H.all6$B73)
+cpm.6H.all6$l2.B84.Mo17 <- log2(cpm.6H.all6$B84/cpm.6H.all6$Mo17)
+#limit to genes detected as proteins
+cpm.6H.all6 <- cpm.6H.all6[cpm.6H.all6$Gene%in%cpm.6H.all6$Gene,]
+#save
+saveRDS(cpm.6H.all6, "cpm.6H.all6")
+```
+```{r subset all hybrids from RIL experiment}
+cpm.RIL.tm_m.B73 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s001",]
+cpm.RIL.tm_m.BM <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s002",]
+cpm.RIL.tm_m.14 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s003",]
+cpm.RIL.tm_m.14B <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s004",]
+cpm.RIL.tm_m.14M <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s005",]
+cpm.RIL.tm_m.16 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s006",]
+cpm.RIL.tm_m.16B <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s007",]
+cpm.RIL.tm_m.16M <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s008",]
+cpm.RIL.tm_m.21 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s009",]
+cpm.RIL.tm_m.21B <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s010",]
+cpm.RIL.tm_m.21M <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s011",]
+cpm.RIL.tm_m.317 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s012",]
+cpm.RIL.tm_m.317B <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s013",]
+cpm.RIL.tm_m.317M <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s014",]
+cpm.RIL.tm_m.Mo17 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s015",]
+#combine
+cpm.RIL.all9 <- data.frame("Gene"=cpm.RIL.tm_m.B73$gid, "B73"=cpm.RIL.tm_m.B73$CPM, "Mo17"=cpm.RIL.tm_m.Mo17$CPM, "BM"=cpm.RIL.tm_m.BM$CPM, "M0014"=cpm.RIL.tm_m.14$CPM, "M0014xB"=cpm.RIL.tm_m.14B$CPM, "M0014xM"=cpm.RIL.tm_m.14M$CPM, "M0016"=cpm.RIL.tm_m.14$CPM, "M0016xB"=cpm.RIL.tm_m.16B$CPM, "M0016xM"=cpm.RIL.tm_m.16M$CPM, "M0021"=cpm.RIL.tm_m.14$CPM, "M0021xB"=cpm.RIL.tm_m.21B$CPM, "M0021xM"=cpm.RIL.tm_m.21M$CPM, "M0317"=cpm.RIL.tm_m.14$CPM, "M0317xB"=cpm.RIL.tm_m.317B$CPM, "M0317xM"=cpm.RIL.tm_m.317M$CPM)
+#Remove genes not detected
+cpm.RIL.all9 <- cpm.RIL.all9[!(rowSums(cpm.RIL.all9[,2:8])==0),]
+#Calculate log2 hybrid/MP values
+cpm.RIL.all9$l2.BM.MP <- log2(cpm.RIL.all9$BM/(rowMeans(cpm.RIL.all9[,2:3])))
+cpm.RIL.all9$l2.M0014xB.MP <- log2(cpm.RIL.all9$M0014xB/(rowMeans(cpm.RIL.all9[,c(2,5)])))
+cpm.RIL.all9$l2.M0014xM.MP <- log2(cpm.RIL.all9$M0014xM/(rowMeans(cpm.RIL.all9[,c(3,5)])))
+cpm.RIL.all9$l2.M0016xB.MP <- log2(cpm.RIL.all9$M0016xB/(rowMeans(cpm.RIL.all9[,c(2,8)])))
+cpm.RIL.all9$l2.M0016xM.MP <- log2(cpm.RIL.all9$M0016xM/(rowMeans(cpm.RIL.all9[,c(3,8)])))
+cpm.RIL.all9$l2.M0021xB.MP <- log2(cpm.RIL.all9$M0021xB/(rowMeans(cpm.RIL.all9[,c(2,11)])))
+cpm.RIL.all9$l2.M0021xM.MP <- log2(cpm.RIL.all9$M0021xM/(rowMeans(cpm.RIL.all9[,c(3,11)])))
+cpm.RIL.all9$l2.M0317xB.MP <- log2(cpm.RIL.all9$M0317xB/(rowMeans(cpm.RIL.all9[,c(2,14)])))
+cpm.RIL.all9$l2.M0317xM.MP <- log2(cpm.RIL.all9$M0317xM/(rowMeans(cpm.RIL.all9[,c(3,14)])))
+#Calculate log2 parent/parent values
+cpm.RIL.all9$l2.B73.Mo17 <- log2(cpm.RIL.all9$B73/cpm.RIL.all9$Mo17)
+cpm.RIL.all9$l2.M0014.B73 <- log2(cpm.RIL.all9$M0014/cpm.RIL.all9$B73)
+cpm.RIL.all9$l2.M0014.Mo17 <- log2(cpm.RIL.all9$M0014/cpm.RIL.all9$Mo17)
+cpm.RIL.all9$l2.M0016.B73 <- log2(cpm.RIL.all9$M0016/cpm.RIL.all9$B73)
+cpm.RIL.all9$l2.M0016.Mo17 <- log2(cpm.RIL.all9$M0016/cpm.RIL.all9$Mo17)
+cpm.RIL.all9$l2.M0021.B73 <- log2(cpm.RIL.all9$M0021/cpm.RIL.all9$B73)
+cpm.RIL.all9$l2.M0021.Mo17 <- log2(cpm.RIL.all9$M0021/cpm.RIL.all9$Mo17)
+cpm.RIL.all9$l2.M0317.B73 <- log2(cpm.RIL.all9$M0317/cpm.RIL.all9$B73)
+cpm.RIL.all9$l2.M0317.Mo17 <- log2(cpm.RIL.all9$M0317/cpm.RIL.all9$Mo17)
+#limit to genes detected as protein
+cpm.RIL.all9 <- cpm.RIL.all9[cpm.RIL.all9$Gene%in%tmt.ril.SL$Gene,]
+#save
+saveRDS(cpm.RIL.all9, "cpm.RIL.all9")
+```
+
+
+
+#Define GOIs
+##Accession conversion
+```{r mgdb}
+#Downloaded from MaizeGDB 2020/05/18, 07:11pm
+mgdb <- read.csv(paste0(PathToData,"gene_model_xref_v4.csv"), stringsAsFactors = F, header = F)
+colnames(mgdb) <- mgdb[5,]
+mgdb <- mgdb[-c(1:5),]
+```
+```{r organelleEntrez}
+organelleEntrez <- tmt[grep("Zema|Zeam", tmt$Accession),]
+organelleEntrez <- data.frame("Accession"=organelleEntrez$Accession, "Entrez"=NA)
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp003.1"] <- "845178"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp004.1"] <- "845232"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp008.1"] <- "845201"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp013.1"] <- "845225"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp014.1"] <- "845226"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp016.1"] <- "845236"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp017.1"] <- "845174"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp018.1"] <- "845173"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp019.1"] <- "845172"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp019.1"] <- "845172"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp021.1"] <- "845229"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp022.1"] <- "845196"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp023.1"] <- "845195"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp024.1"] <- "1466361"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp026.1"] <- "845238"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp027.1"] <- "845189"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp028.1"] <- "845190"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp029.1"] <- "845182"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp030.1"] <- "845171"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp032.1"] <- "845212"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp035.1"] <- "845175"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp036.1"] <- "845191"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp039.1"] <- "845204"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp040.1"] <- "845203"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp043.1"] <- "845198"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp044.1"] <- "845222"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp045.1"] <- "845233"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp046.1"] <- "845217"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp047.1"] <- "845176"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp048.1"] <- "845200"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp050.1"] <- "845211"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp051.1"] <- "845205"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp052.1"] <- "845192"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp053.1"] <- "845193"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp054.1"] <- "845224"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp055.1"] <- "845228"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp056.1"] <- "845223"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp057.1"] <- "845177"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp058.1"] <- "845241"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp059.1"] <- "845213"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp060.1"] <- "845214"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp061.1"] <- "845237"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp062.1"] <- "845218"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp063.1"] <- "845235"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp065.1"] <- "845216"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp067.1"] <- "845220"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp075.1"] <- "845181"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp082.1"] <- "845230"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp083.1"] <- "845185"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp084.1"] <- "845221"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp085.1"] <- "1466378"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp086.1"] <- "845183"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp087.1"] <- "1466379"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp088.1"] <- "845184"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp090.1"] <- "845188"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp091.1"] <- "845179"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZemaCp092.1"] <- "845187"
+
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp008.1"] <- "4055864"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp024.1"] <- "4055860"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp032.1"] <- "4055888"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp033.1"] <- "4055938"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp036.1"] <- "4055894"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp050.1"] <- "4055956"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp051.1"] <- "4055881"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp057.1"] <- "4055973"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp081.1"] <- "4055890"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp092.1"] <- "4055837"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp097.1"] <- "4055857"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp098.1"] <- "4055896"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp113.1"] <- "4055802"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp119.1"] <- "4055928"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp129.1"] <- "4055878"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp136.1"] <- "4056004"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp159.1"] <- "4055794"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp167.1"] <- "4056007"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp179.1"] <- "4056006"
+organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp185.1"] <- "4055892"
+```
+
+```{r Entrez conversion}
+Entrez <- mgdb[,c(1,12)]
+colnames(Entrez) <- c("Accession", "Entrez")
+Entrez <- rbind(Entrez, organelleEntrez)
+```
+##Plastid-encoded
+```{r}
+#Plastid-encoded proteins
+PE<-tmt[grep("ZemaCp", tmt$Accession),]
+#define list of plastid-encoded photosynthesis-associated genes
+PE.PS <- PE$Gene[grep("psb|psa|ndh|rbc|pet|atp|ccs|cem", PE$Protein)]
+PE.PS.PSI <- PE$Gene[grep("psa", PE$Protein)]
+PE.PS.PSII <- PE$Gene[grep("psb", PE$Protein)]
+PE.PS.NADH <- PE$Gene[grep("ndh", PE$Protein)]
+PE.PS.b6f <- PE$Gene[grep("pet", PE$Protein)]
+PE.PS.ATP <- PE$Gene[grep("atp", PE$Protein)]
+PE.PS.rubisco <- PE$Gene[grep("rbc", PE$Protein)]
+PhAPGs <- c(PE.PS.PSI,PE.PS.PSII,PE.PS.NADH,PE.PS.b6f,PE.PS.ATP,PE.PS.rubisco)
+#Plastid encoded ribosomal proteins (EnsemblPlants Annotation)
+#get subset of PE encoded genes annotated as ribosomal proteins
+PE.ribo <- PE$Gene[grep("rps|rpl", PE$Protein)]
+#Plastid encoded RNA polymerases (EnsemblPlants Annotation)
+PE.rpo <- PE$Gene[grep("rpo", PE$Protein)]
+#Define "other" as everything left
+PE.other <- PE$Gene[!(PE$Gene%in%c(PE.PS.rubisco, PE.Complexes, PE.ribo, PE.rpo))]
+PE <- PE$Gene
+```
+
+
+##PhANGs
+###KEGG - zma00195
+```{r zma00195 tibble}
+#Retrieved from KEGG on 02/26/2020
+KEGG.zma00195.tib <-tibble::tribble(
+              ~V1,                                                                                    ~V2,
+          845199L,                            "psbA; photosystem II protein D1 [KO:K02703] [EC:1.10.3.9]",
+          845200L,                                      "psbB; photosystem II 47 kDa protein [KO:K02704]",
+          845201L,                                      "psbC; photosystem II 44 kDa protein [KO:K02705]",
+          845202L,                            "psbD; photosystem II protein D2 [KO:K02706] [EC:1.10.3.9]",
+          845203L,                                           "psbE; photosystem II protein V [KO:K02707]",
+          845204L,                                          "psbF; photosystem II protein VI [KO:K02708]",
+          845205L,                                           "psbH; photosystem II protein H [KO:K02709]",
+          845206L,                                           "psbI; photosystem II protein I [KO:K02710]",
+          845207L,                                           "psbJ; photosystem II protein J [KO:K02711]",
+          845208L,                                           "psbK; photosystem II protein K [KO:K02712]",
+          845209L,                                           "psbL; photosystem II protein L [KO:K02713]",
+          845210L,                                           "psbM; photosystem II protein M [KO:K02714]",
+       100191684L,                                     "uncharacterized protein LOC100191684 [KO:K02716]",
+       100272890L,                                             "uncharacterized LOC100272890 [KO:K02716]",
+       100281199L,    "chloroplast oxygen-evolving complex/thylakoid lumenal 25.6kDa protein [KO:K02717]",
+       107648855L,                                     "uncharacterized protein LOC107648855 [KO:K02717]",
+       100273117L,                        "oxygen-evolving enhancer protein 2, chloroplastic [KO:K02717]",
+          542279L,               "PSBQ1; oxygen-evolving enhancer protein 3-1, chloroplastic [KO:K08901]",
+       100273120L,                    "oxygen evolving enhancer protein 3 containing protein [KO:K08901]",
+       103647735L,                 "oxygen-evolving enhancer protein 3-1, chloroplastic-like [KO:K08901]",
+       103627333L,          "photosynthetic NDH subunit of lumenal location 2, chloroplastic [KO:K08901]",
+       103653672L,          "photosynthetic NDH subunit of lumenal location 2, chloroplastic [KO:K08901]",
+       100281646L,                         "photosystem II 10 kDa polypeptide, chloroplastic [KO:K03541]",
+          542126L,                                      "psbs1; photosystem II subunit PsbS1 [KO:K03542]",
+         1466364L,                                           "psbT; photosystem II protein T [KO:K02718]",
+       100283816L,                          "pco070877; uncharacterized protein LOC100283816 [KO:K02721]",
+       100283835L,                           "cl5838_2; uncharacterized protein LOC100283835 [KO:K02721]",
+       100280994L,                                "photosystem II core complex proteins psbY [KO:K02723]",
+       100281349L,                                "photosystem II core complex proteins psbY [KO:K02723]",
+         1466358L,                                           "psbZ; photosystem II protein Z [KO:K02724]",
+       100282043L,                                             "photosystem II 11 kD protein [KO:K08902]",
+       100281235L,                                             "photosystem II 11 kD protein [KO:K08902]",
+       103636309L,         "photosystem II reaction center PSB28 protein, chloroplastic-like [KO:K08903]",
+       100284876L,                                 "photosystem II reaction center W protein [KO:K08903]",
+       103650780L,              "photosystem II reaction center PSB28 protein, chloroplastic [KO:K08903]",
+       109945128L,              "photosystem II reaction center PSB28 protein, chloroplastic [KO:K08903]",
+       103650783L,              "photosystem II reaction center PSB28 protein, chloroplastic [KO:K08903]",
+          845195L,                     "psaA; photosystem I P700 chlorophyll a apoprotein A1 [KO:K02689]",
+          845196L,                     "psaB; photosystem I P700 chlorophyll a apoprotein A2 [KO:K02690]",
+         1466379L,                                          "psaC; photosystem I subunit VII [KO:K02691]",
+       100191984L,                                 "photosystem I reaction center subunit II [KO:K02692]",
+          541791L,                  "photosystem I reaction center subunit II, chloroplastic [KO:K02692]",
+       100283327L,                               "photosystem I reaction center subunit IV A [KO:K02693]",
+       100283085L,                                     "uncharacterized protein LOC100283085 [KO:K02693]",
+       100282027L,                                "photosystem I reaction center subunit III [KO:K02694]",
+       103625835L,                 "photosystem I reaction center subunit III, chloroplastic [KO:K02694]",
+       100285458L,                                  "photosystem I reaction center subunit V [KO:K08905]",
+       100284847L,                                  "photosystem I reaction center subunit V [KO:K08905]",
+          541685L, "psah1; photosystem I reaction center subunit VI, chloroplastic precursor [KO:K02695]",
+          845197L,                                         "psaI; photosystem I subunit VIII [KO:K02696]",
+          845198L,                                           "psaJ; photosystem I subunit IX [KO:K02697]",
+       100286020L,                                    "psa6; photosystem I reaction center 6 [KO:K02698]",
+       100281679L,                                 "photosystem I reaction center subunit XI [KO:K02699]",
+       100383080L,                            "umc1974; uncharacterized protein LOC100383080 [KO:K02699]",
+          542605L,                   "photosystem I reaction center subunit N, chloroplastic [KO:K02701]",
+       103640891L,              "photosystem I reaction center subunit N, chloroplastic-like [KO:K02701]",
+       100283848L,                          "pco139896; uncharacterized protein LOC100283848 [KO:K14332]",
+          845191L,                                                       "petA; cytochrome f [KO:K02634]",
+       103643185L,                                     "uncharacterized protein LOC103643185 [KO:K02634]",
+          845192L,                                                      "petB; cytochrome b6 [KO:K02635]",
+       100273354L,                                 "ris2; iron-sulfur protein 2 [KO:K02636] [EC:7.1.1.6]",
+       100273026L,                 "cytochrome b6-f complex iron-sulfur subunit [KO:K02636] [EC:7.1.1.6]",
+          845193L,                                 "petD; cytochrome b6/f complex subunit IV [KO:K02637]",
+          845194L,                                  "petG; cytochrome b6/f complex subunit V [KO:K02640]",
+         1466360L,                               "petN; cytochrome b6/f complex subunit VIII [KO:K03689]",
+       100192779L,                                     "uncharacterized protein LOC100192779 [KO:K02638]",
+       103629356L,                                              "plastocyanin, chloroplastic [KO:K02638]",
+       100191704L,                                     "uncharacterized protein LOC100191704 [KO:K02639]",
+       103628935L,                                        "fdx5; ferredoxin-5, chloroplastic [KO:K02639]",
+          541619L,                                        "fdx2; ferredoxin-2, chloroplastic [KO:K02639]",
+       100283643L,                                                             "ferredoxin-3 [KO:K02639]",
+          541612L,                              "pco072676(750); ferredoxin-6, chloroplastic [KO:K02639]",
+       100382495L,                                      "putative ferredoxin-4 chloroplastic [KO:K02639]",
+       100281226L,                                                             "ferredoxin-6 [KO:K02639]",
+          542276L,                                        "fdx3; ferredoxin-3, chloroplastic [KO:K02639]",
+       100284745L,                                                               "ferredoxin [KO:K02639]",
+       101027099L,                                         "FDX1; adrenodoxin, mitochondrial [KO:K02639]",
+       103653165L,                                                               "ferredoxin [KO:K02639]",
+          541626L,                                        "L-FNRII; ferredoxin [KO:K02641] [EC:1.18.1.2]",
+       100194249L,               "IDP808; uncharacterized protein LOC100194249 [KO:K02641] [EC:1.18.1.2]",
+          542713L,                          "fnr1; ferredoxin NADP reductase 1 [KO:K02641] [EC:1.18.1.2]",
+       100282643L,                   "ferredoxin--NADP reductase, leaf isozyme [KO:K02641] [EC:1.18.1.2]",
+          542558L,                                         "L-FNRI; ferredoxin [KO:K02641] [EC:1.18.1.2]",
+       103644035L,  "ferredoxin--NADP reductase, leaf isozyme 1, chloroplastic [KO:K02641] [EC:1.18.1.2]",
+       100382419L,                                                            "cytochrome c6 [KO:K08906]",
+          845171L,                                   "atpE; ATP synthase CF1 epsilon subunit [KO:K02114]",
+          845170L,                 "atpB; ATP synthase CF1 beta subunit [KO:K02112] [EC:7.1.2.2 7.2.2.1]",
+       100284505L,        "csu309(atpc); ATP synthase subunit gamma, chloroplastic precursor [KO:K02115]",
+       103637166L,                                "ATP synthase subunit gamma, chloroplastic [KO:K02115]",
+       103655982L,                           "ATP synthase subunit gamma, chloroplastic-like [KO:K02115]",
+       103649250L,                           "ATP synthase subunit gamma, chloroplastic-like [KO:K02115]",
+          845169L,                "atpA; ATP synthase CF1 alpha subunit [KO:K02111] [EC:7.1.2.2 7.2.2.1]",
+       100281924L,                                                 "ATP synthase delta chain [KO:K02113]",
+       103627748L,                                  "ATP synthase delta chain, chloroplastic [KO:K02113]",
+       100282566L,                         "pco080036b; uncharacterized protein LOC100282566 [KO:K02109]",
+          845172L,                                         "atpF; ATP synthase CF0 B subunit [KO:K02109]",
+          845173L,                                         "atpH; ATP synthase CF0 C subunit [KO:K02110]",
+          845174L,                                         "atpI; ATP synthase CF0 A subunit [KO:K02108]"
+       )
+
+#rename columns
+colnames(KEGG.zma00195.tib) <- c("Entrez", "Description")
+KEGG.zma00195.tib$Entrez <- as.character(KEGG.zma00195.tib$Entrez)
+```
+```{r zma00195 digenomic proteins}
+KEGG.zma00195.tib.digenomic <- KEGG.zma00195.tib[c(1:65,86:98),]
+KEGG.zma00195.tib.digenomic <- join(KEGG.zma00195.tib.digenomic, Entrez)
+```
+
+
+
+
+
+
+
+###KEGG - zma00196
+```{r zma00196 tibble}
+#Retrieved from KEGG on 02/26/2020
+KEGG.zma00196.tib <- tibble::tribble(
+                   ~V1,                                                                              ~V2,
+            100281791L,                                 "chlorophyll a-b binding protein 6A [KO:K08907]",
+            100283212L,                                 "chlorophyll a-b binding protein 6A [KO:K08907]",
+            100273427L,      "Photosystem I chlorophyll a/b-binding protein 6 chloroplastic [KO:K08908]",
+            100191715L,                                    "chlorophyll a-b binding protein [KO:K08908]",
+            100282512L,                                    "chlorophyll a-b binding protein [KO:K08908]",
+            100282214L,                                  "chlorophyll a-b binding protein 8 [KO:K08909]",
+            100284001L,                       "gpm571; uncharacterized protein LOC100284001 [KO:K08910]",
+            100280410L,                               "uncharacterized protein LOC100280410 [KO:K08910]",
+            100281795L,                "csu1028(lhcb); uncharacterized protein LOC100281795 [KO:K08911]",
+            100281248L,         "chlorophyll a-b binding protein 1, chloroplastic precursor [KO:K08912]",
+            100193833L,              "lhcb7; chlorophyll a-b binding protein, chloroplastic [KO:K08912]",
+            100282054L,                                  "chlorophyll a-b binding protein 2 [KO:K08912]",
+               542530L, "lhcb3; chlorophyll a-b binding protein M9, chloroplastic precursor [KO:K08912]",
+            100274453L,                  "light harvesting chlorophyll a/b binding protein1 [KO:K08912]",
+            103651575L,                  "chlorophyll a-b binding protein 48, chloroplastic [KO:K08912]",
+            103651577L,                    "chlorophyll a-b binding protein of LHCII type 1 [KO:K08912]",
+            103651578L,                    "chlorophyll a-b binding protein of LHCII type 1 [KO:K08912]",
+            100281879L,                                    "chlorophyll a-b binding protein [KO:K08913]",
+            103643653L,                     "chlorophyll a-b binding protein, chloroplastic [KO:K08913]",
+            100284154L,                  "chlorophyll a-b binding protein of LHCII type III [KO:K08914]",
+            100216729L,                               "uncharacterized protein LOC100216729 [KO:K08915]",
+               542478L,                                    "psb29; photosystem II subunit29 [KO:K08915]",
+               542320L,         "Lhcb5-2; chlorophyll a/b-binding apoprotein CP26 precursor [KO:K08916]",
+               542716L,          "lhcb5; light harvesting chlorophyll a/b binding protein 5 [KO:K08916]",
+            100273752L,                               "uncharacterized protein LOC100273752 [KO:K08917]",
+               542321L,          "lhcb6; light harvesting chlorophyll a/b binding protein 6 [KO:K08917]",
+            109944964L,            "chlorophyll a-b binding protein CP24 10B, chloroplastic [KO:K08917]",
+            113561367L,                               "chlorophyll a-b binding protein CP24 [KO:K08917]",
+            100274085L,                  "si486069e02; uncharacterized protein LOC100274085 [KO:K14172]"
+            )
+
+#rename columns
+colnames(KEGG.zma00196.tib) <- c("Entrez", "Description")
+KEGG.zma00196.tib$Entrez <- as.character(KEGG.zma00196.tib$Entrez)
+```
+```{r zma00196 digenomic}
+KEGG.zma00196.tib.digenomic <- join(KEGG.zma00196.tib, Entrez)
+```
+
+
+###CornCyc - Light Reactions
+```{r CornCycLightRxns}
+#Retrieved from CornCyc on 02/26/2020
+CornCycLightRxns <- tibble::tribble(
+                          ~Gene.ID,  ~Gene.Accession,       ~Gene.name,                               ~Reaction.id, ~Reaction.EC,                   ~Enzymatic.activity, ~Evidence,
+                       "GDQC-8387", "Zm00001d010715", "Zm00001d010715",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-8546", "Zm00001d020002", "Zm00001d020002",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-8747", "Zm00001d000417", "Zm00001d000417",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-9170", "Zm00001d039715", "Zm00001d039715",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-9254", "Zm00001d011362", "Zm00001d011362",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-9445", "Zm00001d008681", "Zm00001d008681",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-9899", "Zm00001d043167", "Zm00001d043167",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-10138", "Zm00001d008625", "Zm00001d008625",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-10311", "Zm00001d041824", "Zm00001d041824",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-10950", "Zm00001d022464", "Zm00001d022464",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-11782", "Zm00001d044217", "Zm00001d044217",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-11860", "Zm00001d030638", "Zm00001d030638",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-11887",  "GRMZM5G808939",  "GRMZM5G808939",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-11985", "Zm00001d043299", "Zm00001d043299",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-11996", "Zm00001d034153", "Zm00001d034153",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-12078", "Zm00001d000260", "Zm00001d000260",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-13214", "Zm00001d031484", "Zm00001d031484",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                      "GDQC-14006", "Zm00001d039852", "Zm00001d039852",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
+                       "GDQC-8316", "Zm00001d016134", "Zm00001d016134", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
+                       "GDQC-9168", "Zm00001d018162", "Zm00001d018162", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
+                      "GDQC-11523", "Zm00001d053432", "Zm00001d053432", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
+                      "GDQC-13682",  "GRMZM5G800780",  "GRMZM5G800780", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
+                       "GDQC-8046", "Zm00001d003767", "Zm00001d003767",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
+                       "GDQC-8673", "Zm00001d034283", "Zm00001d034283",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
+                       "GDQC-9216",  "GRMZM5G815553",  "GRMZM5G815553",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
+                      "GDQC-10703", "Zm00001d013146", "Zm00001d013146",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
+                      "GDQC-12161", "Zm00001d000272", "Zm00001d000272",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
+                       "GDQC-7635", "Zm00001d011833", "Zm00001d011833",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                       "GDQC-7812", "Zm00001d023296", "Zm00001d023296",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                       "GDQC-8192", "Zm00001d045575", "Zm00001d045575",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                       "GDQC-8377", "Zm00001d051680", "Zm00001d051680",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                       "GDQC-8916", "Zm00001d048452", "Zm00001d048452",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-10511", "Zm00001d005458", "Zm00001d005458",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-10877", "Zm00001d018794", "Zm00001d018794",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-10917", "Zm00001d034099", "Zm00001d034099",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-11276", "Zm00001d042049", "Zm00001d042049",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-11941", "Zm00001d039519", "Zm00001d039519",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-11960", "Zm00001d034345", "Zm00001d034345",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-12126", "Zm00001d051407", "Zm00001d051407",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-12735", "Zm00001d045574", "Zm00001d045574",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-13931", "Zm00001d036041", "Zm00001d036041",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
+                      "GDQC-14028", "Zm00001d037231", "Zm00001d037231",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP"
+                      )
+
+```
+```{r CornCycLightRxns digenomic}
+CornCycLightRxns.digenomic <- CornCycLightRxns[CornCycLightRxns$Reaction.EC=="1.97.1.12"|CornCycLightRxns$Reaction.EC=="1.10.3.9",]
+```
+
+
+
+
+###NE Rubisco
+```{r}
+NE.Rubisco <- c("Zm00001d052595", "Zm00001d004894")
+```
+
+###Combine groups
+```{r}
+Ph <- unique(na.omit(c(KEGG.zma00195.tib.digenomic$Accession, KEGG.zma00196.tib.digenomic$Accession, CornCycLightRxns.digenomic$Gene.Accession, NE.Rubisco, PE.Complexes)))
+```
+```{r}
+PhANGs <- Ph[grep("Zm", Ph)]
+```
+
+
+##Plastid background
+```{r}
+#Import supplemental Table I from Friso et al. 2010
+friso <- read.csv(paste0(PathToData,"Friso2010_SupTab1.csv"), stringsAsFactors = F)
+colnames(friso) <- as.character(friso[1,])
+friso <- friso[-1,]
+friso <- friso[friso$`best gene model (selected)`=="yes",]
+friso$Gene <- substr(friso$Accession, start = 1, stop = 13)
+#convert to v4 accessions
+friso <- merge.data.frame(friso, mgdb[,c(1,11)], by.x = "Gene", by.y = "v3_gene_model")
+friso.v4 <- friso$v4_gene_model
+#add previously called photosynthesis digenomic proteins
+plastid <- unique(na.omit(c(friso.v4, Ph)))
+```
+
+##Nuclear-encoded plastid ribosome
+```{r}
+#grep plastid ribosomal proteins
+ribosom <- tmt[(grep("ribosom", tmt$Protein)),]
+ribosom.pt <- ribosom[(grep("30S|50S|plastid|Plastid|Chloropl|chloropl", ribosom$Protein)),]
+NE.PtRibo <- ribosom.pt$Gene
+```
+
+
+
+##Cytosolic ribosome
+```{r}
+#Cytosolic ribosomal proteins (EnsemblPlants Annotation)
+CytoRibo<-tmt[(grep("40S|60S", tmt$Protein)),]
+#remove the mitochondrial and biogenesis proteins
+CytoRibo<- CytoRibo$Gene[-(grep("mito|Mito|biogen|Biogen", CytoRibo$Protein))]
+```
+##Etyhlene Biosynthesis
+```{r}
+#Retrieved from CornCyc on 05/11/2020
+CornCycEtBio <- tibble::tribble(
+                      ~Gene.ID,  ~Gene.Accession,       ~Gene.name,       ~Reaction.id, ~Reaction.EC,                          ~Enzymatic.activity, ~Evidence,
+                   "GDQC-8129", "Zm00001d024754", "Zm00001d024754", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
+                   "GDQC-9315", "Zm00001d009146", "Zm00001d009146", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
+                  "GDQC-10512", "Zm00001d008175", "Zm00001d008175", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
+                  "GDQC-11102", "Zm00001d010920", "Zm00001d010920", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
+                  "GDQC-14097", "Zm00001d018517", "Zm00001d018517", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
+                  "GDQC-14756", "Zm00001d040697", "Zm00001d040697", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
+                   "GDQC-9936", "Zm00001d026060", "Zm00001d026060",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
+                  "GDQC-10643", "Zm00001d033862", "Zm00001d033862",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
+                  "GDQC-11104", "Zm00001d045479", "Zm00001d045479",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
+                  "GDQC-11257", "Zm00001d039487", "Zm00001d039487",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
+                  "GDQC-12498", "Zm00001d002592", "Zm00001d002592",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
+                   "GDQC-7692", "Zm00001d014572", "Zm00001d014572",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-7977", "Zm00001d024850", "Zm00001d024850",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-8083", "Zm00001d020686", "Zm00001d020686",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-8443", "Zm00001d042996", "Zm00001d042996",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-8648", "Zm00001d015860", "Zm00001d015860",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-9116", "Zm00001d011208", "Zm00001d011208",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-9304", "Zm00001d024853", "Zm00001d024853",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-9498", "Zm00001d024851", "Zm00001d024851",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-9503", "Zm00001d024843", "Zm00001d024843",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                   "GDQC-9749", "Zm00001d018211", "Zm00001d018211",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-11380", "Zm00001d004719", "Zm00001d004719",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-12095", "Zm00001d043503", "Zm00001d043503",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-12184", "Zm00001d024865", "Zm00001d024865",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13009", "Zm00001d005927", "Zm00001d005927",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13037", "Zm00001d024852", "Zm00001d024852",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13116", "Zm00001d000163", "Zm00001d000163",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13242", "Zm00001d052136", "Zm00001d052136",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13842", "Zm00001d048562", "Zm00001d048562",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13898", "Zm00001d046848", "Zm00001d046848",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-13947", "Zm00001d036955", "Zm00001d036955",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
+                  "GDQC-14537", "Zm00001d004718", "Zm00001d004718",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP"
+                  )
+
+ 
+EtBio <- CornCycEtBio$Gene.Accession
+```
+
+
+
+
+
+##GOI list
+```{r}
+GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio)
+names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio")
+saveRDS(GOIs, "GOIs")
+```
+
+#Figure S1
+```{r protein CV}
+#Remove proteins that weren't detected in one or more of the BxM replicates
+tmt.BxM.OG.no0 <- tmt.BxM.OG
+tmt.BxM.OG.no0 <- tmt.BxM.OG.no0[!tmt.BxM.OG.no0$SeedlingLeaf.BM.r1==0,]
+tmt.BxM.OG.no0 <- tmt.BxM.OG.no0[!tmt.BxM.OG.no0$SeedlingLeaf.BM.r2==0,]
+tmt.BxM.OG.no0 <- tmt.BxM.OG.no0[!tmt.BxM.OG.no0$SeedlingLeaf.BM.r3==0,]
+
+tmt.BxM.6H.no0 <- tmt.BxM.6H
+tmt.BxM.6H.no0 <- tmt.BxM.6H.no0[!tmt.BxM.6H.no0$X6Hybrid.B73xMo17.r1==0,]
+tmt.BxM.6H.no0 <- tmt.BxM.6H.no0[!tmt.BxM.6H.no0$X6Hybrid.B73xMo17.r2==0,]
+tmt.BxM.6H.no0 <- tmt.BxM.6H.no0[!tmt.BxM.6H.no0$X6Hybrid.B73xMo17.r3==0,]
+
+tmt.BxM.RIL.no0 <- tmt.BxM.RIL
+tmt.BxM.RIL.no0 <- tmt.BxM.RIL.no0[!tmt.BxM.RIL.no0$BM.1==0,]
+tmt.BxM.RIL.no0 <- tmt.BxM.RIL.no0[!tmt.BxM.RIL.no0$BM.2==0,]
+tmt.BxM.RIL.no0 <- tmt.BxM.RIL.no0[!tmt.BxM.RIL.no0$BM.3==0,]
+tmt.BxM.RIL.no0 <- tmt.BxM.RIL.no0[!tmt.BxM.RIL.no0$BM.4==0,]
+
+#Calculate CV
+tmt.BxM.OG.no0$CV <- NA
+for(i in 1:nrow(tmt.BxM.OG.no0)){
+  tmt.BxM.OG.no0[i,"CV"] <- cv(as.numeric(tmt.BxM.OG.no0[i,16:18]))
+}
+
+tmt.BxM.6H.no0$CV <- NA
+for(i in 1:nrow(tmt.BxM.6H.no0)){
+  tmt.BxM.6H.no0[i,"CV"] <- cv(as.numeric(tmt.BxM.6H.no0[i,16:18]))
+}
+
+tmt.BxM.RIL.no0$CV <- NA
+for(i in 1:nrow(tmt.BxM.RIL.no0)){
+  tmt.BxM.RIL.no0[i,"CV"] <- cv(as.numeric(tmt.BxM.RIL.no0[i,16:19]))
+}
+```
+```{r RNA CV}
+#Remove genes that weren't detected in one or more of the BxM replicates
+cpm.BxM.OG.no0 <- cpm.BxM.OG
+cpm.BxM.OG.no0 <- cpm.BxM.OG.no0[!cpm.BxM.OG.no0$BM.1==0,]
+cpm.BxM.OG.no0 <- cpm.BxM.OG.no0[!cpm.BxM.OG.no0$BM.2==0,]
+cpm.BxM.OG.no0 <- cpm.BxM.OG.no0[!cpm.BxM.OG.no0$BM.3==0,]
+
+cpm.BxM.6H.no0 <- cpm.BxM.6H
+cpm.BxM.6H.no0 <- cpm.BxM.6H.no0[!cpm.BxM.6H.no0$BM.1==0,]
+cpm.BxM.6H.no0 <- cpm.BxM.6H.no0[!cpm.BxM.6H.no0$BM.2==0,]
+cpm.BxM.6H.no0 <- cpm.BxM.6H.no0[!cpm.BxM.6H.no0$BM.3==0,]
+
+cpm.BxM.RIL.no0 <- cpm.BxM.RIL
+cpm.BxM.RIL.no0 <- cpm.BxM.RIL.no0[!cpm.BxM.RIL.no0$BM.1==0,]
+cpm.BxM.RIL.no0 <- cpm.BxM.RIL.no0[!cpm.BxM.RIL.no0$BM.2==0,]
+cpm.BxM.RIL.no0 <- cpm.BxM.RIL.no0[!cpm.BxM.RIL.no0$BM.3==0,]
+cpm.BxM.RIL.no0 <- cpm.BxM.RIL.no0[!cpm.BxM.RIL.no0$BM.4==0,]
+
+#Remove genes that weren't detected as protein
+cpm.BxM.OG.no0.protein <- cpm.BxM.OG.no0
+cpm.BxM.OG.no0.protein <- cpm.BxM.OG.no0.protein[cpm.BxM.OG.no0.protein$Gene%in%tmt.BxM.OG.no0$Gene,]
+
+cpm.BxM.6H.no0.protein <- cpm.BxM.6H.no0
+cpm.BxM.6H.no0.protein <- cpm.BxM.6H.no0.protein[cpm.BxM.6H.no0.protein$Gene%in%tmt.BxM.6H.no0$Gene,]
+
+cpm.BxM.RIL.no0.protein <- cpm.BxM.RIL.no0
+cpm.BxM.RIL.no0.protein <- cpm.BxM.RIL.no0.protein[cpm.BxM.RIL.no0.protein$Gene%in%tmt.BxM.RIL.no0$Gene,]
+
+#Calculate CV
+cpm.BxM.OG.no0.protein$CV <- NA
+for(i in 1:nrow(cpm.BxM.OG.no0.protein)){
+  cpm.BxM.OG.no0.protein[i,"CV"] <- cv(as.numeric(cpm.BxM.OG.no0.protein[i,8:10]))
+}
+
+cpm.BxM.6H.no0.protein$CV <- NA
+for(i in 1:nrow(cpm.BxM.6H.no0.protein)){
+  cpm.BxM.6H.no0.protein[i,"CV"] <- cv(as.numeric(cpm.BxM.6H.no0.protein[i,8:10]))
+}
+
+cpm.BxM.RIL.no0.protein$CV <- NA
+for(i in 1:nrow(cpm.BxM.RIL.no0.protein)){
+  cpm.BxM.RIL.no0.protein[i,"CV"] <- cv(as.numeric(cpm.BxM.RIL.no0.protein[i,10:13]))
+}
+```
+```{r compare protein and RNA CVs}
+#merge protein and RNA CVs
+CV.OG.protein <- merge.data.frame(tmt.BxM.OG.no0[,c(9,27)], cpm.BxM.OG.no0.protein[,c(1,19)], by.x = "Gene", by.y = "Gene", all=F)
+CV.6h.protein <- merge.data.frame(tmt.BxM.6H.no0[,c(9,27)], cpm.BxM.6H.no0.protein[,c(1,19)], by.x = "Gene", by.y = "Gene", all=F)
+CV.ril.protein <- merge.data.frame(tmt.BxM.RIL.no0[,c(9,28)], cpm.BxM.RIL.no0.protein[,c(1,22)], by.x = "Gene", by.y = "Gene", all=F)
+
+colnames(CV.OG.protein) <- c("Gene", "Protein", "RNA")
+colnames(CV.6h.protein) <- c("Gene", "Protein", "RNA")
+colnames(CV.ril.protein) <- c("Gene", "Protein", "RNA")
+
+CV.OG.protein$Experiment <- "Original"
+CV.6h.protein$Experiment <- "6-hybrid"
+CV.ril.protein$Experiment <- "RIL"
+#combine experiments into one dataframe
+CV.protein <- rbind(CV.OG.protein,CV.6h.protein)
+CV.protein <- rbind(CV.protein, CV.ril.protein)
+CV.protein <- melt(CV.protein)
+CV.protein <- na.omit(CV.protein)
+#plot
+ggplot(CV.protein, mapping=aes(x=Experiment, y=value, fill=variable))+
+  geom_violin(draw_quantiles = 0.5, )+
+  scale_fill_manual(values=c("#af8dc3", "#7fbf7b"), name="")+
+  theme_minimal()+
+  ylab("Coefficient of variation (CV)")+
+  theme(legend.position = c(0.09,0.88), legend.text = element_text(size=10), axis.text.x = element_text(size=10), axis.text.y = element_text(size=10), axis.title.x = element_text(size=12), axis.title.y = element_text(size=12))+
+  theme(panel.grid.minor = element_blank())+
+ggsave(paste0(PathToPlots, "SupplementalFigureS1.pdf"), width = 4.75, height = 4)
+```
+
+
+#Figure 1
+```{r get_legend}
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+```
+```{r Figure1}
+colors.p <- c("Other"="grey70", "Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
+###Set limits
+tmt.BxM.OG.lims <- tmt.BxM.OG
+tmt.BxM.OG.lims$l2.BM.MP[tmt.BxM.OG.lims$l2.BM.MP <= -1] <- -1
+tmt.BxM.OG.lims$l2.BM.MP[tmt.BxM.OG.lims$l2.BM.MP >= 1] <- 1
+tmt.BxM.OG.lims$l2.B73.Mo17[tmt.BxM.OG.lims$l2.B73.Mo17 <= -1] <- -1
+tmt.BxM.OG.lims$l2.B73.Mo17[tmt.BxM.OG.lims$l2.B73.Mo17 >= 1] <- 1
+###Set GOIs
+tmt.BxM.OG.lims.plastid <- tmt.BxM.OG.lims
+tmt.BxM.OG.lims.plastid$Category <- "Other"
+tmt.BxM.OG.lims.plastid$Order <- 1
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$plastid),"Order"] <- 2
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$PE.ribo),"Order"] <- 4
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$PhANGs),"Order"] <- 5
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+tmt.BxM.OG.lims.plastid[(tmt.BxM.OG.lims.plastid$Gene %in% GOIs$PhAPGs),"Order"] <- 6
+
+###Re-order
+tmt.BxM.OG.lims.plastid <- tmt.BxM.OG.lims.plastid[(order(tmt.BxM.OG.lims.plastid$Order)),]
+###remove "other"
+#tmt.BxM.OG.lims.plastid <- tmt.BxM.OG.lims.plastid[!tmt.BxM.OG.lims.plastid$Category=="Other",]
+###factor
+tmt.BxM.OG.lims.plastid$Category <- factor(tmt.BxM.OG.lims.plastid$Category, levels = c("Other", "Plastid", "NE plastid ribosome","PE plastid ribosome", "PhANGs", "PhAPGs"))
+###Scatterplot
+tmt.BxM.OG.lims.plastid.scat <- ggplot(tmt.BxM.OG.lims.plastid, mapping=aes(x=l2.BM.MP, y=l2.B73.Mo17, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19))+
+ # theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+    theme_classic()+
+          xlim(c(-1,1))+
+          ylim(c(-1,1))+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          geom_hline(yintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(),  plot.title = element_text(vjust = -3.5, hjust = -0.485), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+          guides(col=guide_legend(ncol=2))+
+    ggtitle("A")+
+    xlab("log2 BxM/MP")+
+    ylab("log2 B73/Mo17")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+legend <- get_legend(tmt.BxM.OG.lims.plastid.scat)
+tmt.BxM.OG.lims.plastid.scat <- tmt.BxM.OG.lims.plastid.scat+theme(legend.position = "none")
+###Add density curves
+    densityplotX<-axis_canvas(tmt.BxM.OG.lims.plastid.scat, axis="x")+
+      geom_density(aes(tmt.BxM.OG.lims.plastid[,"l2.BM.MP"], color=tmt.BxM.OG.lims.plastid[,"Category"]), size=0.7)+
+    scale_color_manual(values=colors.p, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(tmt.BxM.OG.lims.plastid.scat, axis="y", coord_flip = T)+
+      geom_density(aes(tmt.BxM.OG.lims.plastid[,"l2.B73.Mo17"], color=tmt.BxM.OG.lims.plastid[,"Category"]), size=0.7)+
+      scale_color_manual(values=colors.p, name="Category")+
+      scale_linetype_manual(values=c("dotted", "solid"))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      coord_flip()
+    #put two plots together
+      A <- insert_xaxis_grob(tmt.BxM.OG.lims.plastid.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      A <- insert_yaxis_grob(A, densityplotY, grid::unit(0.275, "null"), position = "right")
+      
+      
+      ###Set limits
+cpm.BxM.OG.lims <- cpm.BxM.OG
+cpm.BxM.OG.lims$l2.BM.MP[cpm.BxM.OG.lims$l2.BM.MP <= -1] <- -1
+cpm.BxM.OG.lims$l2.BM.MP[cpm.BxM.OG.lims$l2.BM.MP >= 1] <- 1
+cpm.BxM.OG.lims$l2.B73.Mo17[cpm.BxM.OG.lims$l2.B73.Mo17 <= -2] <- -2
+cpm.BxM.OG.lims$l2.B73.Mo17[cpm.BxM.OG.lims$l2.B73.Mo17 >= 2] <- 2
+###Set GOIs
+cpm.BxM.OG.lims.plastid <- cpm.BxM.OG.lims
+cpm.BxM.OG.lims.plastid$Category <- "Other"
+cpm.BxM.OG.lims.plastid$Order <- 1
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$plastid),"Order"] <- 2
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$PE.ribo),"Order"] <- 4
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$PhANGs),"Order"] <- 5
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+cpm.BxM.OG.lims.plastid[(cpm.BxM.OG.lims.plastid$Gene %in% GOIs$PhAPGs),"Order"] <- 6
+
+###Re-order
+cpm.BxM.OG.lims.plastid <- cpm.BxM.OG.lims.plastid[(order(cpm.BxM.OG.lims.plastid$Order)),]
+###remove "other"
+#cpm.BxM.OG.lims.plastid <- cpm.BxM.OG.lims.plastid[!cpm.BxM.OG.lims.plastid$Category=="Other",]
+###factor
+cpm.BxM.OG.lims.plastid$Category <- factor(cpm.BxM.OG.lims.plastid$Category, levels = c("Other", "Plastid", "NE plastid ribosome","PE plastid ribosome", "PhANGs", "PhAPGs"))
+###Scatterplot
+cpm.BxM.OG.lims.plastid.scat <- ggplot(cpm.BxM.OG.lims.plastid, mapping=aes(x=l2.BM.MP, y=l2.B73.Mo17, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19))+
+    theme_classic()+
+          xlim(c(-1,1))+
+          ylim(c(-2,2))+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          geom_hline(yintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(),  plot.title = element_text(vjust = -3.5, hjust = -0.485), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+          guides(col=guide_legend(ncol=2))+
+    ggtitle("B")+
+    xlab("log2 BxM/MP")+
+    ylab("log2 B73/Mo17")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+###Add density curves
+    densityplotX<-axis_canvas(cpm.BxM.OG.lims.plastid.scat, axis="x")+
+      geom_density(aes(cpm.BxM.OG.lims.plastid[,"l2.BM.MP"], color=cpm.BxM.OG.lims.plastid[,"Category"]), size=0.7)+
+    scale_color_manual(values=colors.p, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(cpm.BxM.OG.lims.plastid.scat, axis="y", coord_flip = T)+
+      geom_density(aes(cpm.BxM.OG.lims.plastid[,"l2.B73.Mo17"], color=cpm.BxM.OG.lims.plastid[,"Category"]), size=0.7)+
+      scale_color_manual(values=colors.p, name="Category")+
+      scale_linetype_manual(values=c("dotted", "solid"))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      coord_flip()
+    #put two plots together
+      B <- insert_xaxis_grob(cpm.BxM.OG.lims.plastid.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      B <- insert_yaxis_grob(B, densityplotY, grid::unit(0.275, "null"), position = "right")
+
+Fig1.plotlist <- list(A, B, legend)
+Fig1.design <- "AB
+                 CC"
+Fig1.plotpanel<-patchwork::wrap_plots(A=Fig1.plotlist[[1]], B=Fig1.plotlist[[2]], C=Fig1.plotlist[[3]],  nrow = 2, heights = c(3,1.2), design = Fig1.design)
+ggsave(plot=Fig1.plotpanel, filename =paste0(PathToPlots, "Figure1.pdf"), dpi=300, width=4.75, height=3)
+```
+
