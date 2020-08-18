@@ -1148,3 +1148,124 @@ Fig1.plotpanel<-patchwork::wrap_plots(A=Fig1.plotlist[[1]], B=Fig1.plotlist[[2]]
 ggsave(plot=Fig1.plotpanel, filename =paste0(PathToPlots, "Figure1.pdf"), dpi=300, width=4.75, height=3)
 ```
 
+
+#Figure S2
+```{r setup dataframe}
+#copy
+figS2.OG <- tmt.BxM.OG
+figS2.6h <- tmt.BxM.6H
+figS2.ril <- tmt.BxM.RIL
+figS2.dn <- tmt.BxM.DN
+#name plot panels
+figS2.OG$plot <- "A"
+figS2.6h$plot <- "B"
+figS2.ril$plot <- "C"
+figS2.dn$plot <- "D"
+#trim
+figS2.OG <- figS2.OG[,c(1:9,19:27)]
+figS2.6h <- figS2.6h[,c(1:9,19:27)]
+figS2.ril <- figS2.ril[,c(1:9,20:28)]
+figS2.dn <- figS2.dn[,c(1:9,19:27)]
+#bind
+figS2 <- rbind(figS2.OG,figS2.6h)
+figS2 <- rbind(figS2,figS2.ril)
+figS2 <- rbind(figS2,figS2.dn)
+```
+```{r plot FigS2}
+ plot<-unique(figS2[,"plot"])
+  plotList<-vector(mode = "list", length = length(plot))
+  plotLab<-unique(figS2[,"plot"])
+  for(i in 1:length(plot)){
+    df<-figS2[which(figS2[,"plot"]==plot[i]),]
+    ###Set limits
+df.lims <- df
+df.lims$l2.BM.MP[df.lims$l2.BM.MP <= -.75] <- -.75
+df.lims$l2.BM.MP[df.lims$l2.BM.MP >= .75] <- .75
+
+df.lims$l2.B73.Mo17[df.lims$l2.B73.Mo17 <= -1] <- -1
+df.lims$l2.B73.Mo17[df.lims$l2.B73.Mo17 >= 1] <- 1
+###Set GOIs
+df.lims.plastid <- df.lims
+
+df.lims.plastid$Category <- "Other"
+df.lims.plastid$Order <- 1
+
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$plastid),"Order"] <- 2
+
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PhANGs),"Order"] <- 3
+
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Order"] <- 4
+
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PE.ribo),"Order"] <- 5
+
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PhAPGs),"Order"] <- 6
+###Re-order
+df.lims.plastid <- df.lims.plastid[(order(df.lims.plastid$Order)),]
+###remove "other"
+df.lims.plastid <- df.lims.plastid[!df.lims.plastid$Category=="Other",]
+###factor
+df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Plastid", "PhANGs", "NE plastid ribosome", "PE plastid ribosome", "PhAPGs"))
+    #scatter plot with marginal density curves
+    df.lims.plastid.scat <- ggplot(df.lims.plastid, mapping=aes(x=l2.BM.MP, y=l2.B73.Mo17, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p, name="Category")+
+      scale_shape_manual(values=c(1,19,19,19,19))+
+    theme_classic()+
+      xlim(c(-.75,.75))+
+      ylim(c(-1,1))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray60", size=0.5)+
+      geom_hline(yintercept=0, linetype="dashed", color = "gray60", size=0.5)+
+      xlab("log2 BxM/MP")+
+      ylab("log2 B73/Mo17")+
+      ggtitle(plotLab[i])+
+      theme(aspect.ratio=1)+
+      coord_fixed(expand = F)+
+      theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+      theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+        legend.position="bottom", legend.title = element_blank(), plot.title = element_text(vjust = -3.5, hjust = -0.485), axis.text.x = element_text(size = 9), axis.text.y = element_text(size = 9), legend.spacing.x = unit(0.1, 'cm'), legend.spacing.y = unit(-3, 'cm'))+
+      guides(col=guide_legend(nrow = 3))
+legend <- get_legend(df.lims.plastid.scat)
+    df.lims.plastid.scat <- df.lims.plastid.scat+theme(legend.position = "none")
+###Add density curves
+    densityplotX<-axis_canvas(df.lims.plastid.scat, axis="x")+
+      geom_density(aes(df.lims.plastid[,"l2.BM.MP"], color=df.lims.plastid[,"Category"]), size=0.5)+
+    scale_color_manual(values=colors.p, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray60", size=0.5)+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(df.lims.plastid.scat, axis="y", coord_flip = T)+
+      geom_density(aes(df.lims.plastid[,"l2.B73.Mo17"], color=df.lims.plastid[,"Category"]), size=0.5)+
+      scale_color_manual(values=colors.p, name="Category")+
+      scale_linetype_manual(values=c("dotted", "solid"))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray60", size=0.5)+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      coord_flip()+
+      theme(plot.margin=grid::unit(c(-2,-2,0,-2), "mm"))
+    #put two plots together
+      q <- insert_xaxis_grob(df.lims.plastid.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      q <- insert_yaxis_grob(q, densityplotY, grid::unit(0.275, "null"), position = "right")
+    if(i==1){
+      plotList<-list()
+      plotList[[1]]<-q
+    }
+    else{
+      plotList <- c(plotList, list(q))
+    }
+  }
+  plotList <- c(plotList, list(legend))
+       des <- "AB
+               CD
+               EE"
+  r<-patchwork::wrap_plots(A=plotList[[1]], B=plotList[[2]], C=plotList[[3]], D=plotList[[4]], E=plotList[[5]], nrow = 3, heights = c(3,3,1.2), design = des)
+  ggsave(plot=r, filename =paste0(PathToPlots, "SupplementalFigureS2.pdf"),
+          dpi=300, width=4.75, height=5)  
+```
+
