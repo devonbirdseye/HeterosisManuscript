@@ -122,6 +122,37 @@ tmt.BxM.DN$l2.B73.Mo17 <-log2(tmt.BxM.DN$B73.Mo17)
 #save
 saveRDS(tmt.BxM.DN, "tmt.BxM.DN")
 ```
+```{r subset BxM from day vs. night experiment (both day and night)}
+#BxM from Day vs. night experiment (DN.both)
+tmt.BxM.DN.both <- tmt[,c(171:176,181:183,62:70,72:80)]
+#Remove proteins not detected in any of the samples
+tmt.BxM.DN.both <- tmt.BxM.DN.both[rowSums(tmt.BxM.DN.both[,10:27]) > 0,]
+#Calculate averages of bio reps
+tmt.BxM.DN.both$day.B73avg <- rowMeans(tmt.BxM.DN.both[,10:12])
+tmt.BxM.DN.both$day.Mo17avg <- rowMeans(tmt.BxM.DN.both[,13:15])
+tmt.BxM.DN.both$day.HYBavg <- rowMeans(tmt.BxM.DN.both[,16:18])
+tmt.BxM.DN.both$day.MPavg <- rowMeans(tmt.BxM.DN.both[,c(10:15)])
+
+tmt.BxM.DN.both$night.B73avg <- rowMeans(tmt.BxM.DN.both[,19:21])
+tmt.BxM.DN.both$night.Mo17avg <- rowMeans(tmt.BxM.DN.both[,22:24])
+tmt.BxM.DN.both$night.HYBavg <- rowMeans(tmt.BxM.DN.both[,25:27])
+tmt.BxM.DN.both$night.MPavg <- rowMeans(tmt.BxM.DN.both[,c(19:24)])
+#calculate ratios
+tmt.BxM.DN.both$day.HYB.MP <- tmt.BxM.DN.both$day.HYBavg/tmt.BxM.DN.both$day.MPavg
+tmt.BxM.DN.both$day.l2.BM.MP <- log2(tmt.BxM.DN.both$day.HYB.MP)
+tmt.BxM.DN.both$day.B73.Mo17 <- tmt.BxM.DN.both$day.B73avg/tmt.BxM.DN.both$day.Mo17avg
+tmt.BxM.DN.both$day.l2.B73.Mo17 <-log2(tmt.BxM.DN.both$day.B73.Mo17)
+
+tmt.BxM.DN.both$night.HYB.MP <- tmt.BxM.DN.both$night.HYBavg/tmt.BxM.DN.both$night.MPavg
+tmt.BxM.DN.both$night.l2.BM.MP <- log2(tmt.BxM.DN.both$night.HYB.MP)
+tmt.BxM.DN.both$night.B73.Mo17 <- tmt.BxM.DN.both$night.B73avg/tmt.BxM.DN.both$night.Mo17avg
+tmt.BxM.DN.both$night.l2.B73.Mo17 <-log2(tmt.BxM.DN.both$night.B73.Mo17)
+#save
+saveRDS(tmt.BxM.DN.both, "tmt.BxM.DN.both")
+```
+
+
+
 ```{r subset all hybrids from 6-hybrid experiment}
 #Subset all hybrids from 6-hybrid experiment (6H)
 tmt.6H <- tmt[,c(171:176,181:183,31:60)]
@@ -1269,3 +1300,136 @@ legend <- get_legend(df.lims.plastid.scat)
           dpi=300, width=4.75, height=5)  
 ```
 
+
+#Figure S3
+```{r}
+###Set limits
+tmt.BxM.DN.both.lims <- tmt.BxM.DN.both
+tmt.BxM.DN.both.lims$day.l2.BM.MP[tmt.BxM.DN.both.lims$day.l2.BM.MP <= -0.75] <- -0.75
+tmt.BxM.DN.both.lims$day.l2.BM.MP[tmt.BxM.DN.both.lims$day.l2.BM.MP >= 0.75] <- 0.75
+
+tmt.BxM.DN.both.lims$day.l2.B73.Mo17[tmt.BxM.DN.both.lims$day.l2.B73.Mo17 <= -0.75] <- -0.75
+tmt.BxM.DN.both.lims$day.l2.B73.Mo17[tmt.BxM.DN.both.lims$day.l2.B73.Mo17 >= 0.75] <- 0.75
+
+tmt.BxM.DN.both.lims$night.l2.BM.MP[tmt.BxM.DN.both.lims$night.l2.BM.MP <= -0.75] <- -0.75
+tmt.BxM.DN.both.lims$night.l2.BM.MP[tmt.BxM.DN.both.lims$night.l2.BM.MP >= 0.75] <- 0.75
+
+tmt.BxM.DN.both.lims$night.l2.B73.Mo17[tmt.BxM.DN.both.lims$night.l2.B73.Mo17 <= -0.75] <- -0.75
+tmt.BxM.DN.both.lims$night.l2.B73.Mo17[tmt.BxM.DN.both.lims$night.l2.B73.Mo17 >= 0.75] <- 0.75
+###Set GOIs
+tmt.BxM.DN.both.lims.plastid <- tmt.BxM.DN.both.lims
+
+tmt.BxM.DN.both.lims.plastid$Category <- "Other"
+tmt.BxM.DN.both.lims.plastid$Order <- 1
+
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$plastid),"Order"] <- 2
+
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
+
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PE.ribo),"Order"] <- 4
+
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhANGs),"Order"] <- 5
+
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhAPGs),"Order"] <- 6
+###Re-order
+tmt.BxM.DN.both.lims.plastid <- tmt.BxM.DN.both.lims.plastid[(order(tmt.BxM.DN.both.lims.plastid$Order)),]
+###remove "other"
+tmt.BxM.DN.both.lims.plastid <- tmt.BxM.DN.both.lims.plastid[!tmt.BxM.DN.both.lims.plastid$Category=="Other",]
+###factor
+tmt.BxM.DN.both.lims.plastid$Category <- factor(tmt.BxM.DN.both.lims.plastid$Category, levels = c("Plastid", "NE plastid ribosome","PE plastid ribosome", "PhANGs", "PhAPGs"))
+###Scatterplot
+tmt.BxM.DN.both.BM.MP.lims.plastid.scat <- ggplot(tmt.BxM.DN.both.lims.plastid, mapping=aes(x=day.l2.BM.MP, y=night.l2.BM.MP, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19))+
+    theme_classic()+
+ theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+          xlim(c(-0.75,0.75))+
+          ylim(c(-0.75,0.75))+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          geom_hline(yintercept=0, linetype="dashed", color = "gray50")+
+          geom_abline(slope = 1, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(),  plot.title = element_text(vjust = -3.5, hjust = -0.485))+
+          guides(col=guide_legend(ncol=2))+
+    xlab("log2 day BxM/MP")+
+    ylab("log2 night BxM/MP")+
+    ggtitle("A")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+dn.plastid.legend <- get_legend(tmt.BxM.DN.both.BM.MP.lims.plastid.scat)
+tmt.BxM.DN.both.BM.MP.lims.plastid.scat <- tmt.BxM.DN.both.BM.MP.lims.plastid.scat+theme(legend.position = "none")
+###Add density curves
+    densityplotX<-axis_canvas(tmt.BxM.DN.both.BM.MP.lims.plastid.scat, axis="x")+
+      geom_density(aes(tmt.BxM.DN.both.lims.plastid[,"day.l2.BM.MP"], color=tmt.BxM.DN.both.lims.plastid[,"Category"]), size=0.7)+
+    scale_color_manual(values=colors.p, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(tmt.BxM.DN.both.BM.MP.lims.plastid.scat, axis="y", coord_flip = T)+
+      geom_density(aes(tmt.BxM.DN.both.lims.plastid[,"night.l2.BM.MP"], color=tmt.BxM.DN.both.lims.plastid[,"Category"]), size=0.7)+
+      scale_color_manual(values=colors.p, name="Category")+
+      scale_linetype_manual(values=c("dotted", "solid"))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      coord_flip()+
+      theme(plot.margin=grid::unit(c(-2,-2,0,-2), "mm"))
+    #put two plots together
+      tmt.BxM.DN.both.BM.MP.lims.plastid.scat <- insert_xaxis_grob(tmt.BxM.DN.both.BM.MP.lims.plastid.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      tmt.BxM.DN.both.BM.MP.lims.plastid.scat <- insert_yaxis_grob(tmt.BxM.DN.both.BM.MP.lims.plastid.scat, densityplotY, grid::unit(0.275, "null"), position = "right")
+      
+tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat <- ggplot(tmt.BxM.DN.both.lims.plastid, mapping=aes(x=day.l2.B73.Mo17, y=night.l2.B73.Mo17, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19))+
+    theme_classic()+
+  theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+          xlim(c(-0.75,0.75))+
+          ylim(c(-0.75,0.75))+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          geom_hline(yintercept=0, linetype="dashed", color = "gray50")+
+          geom_abline(slope = 1, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(),  plot.title = element_text(vjust = -3.5, hjust = -0.485))+
+          guides(col=guide_legend(nrow=3))+
+    xlab("log2 day B73/Mo17")+
+    ylab("log2 night B73/Mo17")+
+    ggtitle("B")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+###Add density curves
+    densityplotX<-axis_canvas(tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat, axis="x")+
+      geom_density(aes(tmt.BxM.DN.both.lims.plastid[,"day.l2.B73.Mo17"], color=tmt.BxM.DN.both.lims.plastid[,"Category"]), size=0.7)+
+    scale_color_manual(values=colors.p, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat, axis="y", coord_flip = T)+
+      geom_density(aes(tmt.BxM.DN.both.lims.plastid[,"night.l2.B73.Mo17"], color=tmt.BxM.DN.both.lims.plastid[,"Category"]), size=0.7)+
+      scale_color_manual(values=colors.p, name="Category")+
+      scale_linetype_manual(values=c("dotted", "solid"))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      coord_flip()+
+      theme(plot.margin=grid::unit(c(-2,-2,0,-2), "mm"))
+    #put two plots together
+      tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat <- insert_xaxis_grob(tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat <- insert_yaxis_grob(tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat, densityplotY, grid::unit(0.275, "null"), position = "right")
+
+dn.plotlist <- list(tmt.BxM.DN.both.BM.MP.lims.plastid.scat, tmt.BxM.DN.both.B73.Mo17.lims.plastid.scat, dn.plastid.legend)
+dn.design <- "AB
+              CC"
+dn.plotpanel<-patchwork::wrap_plots(A=dn.plotlist[[1]], B=dn.plotlist[[2]], C=dn.plotlist[[3]],  nrow = 2, heights = c(3,1.2), design = dn.design)
+ggsave(plot=dn.plotpanel, filename =paste0(PathToPlots, "SupplementalFigureS3.pdf"), dpi=300, width=4.75, height=3)
+```
