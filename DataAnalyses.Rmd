@@ -570,7 +570,7 @@ colnames(Entrez) <- c("Accession", "Entrez")
 Entrez <- rbind(Entrez, organelleEntrez)
 ```
 ##Plastid-encoded
-```{r}
+```{r PE}
 #Plastid-encoded proteins
 PE<-tmt[grep("ZemaCp", tmt$Accession),]
 #define list of plastid-encoded photosynthesis-associated genes
@@ -816,22 +816,21 @@ CornCycLightRxns.digenomic <- CornCycLightRxns[CornCycLightRxns$Reaction.EC=="1.
 
 
 ###NE Rubisco
-```{r}
+```{r NE.Rubisco}
 NE.Rubisco <- c("Zm00001d052595", "Zm00001d004894")
 ```
 
 ###Combine groups
-```{r}
+```{r PhANGs}
 Ph <- unique(na.omit(c(KEGG.zma00195.tib.digenomic$Accession, KEGG.zma00196.tib.digenomic$Accession, CornCycLightRxns.digenomic$Gene.Accession, NE.Rubisco, PE.Complexes)))
-```
-```{r}
+
 PhANGs <- Ph[grep("Zm", Ph)]
 ```
 
 
 
 ##Plastid background
-```{r}
+```{r plastid}
 #Import supplemental Table I from Friso et al. 2010
 friso <- read.csv(paste0(PathToData,"Friso2010_SupTab1.csv"), stringsAsFactors = F)
 colnames(friso) <- as.character(friso[1,])
@@ -846,7 +845,7 @@ plastid <- unique(na.omit(c(friso.v4, Ph)))
 ```
 
 ##Nuclear-encoded plastid ribosome
-```{r}
+```{r NE.PtRibo}
 #grep plastid ribosomal proteins
 ribosom <- tmt[(grep("ribosom", tmt$Protein)),]
 ribosom.pt <- ribosom[(grep("30S|50S|plastid|Plastid|Chloropl|chloropl", ribosom$Protein)),]
@@ -856,14 +855,14 @@ NE.PtRibo <- ribosom.pt$Gene
 
 
 ##Cytosolic ribosome
-```{r}
+```{r CytoRibo}
 #Cytosolic ribosomal proteins (EnsemblPlants Annotation)
 CytoRibo<-tmt[(grep("40S|60S", tmt$Protein)),]
 #remove the mitochondrial and biogenesis proteins
 CytoRibo<- CytoRibo$Gene[-(grep("mito|Mito|biogen|Biogen", CytoRibo$Protein))]
 ```
 ##Etyhlene Biosynthesis
-```{r}
+```{r CornCycEtBio}
 #Retrieved from CornCyc on 05/11/2020
 CornCycEtBio <- tibble::tribble(
                       ~Gene.ID,  ~Gene.Accession,       ~Gene.name,       ~Reaction.id, ~Reaction.EC,                          ~Enzymatic.activity, ~Evidence,
@@ -910,7 +909,7 @@ EtBio <- CornCycEtBio$Gene.Accession
 
 
 ##GOI list
-```{r}
+```{r GOIs}
 GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio)
 names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio")
 saveRDS(GOIs, "GOIs")
@@ -1312,38 +1311,30 @@ legend <- get_legend(df.lims.plastid.scat)
 
 
 #Figure S3
-```{r}
+```{r setup dataframe S3}
 ###Set limits
 tmt.BxM.DN.both.lims <- tmt.BxM.DN.both
 tmt.BxM.DN.both.lims$day.l2.BM.MP[tmt.BxM.DN.both.lims$day.l2.BM.MP <= -0.75] <- -0.75
 tmt.BxM.DN.both.lims$day.l2.BM.MP[tmt.BxM.DN.both.lims$day.l2.BM.MP >= 0.75] <- 0.75
-
 tmt.BxM.DN.both.lims$day.l2.B73.Mo17[tmt.BxM.DN.both.lims$day.l2.B73.Mo17 <= -0.75] <- -0.75
 tmt.BxM.DN.both.lims$day.l2.B73.Mo17[tmt.BxM.DN.both.lims$day.l2.B73.Mo17 >= 0.75] <- 0.75
 
 tmt.BxM.DN.both.lims$night.l2.BM.MP[tmt.BxM.DN.both.lims$night.l2.BM.MP <= -0.75] <- -0.75
 tmt.BxM.DN.both.lims$night.l2.BM.MP[tmt.BxM.DN.both.lims$night.l2.BM.MP >= 0.75] <- 0.75
-
 tmt.BxM.DN.both.lims$night.l2.B73.Mo17[tmt.BxM.DN.both.lims$night.l2.B73.Mo17 <= -0.75] <- -0.75
 tmt.BxM.DN.both.lims$night.l2.B73.Mo17[tmt.BxM.DN.both.lims$night.l2.B73.Mo17 >= 0.75] <- 0.75
 ###Set GOIs
 tmt.BxM.DN.both.lims.plastid <- tmt.BxM.DN.both.lims
-
 tmt.BxM.DN.both.lims.plastid$Category <- "Other"
 tmt.BxM.DN.both.lims.plastid$Order <- 1
-
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$plastid),"Order"] <- 2
-
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
-
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PE.ribo),"Order"] <- 4
-
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhANGs),"Order"] <- 5
-
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
 tmt.BxM.DN.both.lims.plastid[(tmt.BxM.DN.both.lims.plastid$Gene %in% GOIs$PhAPGs),"Order"] <- 6
 ###Re-order
@@ -1352,6 +1343,8 @@ tmt.BxM.DN.both.lims.plastid <- tmt.BxM.DN.both.lims.plastid[(order(tmt.BxM.DN.b
 tmt.BxM.DN.both.lims.plastid <- tmt.BxM.DN.both.lims.plastid[!tmt.BxM.DN.both.lims.plastid$Category=="Other",]
 ###factor
 tmt.BxM.DN.both.lims.plastid$Category <- factor(tmt.BxM.DN.both.lims.plastid$Category, levels = c("Plastid", "NE plastid ribosome","PE plastid ribosome", "PhANGs", "PhAPGs"))
+```
+```{r plot FigS3}
 ###Scatterplot
 tmt.BxM.DN.both.BM.MP.lims.plastid.scat <- ggplot(tmt.BxM.DN.both.lims.plastid, mapping=aes(x=day.l2.BM.MP, y=night.l2.BM.MP, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=1)+
@@ -1908,7 +1901,7 @@ ggplot(data=tmt.PlastidRiboCor.Hyb2BxM, mapping = aes(x=height, y=value, fill=va
 ggsave(paste0(PathToPlots, "SupplementalFigureS7.pdf"), width = 4.75, height = 4.5)
 ```
 #Figure 2
-```{r}
+```{r setup dataframe 2}
 #subset RIL hybrids
 tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,123:131)]
 #subset 6-hybrid
@@ -2095,7 +2088,7 @@ ggsave(plot=q, filename =paste0(PathToPlots, "SupplementalFigureS8b.pdf"),
 ```
 
 #Figure S9
-```{r}
+```{r setup dataframe S9}
 ##Scatterplot - plastid
 ###Set limits
 tmt.BxM.OG.lims <- tmt.BxM.OG
@@ -2113,6 +2106,8 @@ tmt.BxM.OG.lims.etbio[(tmt.BxM.OG.lims.etbio$Gene %in% GOIs$EtBio),"Order"] <- 2
 tmt.BxM.OG.lims.etbio <- tmt.BxM.OG.lims.etbio[(order(tmt.BxM.OG.lims.etbio$Order)),]
 ###factor
 tmt.BxM.OG.lims.etbio$Category <- factor(tmt.BxM.OG.lims.etbio$Category, levels = c("Other", "Ethylene biosynthesis"))
+```
+```{r plot FigS9}
 ###Scatterplot
 tmt.BxM.OG.lims.etbio.scat <- ggplot(tmt.BxM.OG.lims.etbio, mapping=aes(x=l2.BM.MP, y=l2.B73.Mo17, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2.5)+
