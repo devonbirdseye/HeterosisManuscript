@@ -67,8 +67,6 @@ tmt.BxM.OG$HYB.MP <- tmt.BxM.OG$HYBavg/tmt.BxM.OG$MPavg
 tmt.BxM.OG$l2.BM.MP <- log2(tmt.BxM.OG$HYB.MP)
 tmt.BxM.OG$B73.Mo17 <- tmt.BxM.OG$B73avg/tmt.BxM.OG$Mo17avg
 tmt.BxM.OG$l2.B73.Mo17 <-log2(tmt.BxM.OG$B73.Mo17)
-#save
-saveRDS(tmt.BxM.OG, "tmt.BxM.OG")
 ```
 ```{r subset BxM from 6-hybrid experiment}
 #BxM from 6-hybrid experiment (6H)
@@ -85,8 +83,6 @@ tmt.BxM.6H$HYB.MP <- tmt.BxM.6H$HYBavg/tmt.BxM.6H$MPavg
 tmt.BxM.6H$l2.BM.MP <- log2(tmt.BxM.6H$HYB.MP)
 tmt.BxM.6H$B73.Mo17 <- tmt.BxM.6H$B73avg/tmt.BxM.6H$Mo17avg
 tmt.BxM.6H$l2.B73.Mo17 <-log2(tmt.BxM.6H$B73.Mo17)
-#save
-saveRDS(tmt.BxM.6H, "tmt.BxM.6H")
 ```
 ```{r subset BxM from RIL experiment}
 #BxM from RIL experiment (RIL)
@@ -103,8 +99,6 @@ tmt.BxM.RIL$HYB.MP <- tmt.BxM.RIL$HYBavg/tmt.BxM.RIL$MPavg
 tmt.BxM.RIL$l2.BM.MP <- log2(tmt.BxM.RIL$HYB.MP)
 tmt.BxM.RIL$B73.Mo17 <- tmt.BxM.RIL$B73avg/tmt.BxM.RIL$Mo17avg
 tmt.BxM.RIL$l2.B73.Mo17 <-log2(tmt.BxM.RIL$B73.Mo17)
-#save
-saveRDS(tmt.BxM.RIL, "tmt.BxM.RIL")
 ```
 ```{r subset BxM from day vs. night experiment (day)}
 #BxM from Day vs. night experiment (DN)
@@ -121,8 +115,6 @@ tmt.BxM.DN$HYB.MP <- tmt.BxM.DN$HYBavg/tmt.BxM.DN$MPavg
 tmt.BxM.DN$l2.BM.MP <- log2(tmt.BxM.DN$HYB.MP)
 tmt.BxM.DN$B73.Mo17 <- tmt.BxM.DN$B73avg/tmt.BxM.DN$Mo17avg
 tmt.BxM.DN$l2.B73.Mo17 <-log2(tmt.BxM.DN$B73.Mo17)
-#save
-saveRDS(tmt.BxM.DN, "tmt.BxM.DN")
 ```
 ```{r subset BxM from day vs. night experiment (both day and night)}
 #BxM from Day vs. night experiment (DN.both)
@@ -149,8 +141,6 @@ tmt.BxM.DN.both$night.HYB.MP <- tmt.BxM.DN.both$night.HYBavg/tmt.BxM.DN.both$nig
 tmt.BxM.DN.both$night.l2.BM.MP <- log2(tmt.BxM.DN.both$night.HYB.MP)
 tmt.BxM.DN.both$night.B73.Mo17 <- tmt.BxM.DN.both$night.B73avg/tmt.BxM.DN.both$night.Mo17avg
 tmt.BxM.DN.both$night.l2.B73.Mo17 <-log2(tmt.BxM.DN.both$night.B73.Mo17)
-#save
-saveRDS(tmt.BxM.DN.both, "tmt.BxM.DN.both")
 ```
 ```{r subset all hybrids from 6-hybrid experiment}
 #Subset all hybrids from 6-hybrid experiment (6H)
@@ -195,8 +185,6 @@ tmt.6H$l2.B84.B73 <- log2(tmt.6H$B84.B73)
 tmt.6H$l2.B84.Mo17 <- log2(tmt.6H$B84.Mo17)
 tmt.6H$l2.A682.B73 <- log2(tmt.6H$A682.B73)
 tmt.6H$l2.A682.Mo17 <- log2(tmt.6H$A682.Mo17)
-#save
-saveRDS(tmt.6H, "tmt.6H")
 ```
 ```{r subset all hybrids from RIL experiment}
 #Subset all hybrids from RIL experiment (RIL)
@@ -281,20 +269,8 @@ tmt.acs$ACSavg <- rowMeans(tmt.acs[,15:19])
 tmt.acs$ACS.B73 <- tmt.acs$ACSavg/tmt.acs$B73avg
 #calculate log2
 tmt.acs$l2.ACS.B73 <- log2(tmt.acs$ACS.B73)
-#merge with BxM from original data (OG)
-tmt.acs.OG <- merge.data.frame(tmt.acs, tmt.BxM.OG[,c(6,24)], by.x = "Accession", by.y = "Accession", all=F)
 #merge with BxM from 6-hybrid data (6H)
 tmt.acs.6H <- merge.data.frame(tmt.acs, tmt.BxM.6H[,c(6,24)], by.x = "Accession", by.y = "Accession", all=F)
-#merge with BxM from RIL data (RIL)
-tmt.acs.RIL <- merge.data.frame(tmt.acs, tmt.BxM.RIL[,c(6,25)], by.x = "Accession", by.y = "Accession", all=F)
-#merge with BxM from day vs. night data (DN)
-tmt.acs.DN <- merge.data.frame(tmt.acs, tmt.BxM.DN[,c(6,24)], by.x = "Accession", by.y = "Accession", all=F)
-#save
-saveRDS(tmt.acs, "tmt.acs")
-saveRDS(tmt.acs.OG, "tmt.acs.OG")
-saveRDS(tmt.acs.6H, "tmt.acs.6H")
-saveRDS(tmt.acs.RIL, "tmt.acs.RIL")
-saveRDS(tmt.acs.DN, "tmt.acs.DN")
 ```
 #Import RNA data
 ```{r import RNA data}
@@ -328,8 +304,6 @@ cpm.BxM.OG$HYB.MP <- cpm.BxM.OG$HYBavg/cpm.BxM.OG$MPavg
 cpm.BxM.OG$l2.BM.MP <- log2(cpm.BxM.OG$HYB.MP)
 cpm.BxM.OG$B73.Mo17 <- cpm.BxM.OG$B73avg/cpm.BxM.OG$Mo17avg
 cpm.BxM.OG$l2.B73.Mo17 <-log2(cpm.BxM.OG$B73.Mo17)
-#save
-saveRDS(cpm.BxM.OG, "cpm.BxM.OG")
 ```
 ```{r subset BxM from 6-hybrid experiment}
 cpm.6H.tm.B73.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR582",]
@@ -356,8 +330,6 @@ cpm.BxM.6H$HYB.MP <- cpm.BxM.6H$HYBavg/cpm.BxM.6H$MPavg
 cpm.BxM.6H$l2.BM.MP <- log2(cpm.BxM.6H$HYB.MP)
 cpm.BxM.6H$B73.Mo17 <- cpm.BxM.6H$B73avg/cpm.BxM.6H$Mo17avg
 cpm.BxM.6H$l2.B73.Mo17 <-log2(cpm.BxM.6H$B73.Mo17)
-#save
-saveRDS(cpm.BxM.6H, "cpm.BxM.6H")
 ```
 ```{r subset BxM from RIL experiment}
 cpm.RIL.tm.B73.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR701",]
@@ -388,8 +360,6 @@ cpm.BxM.RIL$HYB.MP <- cpm.BxM.RIL$HYBavg/cpm.BxM.RIL$MPavg
 cpm.BxM.RIL$l2.BM.MP <- log2(cpm.BxM.RIL$HYB.MP)
 cpm.BxM.RIL$B73.Mo17 <- cpm.BxM.RIL$B73avg/cpm.BxM.RIL$Mo17avg
 cpm.BxM.RIL$l2.B73.Mo17 <-log2(cpm.BxM.RIL$B73.Mo17)
-#save
-saveRDS(cpm.BxM.RIL, "cpm.BxM.RIL")
 ```
 ```{r subset all hybrids from 6-hybrid experiment}
 #subset
@@ -423,8 +393,6 @@ cpm.6H.all6$l2.B84.B73 <- log2(cpm.6H.all6$B84/cpm.6H.all6$B73)
 cpm.6H.all6$l2.B84.Mo17 <- log2(cpm.6H.all6$B84/cpm.6H.all6$Mo17)
 #limit to genes detected as proteins
 cpm.6H.all6 <- cpm.6H.all6[cpm.6H.all6$Gene%in%tmt.6h.all6$Gene,]
-#save
-saveRDS(cpm.6H.all6, "cpm.6H.all6")
 ```
 ```{r subset all hybrids from RIL experiment}
 cpm.RIL.tm_m.B73 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s001",]
@@ -468,8 +436,6 @@ cpm.RIL.all9$l2.M0317.B73 <- log2(cpm.RIL.all9$M0317/cpm.RIL.all9$B73)
 cpm.RIL.all9$l2.M0317.Mo17 <- log2(cpm.RIL.all9$M0317/cpm.RIL.all9$Mo17)
 #limit to genes detected as protein
 cpm.RIL.all9 <- cpm.RIL.all9[cpm.RIL.all9$Gene%in%tmt.RIL$Gene,]
-#save
-saveRDS(cpm.RIL.all9, "cpm.RIL.all9")
 ```
 
 
@@ -822,12 +788,10 @@ NE.Rubisco <- c("Zm00001d052595", "Zm00001d004894")
 
 ###Combine groups
 ```{r PhANGs}
-Ph <- unique(na.omit(c(KEGG.zma00195.tib.digenomic$Accession, KEGG.zma00196.tib.digenomic$Accession, CornCycLightRxns.digenomic$Gene.Accession, NE.Rubisco, PE.Complexes)))
+Ph <- unique(na.omit(c(KEGG.zma00195.tib.digenomic$Accession, KEGG.zma00196.tib.digenomic$Accession, CornCycLightRxns.digenomic$Gene.Accession, NE.Rubisco)))
 
 PhANGs <- Ph[grep("Zm", Ph)]
 ```
-
-
 
 ##Plastid background
 ```{r plastid}
