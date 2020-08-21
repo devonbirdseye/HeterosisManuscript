@@ -927,6 +927,14 @@ get_legend<-function(myggplot){
 ```
 ```{r plotting colors}
 colors.p <- c("Other"="grey70", "Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
+
+colors.v <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
+ "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
+ "#920000","#924900","#db6d00","#24ff24","#ffff6d")
+
+colors.e <- c("Other"="black","Ethylene biosynthesis"="#ef73ef")
+
+colors.pe <- c("Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
 ```
 
 #Figure S1
@@ -1885,15 +1893,11 @@ for(i in 1:15){
 }
 tmt.PlastidRiboCor.Hyb2BxM.split.avg.lm <- lm(value~height, data = tmt.PlastidRiboCor.Hyb2BxM.split.avg)
 tmt.PlastidRiboCor.Hyb2BxM.split.avg.lm.rsquared <- summary(tmt.PlastidRiboCor.Hyb2BxM.split.avg.lm)$adj.r.squared
-#Define colorblind-friendly color palette
-pal <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
- "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
- "#920000","#924900","#db6d00","#24ff24","#ffff6d")
 ```
 ```{r plot FigS7}
 ggplot(data=tmt.PlastidRiboCor.Hyb2BxM, mapping = aes(x=height, y=value, fill=variable))+
   geom_violin(width=0.02, alpha=0.7)+
-  scale_fill_manual(values = pal, name="Hybrid")+
+  scale_fill_manual(values = colors.v, name="Hybrid")+
   theme_minimal()+
   xlab("Hybrid/BxM plant height")+
   ylab("Hybrid/BxM plastid ribosomal protein abundance")+
@@ -1933,15 +1937,11 @@ for(i in 1:15){
 }
 tmt.PlastidRiboCor.Hyb2MP.split.avg.lm <- lm(value~height, data = tmt.PlastidRiboCor.Hyb2MP.split.avg)
 tmt.PlastidRiboCor.Hyb2MP.split.avg.lm.rsquared <- summary(tmt.PlastidRiboCor.Hyb2MP.split.avg.lm)$adj.r.squared
-#define color palette
-pal <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
- "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
- "#920000","#924900","#db6d00","#24ff24","#ffff6d")
 ```
 ```{r plot Fig2}
 ggplot(data=tmt.PlastidRiboCor.Hyb2MP, mapping = aes(x=height, y=value, fill=variable))+
   geom_violin(width=0.02, alpha=0.7)+
-  scale_fill_manual(values = pal, name="Hybrid")+
+  scale_fill_manual(values = colors.v, name="Hybrid")+
   theme_minimal()+
   xlab("Hybrid/mid-parent plant height")+
   ylab("Hybrid/mid-parent plastid ribosomal protein abundance")+
@@ -1979,15 +1979,11 @@ for(i in 1:15){
 }
 cpm.PlastidRiboCor.hyb2MP.split.avg.lm <- lm(value~height, data = cpm.PlastidRiboCor.hyb2MP.split.avg)
 cpm.PlastidRiboCor.hyb2MP.split.avg.lm.rsquared <- summary(cpm.PlastidRiboCor.hyb2MP.split.avg.lm)$adj.r.squared
-#define color palette
-pal <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
- "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
- "#920000","#924900","#db6d00","#24ff24","#ffff6d")
 ```
 ```{r plot FigS8a}
 FigS8a <- ggplot(data=cpm.PlastidRiboCor.hyb2MP, mapping = aes(x=height, y=value, fill=variable))+
   geom_violin(width=0.02, alpha=0.7)+
-  scale_fill_manual(values = pal, name="Hybrid")+
+  scale_fill_manual(values = colors.v, name="Hybrid")+
   theme_minimal()+
   xlab("Hybrid/mid-parent plant height")+
   ylab("Hybrid/mid-parent plastid ribosomal mRNA abundance")+
@@ -2100,7 +2096,6 @@ ggsave(plot=q, filename =paste0(PathToPlots, "SupplementalFigureS8b.pdf"),
 
 #Figure S9
 ```{r}
-colors.e <- c("Other"="black","Ethylene biosynthesis"="#ef73ef")
 ##Scatterplot - plastid
 ###Set limits
 tmt.BxM.OG.lims <- tmt.BxM.OG
@@ -2182,7 +2177,6 @@ panel.acs.tmt <- rbind(panel.acs.tmt,panel.acs.tmt.ril)
 panel.acs.tmt <- rbind(panel.acs.tmt,panel.acs.tmt.dn)
 ```
 ```{r plot fig4}
-colors.pe <- c("Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
   plot<-unique(panel.acs.tmt[,"plot"])
   plotList<-vector(mode = "list", length = length(plot))
   plotLab<-unique(panel.acs.tmt[,"plot"])
