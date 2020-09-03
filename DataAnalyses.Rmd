@@ -21,7 +21,12 @@ library(reshape2)
 library(cowplot)
 library(patchwork)
 library(pathview)
+library(data.table)
+library(AnnotationDbi)
+library(dplyr)
+library(tidyr)
 ```
+
 ```{r define paths}
 #Path to input data
 PathToData <- "Data/"
@@ -52,6 +57,8 @@ for(i in 1:170){
 #Convert NAs to 0
 tmt[is.na(tmt)] <- 0
 ```
+
+
 
 #Subset protein experiments
 ```{r subset BxM seedling leaf from original experiment}
@@ -822,7 +829,26 @@ plastid <- unique(na.omit(c(friso.v4, Ph)))
 ```{r NE.PtRibo}
 #grep plastid ribosomal proteins
 ribosom <- tmt[(grep("ribosom", tmt$Protein)),]
-ribosom.pt <- ribosom[(grep("30S|50S|plastid|Plastid|Chloropl|chloropl", ribosom$Protein)),]
+ribosom.pt <- ribosom[(grep("30S|50S", ribosom$Protein)),]
+
+# Read in Maize GAMER GO dataset, which lists maize V4 accessions with all associated GO terms (Wimalanathan et al. 2018) downloaded from https://datacommons.cyverse.org/browse/iplant/home/shared/commons_repo/curated/Carolyn_Lawrence-Dill_maize-GAMER_maize.B73_RefGen_v4_Zm00001d.2_Oct_2017.r1/e.agg_data
+GAMER <- read.delim(paste0(PathToData, "maize.B73.AGPv4.aggregate.gaf"), sep = "\t", header = FALSE)
+colnames(GAMER) <- c("db", "db_object_id", "db_object_symbol", "qualifier", "term_accession", "db_reference", "evidence_code", "with", "aspect", "db_object_name", "db_object_synonym", "db_object_type", "taxon", "date", "assigned_by", "annotation_extension", "gene_product_form_id")
+gamer <- GAMER[-(1:2),]
+gamer$GOterm <- AnnotationDbi::Term(as.character(gamer$term_accession))
+#merge gamer GO terms
+ribosom.pt <- merge.data.frame(ribosom.pt[,c(176,183)], gamer[,c(2,18)], by.x = "Gene", by.y = "db_object_id", all.x = T, all.y = F)
+#Convert duplicated rows into multiple columns for each GO term
+ribosom.pt.w <- dcast(setDT(ribosom.pt), Accession~rowid(Accession, prefix="GOterm"), value.var="GOterm")
+ribosom.pt <- merge.data.frame(ribosom.pt, ribosom.pt.w, by.x = "Accession", by.y = "Accession")
+ribosom.pt <- distinct(ribosom.pt)
+#Combine columns of each pathway into single column
+ribosom.pt <- unite(ribosom.pt, "GOterm", GOterm1:GOterm9, sep = " // ")
+ribosom.pt$GOterm <- gsub(ribosom.pt$GOterm, pattern = " // NA", replacement = "")
+ribosom.pt <- distinct(ribosom.pt)
+
+ribosom.pt <- ribosom.pt[grep("chloropl|plastid", ribosom.pt$GOterm),]
+
 NE.PtRibo <- ribosom.pt$Gene
 ```
 
@@ -1922,7 +1948,8 @@ ggsave(plot = Fig2, paste0(PathToPlots, "Figure2.pdf"), width = 4.75, height = 4
 #Figure S8
 ```{r setup dataframe S8a}
 #combine RIL and 6 hybrids
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL.all9[,c(1,17:25)], cpm.6H.all6[,c(1,12:17)], by.x = "Gene", by.y = "Gene", all = F)
+cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL.all9[,c(1,17:25)], cpm.6H.all6[,c(1,12:17)], by.x = "Gene", by.y = "Gene", all = T)
+
 #convert back to ratio
 for(i in 2:16){
   cpm.RIL.6H.Hyb2MP[,i] <- as.numeric(cpm.RIL.6H.Hyb2MP[,i])
@@ -1952,6 +1979,7 @@ for(i in 1:15){
 cpm.PlastidRiboCor.hyb2MP.split.avg.lm <- lm(value~height, data = cpm.PlastidRiboCor.hyb2MP.split.avg)
 cpm.PlastidRiboCor.hyb2MP.split.avg.lm.rsquared <- summary(cpm.PlastidRiboCor.hyb2MP.split.avg.lm)$r.squared
 ```
+
 
 ```{r plot FigS8a}
 FigS8a <- ggplot(data=cpm.PlastidRiboCor.hyb2MP, mapping = aes(x=height, y=value, fill=variable))+
@@ -1997,7 +2025,7 @@ tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, PlantHeights.ril.6h.MP)
 #merge RIL and 6 hybrids
 tmt.cpm.RIL.6H.Hyb2MP.cor <- merge.data.frame(tmt.RIL.6H.Hyb2MP.cor[,c(1,17)], cpm.RIL.6H.Hyb2MP.cor[,c(1,17)], by.x = "Gene", by.y = "Gene", all=T)
 #Remove NAs
-tmt.cpm.RIL.6H.Hyb2MP.cor <- na.omit(tmt.cpm.RIL.6H.Hyb2MP.cor)
+#tmt.cpm.RIL.6H.Hyb2MP.cor <- na.omit(tmt.cpm.RIL.6H.Hyb2MP.cor)
 #Set GOIs
 tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- tmt.cpm.RIL.6H.Hyb2MP.cor
 tmt.cpm.RIL.6H.Hyb2MP.cor.plot$Category <- "Other"
