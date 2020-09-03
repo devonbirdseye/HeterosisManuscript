@@ -1942,8 +1942,7 @@ cpm.PlastidRiboCor.hyb2MP <- melt(cpm.PlastidRiboCor.hyb2MP)
 #add hybrid/mid-parent plant height
 cpm.PlastidRiboCor.hyb2MP$height <- c(rep(1.169374, n), rep(1.106888, n), rep(1.238806, n), rep(1.220903, n), rep(1.144279, n), rep(1.148837, n), rep(1.206813, n), rep(1.219626, n), rep(1.256724, n), rep(1.284798, n), rep(1.355715, n), rep(1.235964, n), rep(1.362016, n), rep(1.403358, n), rep(1.220447, n))
 #remove missing values
-#cpm.PlastidRiboCor.hyb2MP <- na.omit(cpm.PlastidRiboCor.hyb2MP)
-#cpm.PlastidRiboCor.hyb2MP <- cpm.PlastidRiboCor.hyb2MP[!cpm.PlastidRiboCor.hyb2MP$value==Inf,]
+cpm.PlastidRiboCor.hyb2MP <- na.omit(cpm.PlastidRiboCor.hyb2MP)
 #calculate averages and linear model
 cpm.PlastidRiboCor.hyb2MP.split <- split.data.frame(cpm.PlastidRiboCor.hyb2MP, cpm.PlastidRiboCor.hyb2MP$variable)
 cpm.PlastidRiboCor.hyb2MP.split.avg <- data.frame("hybrid"=unique(cpm.PlastidRiboCor.hyb2MP$variable), "value"=NA, "height"=unique(cpm.PlastidRiboCor.hyb2MP$height))
