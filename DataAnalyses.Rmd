@@ -1896,7 +1896,6 @@ tmt.PlastidRiboCor.Hyb2MP <- melt(tmt.PlastidRiboCor.Hyb2MP)
 tmt.PlastidRiboCor.Hyb2MP$height <- c(rep(1.169374, n), rep(1.106888, n), rep(1.238806, n), rep(1.220903, n), rep(1.144279, n), rep(1.148837, n), rep(1.206813, n), rep(1.219626, n), rep(1.256724, n), rep(1.284798, n), rep(1.355715, n), rep(1.235964, n), rep(1.362016, n), rep(1.403358, n), rep(1.220447, n))
 #remove missing values
 tmt.PlastidRiboCor.Hyb2MP <- na.omit(tmt.PlastidRiboCor.Hyb2MP)
-tmt.PlastidRiboCor.Hyb2MP <- tmt.PlastidRiboCor.Hyb2MP[!tmt.PlastidRiboCor.Hyb2MP$value==Inf,]
 #calculate averages and linear model
 tmt.PlastidRiboCor.Hyb2MP.split <- split.data.frame(tmt.PlastidRiboCor.Hyb2MP, tmt.PlastidRiboCor.Hyb2MP$variable)
 tmt.PlastidRiboCor.Hyb2MP.split.avg <- data.frame("hybrid"=unique(tmt.PlastidRiboCor.Hyb2MP$variable), "value"=NA, "height"=unique(tmt.PlastidRiboCor.Hyb2MP$height))
