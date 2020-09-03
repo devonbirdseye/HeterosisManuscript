@@ -1834,9 +1834,6 @@ tmt.6H.Hyb2BxM$A682xMo17.BM <- tmt.6H.Hyb2BxM$A682xMo17/tmt.6H.Hyb2BxM$B73xMo17
 tmt.RIL.6H.Hyb2BxM <- merge.data.frame(tmt.RIL.Hyb2BxM[,c(1,25:33)], tmt.6H.Hyb2BxM[,c(1,12:17)], by.x = "Accession", by.y = "Accession", all = F)
 #Make gene column to call genes of interest
 tmt.RIL.6H.Hyb2BxM$Gene <- substr(tmt.RIL.6H.Hyb2BxM$Accession, start = 1, stop = 14)
-#Remove proteins not detected in both experiments
-#tmt.RIL.6H.Hyb2BxM[tmt.RIL.6H.Hyb2BxM==0] <- NA
-#tmt.PlastidRiboCor.Hyb2BxM <- na.omit(tmt.RIL.6H.Hyb2BxM)
 #trim to plastid ribosomal proteins only
 tmt.PlastidRiboCor.Hyb2BxM <- tmt.RIL.6H.Hyb2BxM[tmt.RIL.6H.Hyb2BxM$Gene %in% c(GOIs$NE.PtRibo, GOIs$PE.ribo),]
 #Remove gene column
