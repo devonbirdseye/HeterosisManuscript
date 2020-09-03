@@ -400,6 +400,7 @@ cpm.6H.all6$l2.B84.Mo17 <- log2(cpm.6H.all6$B84/cpm.6H.all6$Mo17)
 #limit to genes detected as proteins
 cpm.6H.all6 <- cpm.6H.all6[cpm.6H.all6$Gene%in%tmt.6H.all6$Gene,]
 ```
+
 ```{r subset all hybrids from RIL experiment}
 cpm.RIL.tm_m.B73 <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s001",]
 cpm.RIL.tm_m.BM <- cpm.RIL.tm_m[cpm.RIL.tm_m$SampleID=="s002",]
@@ -443,6 +444,9 @@ cpm.RIL.all9$l2.M0317.Mo17 <- log2(cpm.RIL.all9$M0317/cpm.RIL.all9$Mo17)
 #limit to genes detected as protein
 cpm.RIL.all9 <- cpm.RIL.all9[cpm.RIL.all9$Gene%in%tmt.RIL.all9$Gene,]
 ```
+
+
+
 
 
 
@@ -1932,7 +1936,7 @@ for(i in 2:16){
 #Re-order
 cpm.RIL.6H.Hyb2MP <- cpm.RIL.6H.Hyb2MP[,c(1:12,15,16,13,14)]
 #limit to plastid ribosomal proteins
-cpm.PlastidRiboCor.hyb2MP <- cpm.RIL.6H.Hyb2MP[cpm.RIL.6H.Hyb2MP$Gene %in% GOIs$PhANGs,]
+cpm.PlastidRiboCor.hyb2MP <- cpm.RIL.6H.Hyb2MP[cpm.RIL.6H.Hyb2MP$Gene %in% c(GOIs$PE.ribo, GOIs$NE.PtRibo),]
 #re-name columns
 colnames(cpm.PlastidRiboCor.hyb2MP)[2:16] <- c("RIL RIL.B73xMo17", "RIL RIL14xB73", "RIL RIL14xMo17", "RIL RIL16xB73", "RIL RIL16xMo17", "RIL RIL21xB73", "RIL RIL21xMo17", "RIL RIL317xB73", "RIL RIL317xMo17", "6H B73xMo17", "6H Mo17xB73", "6H B84xB73", "6H B84xMo17", "6H A682xB73", "6H A682xMo17")
 #get number of proteins
@@ -2282,6 +2286,9 @@ pathview(gene.data = tmt.BxM.OG.entrez.nodups.trim, pathway.id = "zma00592", spe
 ```{r plot FigS10b}
 pathview(gene.data = tmt.acs.6H.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="FigureS10b")
 ```
+
+
+
 
 
 
