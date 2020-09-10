@@ -6,12 +6,14 @@ date: "08/07/2020"
 ---
 #Setup
 ```{r setup, include=FALSE}
+#combine setup into one code chunk, fewer lines, cleaner, faster to run
 knitr::opts_chunk$set(echo = TRUE)
-```
-```{r set seed}
+#set seed for reproducibility
 set.seed(586)
-```
-```{r libraries}
+#load packages
+#we should consider using packrat for reproducibility
+#add bioconductor dependency IRanges
+library(IRanges)
 library(readr)
 library(tibble)
 library(plyr)
@@ -20,23 +22,23 @@ library(ggplot2)
 library(reshape2)
 library(cowplot)
 library(patchwork)
+#had to swap order of pkgs to avoid conflict
+library(AnnotationDbi)
 library(pathview)
 library(data.table)
-library(AnnotationDbi)
 library(dplyr)
 library(tidyr)
-```
-
-```{r define paths}
+#paths
 #Path to input data
-PathToData <- "Data/"
+#PathToData <- "Data/"
+PathToData<-"C:/Users/laura/Documents/Heterosis/2020Paper/codeReview/"
+PathToPlots<-"C:/Users/laura/Documents/Heterosis/2020Paper/codeReview/plots/"
 #Path to output plots
-PathToPlots <- "Plots/"
+#PathToPlots <- "Plots/"
 ```
 
-
-
-
+```{r, session info}
+```
 #Import protein data
 ```{r import protein data}
 #Import protein data
@@ -55,7 +57,11 @@ for(i in 1:170){
   tmt[,i] <- as.numeric(tmt[,i])
 }
 #Convert NAs to 0
-tmt[is.na(tmt)] <- 0
+#We need to be really careful here and should not replace na with 0. 
+#There are 784930 NAs produced by the above data type conversion. 
+#They are all coming from "#DIV/0!" from excel which != 0
+#there are also 1275 actual 0 values that shouldn't be mixed with div/0
+#tmt[is.na(tmt)] <- 0
 ```
 
 
@@ -64,13 +70,19 @@ tmt[is.na(tmt)] <- 0
 ```{r subset BxM seedling leaf from original experiment}
 #BxM from Original Experiment (OG)
 tmt.BxM.OG <- tmt[,c(171:176,181:183,12:20)]
-#Remove proteins not detected in any of the samples
-tmt.BxM.OG <- tmt.BxM.OG[rowSums(tmt.BxM.OG[,10:18]) > 0,]
+#Remove proteins not detected in any of the samples and with any NA observations by adding which()
+#if the table changes, it will be tedious to change all the column numbers. I've added greps instead for clarity
+tmt.BxM.OG <- tmt.BxM.OG[which(rowSums(tmt.BxM.OG[,grep(colnames(tmt.BxM.OG), pattern="SeedlingLeaf")]) > 0),]
 #Calculate averages of bio reps
-tmt.BxM.OG$B73avg <- rowMeans(tmt.BxM.OG[,10:12])
-tmt.BxM.OG$Mo17avg <- rowMeans(tmt.BxM.OG[,13:15])
-tmt.BxM.OG$HYBavg <- rowMeans(tmt.BxM.OG[,16:18])
-tmt.BxM.OG$MPavg <- rowMeans(tmt.BxM.OG[,c(10:15)])
+tmt.BxM.OG$B73avg <- rowMeans(tmt.BxM.OG[,grep(colnames(tmt.BxM.OG), pattern="B73")])
+tmt.BxM.OG$Mo17avg <- rowMeans(tmt.BxM.OG[,grep(colnames(tmt.BxM.OG), pattern="Mo17")])
+tmt.BxM.OG$HYBavg <- rowMeans(tmt.BxM.OG[,grep(colnames(tmt.BxM.OG), pattern="BM")])
+#in this case, taking the average of the whole set is OK because there are the same number of observations of each parent. 
+#If there were not, this is not the equivalent of taking the average of the parent means. 
+#This gets dangerous when we move to the RNA samples where there are not the same number of observations.
+#instead, lets take the mean of the means for each genotype.
+#tmt.BxM.OG$MPavg <- rowMeans(tmt.BxM.OG[,c(10:15)])
+tmt.BxM.OG$MPavg <- rowMeans(tmt.BxM.OG[,c("B73avg", "Mo17avg")])
 #calculate ratios
 tmt.BxM.OG$HYB.MP <- tmt.BxM.OG$HYBavg/tmt.BxM.OG$MPavg
 tmt.BxM.OG$l2.BM.MP <- log2(tmt.BxM.OG$HYB.MP)
@@ -78,15 +90,16 @@ tmt.BxM.OG$B73.Mo17 <- tmt.BxM.OG$B73avg/tmt.BxM.OG$Mo17avg
 tmt.BxM.OG$l2.B73.Mo17 <-log2(tmt.BxM.OG$B73.Mo17)
 ```
 ```{r subset BxM from 6-hybrid experiment}
+#mostly the same changes from the "OG" Seedling leaf chunk above
 #BxM from 6-hybrid experiment (6H)
 tmt.BxM.6H <- tmt[,c(171:176,181:183,31,41,51,33,43,53,35,45,55)]
-#Remove proteins not detected in any of the samples
-tmt.BxM.6H <- tmt.BxM.6H[rowSums(tmt.BxM.6H[,10:18]) > 0,]
+#Remove proteins not detected in any of the samples or with NAs
+tmt.BxM.6H <- tmt.BxM.6H[which(rowSums(tmt.BxM.6H[,grep(colnames(tmt.BxM.6H), pattern = "X6Hybrid")]) > 0),]
 #Calculate averages of bio reps
-tmt.BxM.6H$B73avg <- rowMeans(tmt.BxM.6H[,10:12])
-tmt.BxM.6H$Mo17avg <- rowMeans(tmt.BxM.6H[,13:15])
-tmt.BxM.6H$HYBavg <- rowMeans(tmt.BxM.6H[,16:18])
-tmt.BxM.6H$MPavg <- rowMeans(tmt.BxM.6H[,c(10:15)])
+tmt.BxM.6H$B73avg <- rowMeans(tmt.BxM.6H[,grep(colnames(tmt.BxM.6H), pattern = "B73\\.")])
+tmt.BxM.6H$Mo17avg <- rowMeans(tmt.BxM.6H[,grep(colnames(tmt.BxM.6H), pattern = "Mo17\\.")])
+tmt.BxM.6H$HYBavg <- rowMeans(tmt.BxM.6H[,grep(colnames(tmt.BxM.6H), pattern = "B73xMo17")])
+tmt.BxM.6H$MPavg <- rowMeans(tmt.BxM.6H[,c("B73avg", "Mo17avg")])
 #calculate ratios
 tmt.BxM.6H$HYB.MP <- tmt.BxM.6H$HYBavg/tmt.BxM.6H$MPavg
 tmt.BxM.6H$l2.BM.MP <- log2(tmt.BxM.6H$HYB.MP)
