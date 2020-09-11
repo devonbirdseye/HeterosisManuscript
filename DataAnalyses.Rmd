@@ -911,7 +911,7 @@ EtBio <- c(MAT,ACS,ACO)
 
 
 ##GOI list
-```{r GOIs}
+```{r GOIs list}
 GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio, MAT, ACS, ACO)
 names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio", "MAT", "ACS", "ACO")
 ```
@@ -935,6 +935,8 @@ colors.v <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
 colors.e <- c("Other"="black","Methionine adenosyltransferase"="#009292", "ACC synthase"="#ff6db6", "ACC oxidase"="#ffff6d")
 
 colors.pe <- c("Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
+
+colors.c <- c("Other"="black", "Cytosolic ribosome"="#ffa744", "NE plastid ribosome"="#ff0000", "PhANGs"="#3447ff")
 ```
 
 #Figure S1
@@ -1885,6 +1887,8 @@ tmt.PlastidRiboCor.Hyb2BxM.split.avg.lm <- lm(value~height, data = tmt.PlastidRi
 tmt.PlastidRiboCor.Hyb2BxM.split.avg.lm.rsquared <- summary(tmt.PlastidRiboCor.Hyb2BxM.split.avg.lm)$r.squared
 ```
 
+
+
 ```{r plot FigS7}
 FigS7 <- ggplot(data=tmt.PlastidRiboCor.Hyb2BxM, mapping = aes(x=height, y=value, fill=variable))+
   geom_violin(width=0.02, alpha=0.7)+
@@ -2045,7 +2049,7 @@ tmt.cpm.RIL.6H.Hyb2MP.cor.plot$Category <- factor(tmt.cpm.RIL.6H.Hyb2MP.cor.plot
 ```{r plot FigS8b}
 FigS8b <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, mapping=aes(x=cor.x, y=cor.y, color=Category, shape=Category))+
     geom_point(size=2.5)+
-    scale_colour_manual(values = c("Other"="black", "Cytosolic ribosome"="#ffa744", "NE plastid ribosome"="#ff0000", "PhANGs"="#3447ff"))+
+    scale_colour_manual(values = colors.c)+
   scale_shape_manual(values=c(1,19,19,19,19))+
     theme_classic()+
       xlim(-1,1)+
@@ -2068,7 +2072,7 @@ FigS8b <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, mapping=aes(x=cor.x, y=cor.y, c
 ###Add density curves
     densityplotX<-axis_canvas(FigS8b, axis="x")+
       geom_density(aes(tmt.cpm.RIL.6H.Hyb2MP.cor.plot[,"cor.x"], color=tmt.cpm.RIL.6H.Hyb2MP.cor.plot[,"Category"]), size=1)+
-    scale_color_manual(values=c("Other"="black", "Cytosolic ribosome"="#ffa744", "NE plastid ribosome"="#ff0000", "PhANGs"="#3447ff"), name="Category")+
+    scale_color_manual(values=colors.c, name="Category")+
       geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
       geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
       geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
@@ -2079,7 +2083,7 @@ FigS8b <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, mapping=aes(x=cor.x, y=cor.y, c
     #set up marginal density plot Y axis
     densityplotY<-axis_canvas(FigS8b, axis="y", coord_flip = T)+
       geom_density(aes(tmt.cpm.RIL.6H.Hyb2MP.cor.plot[,"cor.y"], color=tmt.cpm.RIL.6H.Hyb2MP.cor.plot[,"Category"]), size=1)+
-      scale_color_manual(values=c("Other"="black", "Cytosolic ribosome"="#ffa744", "NE plastid ribosome"="#ff0000", "PhANGs"="#3447ff"), name="Category")+
+      scale_color_manual(values=colors.c, name="Category")+
       geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
       geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
       geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
@@ -2093,6 +2097,7 @@ FigS8b <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, mapping=aes(x=cor.x, y=cor.y, c
 ggsave(plot=q, filename =paste0(PathToPlots, "SupplementalFigureS8b.pdf"),
           dpi=300, width = 4.75, height = 6)  
 ```
+
 
 #Figure S9
 ```{r setup dataframe S9}
