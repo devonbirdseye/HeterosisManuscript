@@ -63,9 +63,6 @@ for(i in 1:170){
 #there are also 1275 actual 0 values that shouldn't be mixed with div/0
 #tmt[is.na(tmt)] <- 0
 ```
-
-
-
 #Subset protein experiments
 ```{r subset BxM seedling leaf from original experiment}
 #BxM from Original Experiment (OG)
@@ -84,6 +81,7 @@ tmt.BxM.OG$HYBavg <- rowMeans(tmt.BxM.OG[,grep(colnames(tmt.BxM.OG), pattern="BM
 #tmt.BxM.OG$MPavg <- rowMeans(tmt.BxM.OG[,c(10:15)])
 tmt.BxM.OG$MPavg <- rowMeans(tmt.BxM.OG[,c("B73avg", "Mo17avg")])
 #calculate ratios
+#Do we ever do anything with the non-log-transformed ratios? If not, we can save a lot of lines of code/potential mistakes by log transforming at the ratio step.
 tmt.BxM.OG$HYB.MP <- tmt.BxM.OG$HYBavg/tmt.BxM.OG$MPavg
 tmt.BxM.OG$l2.BM.MP <- log2(tmt.BxM.OG$HYB.MP)
 tmt.BxM.OG$B73.Mo17 <- tmt.BxM.OG$B73avg/tmt.BxM.OG$Mo17avg
@@ -176,25 +174,25 @@ tmt.BxM.DN.both$night.l2.B73.Mo17 <-log2(tmt.BxM.DN.both$night.B73.Mo17)
 #Subset all hybrids from 6-hybrid experiment (6H)
 tmt.6H.all6 <- tmt[,c(171:176,181:183,31:60)]
 #Remove proteins not detected in any of the samples
-tmt.6H.all6 <- tmt.6H.all6[rowSums(tmt.6H.all6[,10:39]) > 0,]
+tmt.6H.all6 <- tmt.6H.all6[which(rowSums(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "6Hybrid")]) > 0),]
 #calculate averages
-tmt.6H.all6$B73 <- rowMeans(tmt.6H.all6[,c(10,20,30)])
-tmt.6H.all6$Mo17 <- rowMeans(tmt.6H.all6[,c(12,22,32)])
-tmt.6H.all6$B73xMo17 <- rowMeans(tmt.6H.all6[,c(14,24,34)])
-tmt.6H.all6$Mo17xB73 <- rowMeans(tmt.6H.all6[,c(15,25,35)])
-tmt.6H.all6$B84 <- rowMeans(tmt.6H.all6[,c(11,21,31)])
-tmt.6H.all6$B84xB73 <- rowMeans(tmt.6H.all6[,c(16,26,36)])
-tmt.6H.all6$B84xMo17 <- rowMeans(tmt.6H.all6[,c(17,27,37)])
-tmt.6H.all6$A682 <- rowMeans(tmt.6H.all6[,c(13,23,33)])
-tmt.6H.all6$A682xB73 <- rowMeans(tmt.6H.all6[,c(18,28,38)])
-tmt.6H.all6$A682xMo17 <- rowMeans(tmt.6H.all6[,c(19,29,39)])
+tmt.6H.all6$B73 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "B73\\.")])
+tmt.6H.all6$Mo17 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "6Hybrid.Mo17")])
+tmt.6H.all6$B73xMo17 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "B73xMo17")])
+tmt.6H.all6$Mo17xB73 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "Mo17xB73")])
+tmt.6H.all6$B84 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "6Hybrid.B84\\.")])
+tmt.6H.all6$B84xB73 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "B84xB73")])
+tmt.6H.all6$B84xMo17 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "B84xMo17")])
+tmt.6H.all6$A682 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "6Hybrid.A682\\.")])
+tmt.6H.all6$A682xB73 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "A682xB73")])
+tmt.6H.all6$A682xMo17 <- rowMeans(tmt.6H.all6[,grep(colnames(tmt.6H.all6),pattern = "A682xMo17")])
 #Calculate hyb/MP ratios
-tmt.6H.all6$B73xMo17.MP <- tmt.6H.all6$B73xMo17/rowMeans(tmt.6H.all6[,40:41])
-tmt.6H.all6$Mo17xB73.MP <- tmt.6H.all6$Mo17xB73/rowMeans(tmt.6H.all6[,40:41])
-tmt.6H.all6$B84xB73.MP <- tmt.6H.all6$B84xB73/rowMeans(tmt.6H.all6[,c(40,44)])
-tmt.6H.all6$B84xMo17.MP <- tmt.6H.all6$B84xMo17/rowMeans(tmt.6H.all6[,c(41,44)])
-tmt.6H.all6$A682xB73.MP <- tmt.6H.all6$A682xB73/rowMeans(tmt.6H.all6[,c(40,47)])
-tmt.6H.all6$A682xMo17.MP <- tmt.6H.all6$A682xMo17/rowMeans(tmt.6H.all6[,c(41,47)])
+tmt.6H.all6$B73xMo17.MP <- tmt.6H.all6$B73xMo17/rowMeans(tmt.6H.all6[,c("B73", "Mo17")])
+tmt.6H.all6$Mo17xB73.MP <- tmt.6H.all6$Mo17xB73/rowMeans(tmt.6H.all6[,c("Mo17", "B73")])
+tmt.6H.all6$B84xB73.MP <- tmt.6H.all6$B84xB73/rowMeans(tmt.6H.all6[,c("B84", "B73")])
+tmt.6H.all6$B84xMo17.MP <- tmt.6H.all6$B84xMo17/rowMeans(tmt.6H.all6[,c("B84", "Mo17")])
+tmt.6H.all6$A682xB73.MP <- tmt.6H.all6$A682xB73/rowMeans(tmt.6H.all6[,c("A682", "B73")])
+tmt.6H.all6$A682xMo17.MP <- tmt.6H.all6$A682xMo17/rowMeans(tmt.6H.all6[,c("A682", "Mo17")])
 #Calculate parent/parent ratios
 tmt.6H.all6$B73.Mo17 <- tmt.6H.all6$B73/tmt.6H.all6$Mo17
 tmt.6H.all6$Mo17.B73 <- tmt.6H.all6$Mo17/tmt.6H.all6$B73
@@ -216,45 +214,54 @@ tmt.6H.all6$l2.B84.Mo17 <- log2(tmt.6H.all6$B84.Mo17)
 tmt.6H.all6$l2.A682.B73 <- log2(tmt.6H.all6$A682.B73)
 tmt.6H.all6$l2.A682.Mo17 <- log2(tmt.6H.all6$A682.Mo17)
 ```
+
 ```{r subset all hybrids from RIL experiment}
 #Subset all hybrids from RIL experiment (RIL)
 tmt.RIL.all9 <- tmt[,c(171:176,181:183,81:170)]
 #Remove proteins not detected in any of the samples
-tmt.RIL.all9 <- tmt.RIL.all9[rowSums(tmt.RIL.all9[,10:99]) > 0,]
+tmt.RIL.all9 <- tmt.RIL.all9[which(rowSums(tmt.RIL.all9[,10:99]) > 0),]
+#checking the column numbers for the rest of this chunk is a little tedious
+#instead, assign new column names to the ranges so we can access by name; only need to check numbers once per run
+colnames(tmt.RIL.all9)[10:19]<-paste0("BxM_",colnames(tmt.RIL.all9)[10:19])
+colnames(tmt.RIL.all9)[20:39]<-paste0("x14_",colnames(tmt.RIL.all9)[20:39])
+colnames(tmt.RIL.all9)[40:59]<-paste0("x16_",colnames(tmt.RIL.all9)[40:59])
+colnames(tmt.RIL.all9)[60:79]<-paste0("x21_",colnames(tmt.RIL.all9)[60:79])
+colnames(tmt.RIL.all9)[80:99]<-paste0("x317_",colnames(tmt.RIL.all9)[80:99])
 #Calculate averages
-tmt.RIL.all9$BM.B73 <- rowMeans(tmt.RIL.all9[,10:12], na.rm = T)
-tmt.RIL.all9$BM.Mo17 <- rowMeans(tmt.RIL.all9[,13:15], na.rm = T)
-tmt.RIL.all9$BM.BM <- rowMeans(tmt.RIL.all9[,16:19], na.rm = T)
-tmt.RIL.all9$X14.B73 <- rowMeans(tmt.RIL.all9[,20:23], na.rm = T)
-tmt.RIL.all9$X14.Mo17<- rowMeans(tmt.RIL.all9[,24:27], na.rm = T)
-tmt.RIL.all9$X14.14 <- rowMeans(tmt.RIL.all9[,28:31], na.rm = T)
-tmt.RIL.all9$X14.14B <- rowMeans(tmt.RIL.all9[,32:35], na.rm = T)
-tmt.RIL.all9$X14.14M <- rowMeans(tmt.RIL.all9[,36:39], na.rm = T)
-tmt.RIL.all9$X16.B73 <- rowMeans(tmt.RIL.all9[,40:43], na.rm = T)
-tmt.RIL.all9$X16.Mo17<- rowMeans(tmt.RIL.all9[,44:47], na.rm = T)
-tmt.RIL.all9$X16.16 <- rowMeans(tmt.RIL.all9[,48:51], na.rm = T)
-tmt.RIL.all9$X16.16B <- rowMeans(tmt.RIL.all9[,52:55], na.rm = T)
-tmt.RIL.all9$X16.16M <- rowMeans(tmt.RIL.all9[,56:59], na.rm = T)
-tmt.RIL.all9$X21.B73 <- rowMeans(tmt.RIL.all9[,60:63], na.rm = T)
-tmt.RIL.all9$X21.Mo17<- rowMeans(tmt.RIL.all9[,64:67], na.rm = T)
-tmt.RIL.all9$X21.21 <- rowMeans(tmt.RIL.all9[,68:71], na.rm = T)
-tmt.RIL.all9$X21.21B <- rowMeans(tmt.RIL.all9[,72:75], na.rm = T)
-tmt.RIL.all9$X21.21M <- rowMeans(tmt.RIL.all9[,76:79], na.rm = T)
-tmt.RIL.all9$X317.B73 <- rowMeans(tmt.RIL.all9[,80:83], na.rm = T)
-tmt.RIL.all9$X317.Mo17<- rowMeans(tmt.RIL.all9[,84:87], na.rm = T)
-tmt.RIL.all9$X317.317 <- rowMeans(tmt.RIL.all9[,88:91], na.rm = T)
-tmt.RIL.all9$X317.317B <- rowMeans(tmt.RIL.all9[,92:95], na.rm = T)
-tmt.RIL.all9$X317.317M <- rowMeans(tmt.RIL.all9[,96:99], na.rm = T)
+#got rid of na.rm=T as per our conversation on Friday 9/11
+tmt.RIL.all9$BM.B73 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="BxM_B73")])
+tmt.RIL.all9$BM.Mo17 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="BxM_Mo17")])
+tmt.RIL.all9$BM.BM <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="BxM_BM")])
+tmt.RIL.all9$X14.B73 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x14_B73")])
+tmt.RIL.all9$X14.Mo17<- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x14_Mo17")])
+tmt.RIL.all9$X14.14 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x14_X14")])
+tmt.RIL.all9$X14.14B <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x14_X14B")])
+tmt.RIL.all9$X14.14M <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x14_X14M")])
+tmt.RIL.all9$X16.B73 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x16_B73")])
+tmt.RIL.all9$X16.Mo17<- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x16_Mo17")])
+tmt.RIL.all9$X16.16 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x16_X16")])
+tmt.RIL.all9$X16.16B <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x16_X16B")])
+tmt.RIL.all9$X16.16M <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x16_X16M")])
+tmt.RIL.all9$X21.B73 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x21_B73")])
+tmt.RIL.all9$X21.Mo17<- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x21_Mo17")])
+tmt.RIL.all9$X21.21 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x21_X21")])
+tmt.RIL.all9$X21.21B <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x21_X21B")])
+tmt.RIL.all9$X21.21M <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x21_X21M")])
+tmt.RIL.all9$X317.B73 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x317_B73")])
+tmt.RIL.all9$X317.Mo17<- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x317_Mo17")])
+tmt.RIL.all9$X317.317 <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x317_X317")])
+tmt.RIL.all9$X317.317B <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x317_X317B")])
+tmt.RIL.all9$X317.317M <- rowMeans(tmt.RIL.all9[,grep(colnames(tmt.RIL.all9), pattern="x317_X317B")])
 #Calculate hyb/mp ratios
-tmt.RIL.all9$BM.BM.MP <- tmt.RIL.all9$BM.BM/rowMeans(tmt.RIL.all9[,100:101], na.rm = T)
-tmt.RIL.all9$X14.14B.MP <- tmt.RIL.all9$X14.14B/rowMeans(tmt.RIL.all9[,c(103,105)], na.rm = T)
-tmt.RIL.all9$X14.14M.MP <- tmt.RIL.all9$X14.14M/rowMeans(tmt.RIL.all9[,c(104,105)], na.rm = T)
-tmt.RIL.all9$X16.16B.MP <- tmt.RIL.all9$X16.16B/rowMeans(tmt.RIL.all9[,c(108,110)], na.rm = T)
-tmt.RIL.all9$X16.16M.MP <- tmt.RIL.all9$X16.16M/rowMeans(tmt.RIL.all9[,c(109,110)], na.rm = T)
-tmt.RIL.all9$X21.21B.MP <- tmt.RIL.all9$X21.21B/rowMeans(tmt.RIL.all9[,c(113,115)], na.rm = T)
-tmt.RIL.all9$X21.21M.MP <- tmt.RIL.all9$X21.21M/rowMeans(tmt.RIL.all9[,c(114,115)], na.rm = T)
-tmt.RIL.all9$X317.317B.MP <- tmt.RIL.all9$X317.317B/rowMeans(tmt.RIL.all9[,c(118,120)], na.rm = T)
-tmt.RIL.all9$X317.317M.MP <- tmt.RIL.all9$X317.317M/rowMeans(tmt.RIL.all9[,c(119,120)], na.rm = T)
+tmt.RIL.all9$BM.BM.MP <- tmt.RIL.all9$BM.BM/rowMeans(tmt.RIL.all9[,c("BM.B73", "BM.Mo17")])
+tmt.RIL.all9$X14.14B.MP <- tmt.RIL.all9$X14.14B/rowMeans(tmt.RIL.all9[,c("X14.B73", "X14.X14")])
+tmt.RIL.all9$X14.14M.MP <- tmt.RIL.all9$X14.14M/rowMeans(tmt.RIL.all9[,c("X14.Mo17","X14.X14")])
+tmt.RIL.all9$X16.16B.MP <- tmt.RIL.all9$X16.16B/rowMeans(tmt.RIL.all9[,c("X16.B73","X16.X16")])
+tmt.RIL.all9$X16.16M.MP <- tmt.RIL.all9$X16.16M/rowMeans(tmt.RIL.all9[,c("X16.Mo17","X16.X16")])
+tmt.RIL.all9$X21.21B.MP <- tmt.RIL.all9$X21.21B/rowMeans(tmt.RIL.all9[,c("X21.B73","X21.X21")])
+tmt.RIL.all9$X21.21M.MP <- tmt.RIL.all9$X21.21M/rowMeans(tmt.RIL.all9[,c("X21.Mo17","X21.X21")])
+tmt.RIL.all9$X317.317B.MP <- tmt.RIL.all9$X317.317B/rowMeans(tmt.RIL.all9[,c("X317.B73","X317.X317")])
+tmt.RIL.all9$X317.317M.MP <- tmt.RIL.all9$X317.317M/rowMeans(tmt.RIL.all9[,c("X317.Mo17","X317.X317")])
 #Calculate parent/parent ratios
 tmt.RIL.all9$BM.B73.Mo17 <- tmt.RIL.all9$BM.B73/tmt.RIL.all9$BM.Mo17
 tmt.RIL.all9$X14.14.B73 <- tmt.RIL.all9$X14.14/tmt.RIL.all9$X14.B73
@@ -285,14 +292,15 @@ tmt.RIL.all9$l2.X21.21.Mo17  <- log2(tmt.RIL.all9$X21.21.Mo17)
 tmt.RIL.all9$l2.X317.317.B73 <- log2(tmt.RIL.all9$X317.317.B73)
 tmt.RIL.all9$l2.X317.317.Mo17  <- log2(tmt.RIL.all9$X317.317.Mo17)
 ```
+
 ```{r subset acs mutant experiment}
 #Subset acs mutant experiment (acs)
 tmt.acs <- tmt[,c(171:176,181:183,1:10)]
 #Remove proteins not detected in any of the samples
-tmt.acs <- tmt.acs[rowSums(tmt.acs[,10:19]) > 0,]
+tmt.acs <- tmt.acs[which(rowSums(tmt.acs[,grep(colnames(tmt.acs), pattern = "B73\\.acs")]) > 0),]
 #Calculate averages of bio reps - acs
-tmt.acs$B73avg <- rowMeans(tmt.acs[,10:14])
-tmt.acs$ACSavg <- rowMeans(tmt.acs[,15:19])
+tmt.acs$B73avg <- rowMeans(tmt.acs[,grep(colnames(tmt.acs), pattern = "B73\\.r")])
+tmt.acs$ACSavg <- rowMeans(tmt.acs[,grep(colnames(tmt.acs), pattern = "acs\\.r")])
 #calculate ratio
 tmt.acs$ACS.B73 <- tmt.acs$ACSavg/tmt.acs$B73avg
 #calculate log2
@@ -309,7 +317,9 @@ tmt.acs.DN <- merge.data.frame(tmt.acs, tmt.BxM.DN[,c(6,24)], by.x = "Accession"
 #Import RNA data
 ```{r import RNA data}
 #Original experiment
-cpm.OG <- read_tsv(paste0(PathToData, "cpm.tsv"))
+cpm.OG <- as.data.frame(read_tsv(paste0(PathToData, "cpm.tsv")))
+#read in sample metadata from original RNAseq
+cpm.OG.Samp<-as.data.frame(read_tsv(paste0(PathToData, "samples.tsv")))
 #6-hybrid experiment
 cpm.6H <- readRDS(paste0(PathToData, "rn20b.rds"))
 cpm.6H.tm <- cpm.6H$tm
@@ -322,23 +332,32 @@ cpm.RIL.tm_m <- cpm.RIL$tm_m
 #Subset RNA experiments
 ```{r subset BxM seedling leaf from original experiment}
 #Original experiment seedling leaf BxM
-cpm.BxM.OG <- as.data.frame(cpm.OG[,c(1,178:186)])
-colnames(cpm.BxM.OG) <- c("Gene", "B73.1", "B73.2", "B73.3", "Mo17.1", "Mo17.2", "Mo17.3", "BM.1", "BM.2", "BM.3")
+#pulling the RNAseq data from the columns this way is risky. There are a couple sample swaps in the original spreadsheet
+#instead get sample names from sample spreadsheet and pull columns that way
+OGSamps<-colnames(cpm.OG)[-1]
+OGSampsNames<-paste(cpm.OG.Samp[match(OGSamps, cpm.OG.Samp$SampleID), "Tissue"],
+                    cpm.OG.Samp[match(OGSamps, cpm.OG.Samp$SampleID), "Genotype"],
+                    sep = "_")
+colnames(cpm.OG)<-c("Gene", OGSampsNames)
+cpm.BxM.OG <- cpm.OG[,c(1,grep(colnames(cpm.OG), pattern = "seedlingleaf"))]
+#cpm.BxM.OG <- as.data.frame(cpm.OG[,c(1,178:186)])
+#colnames(cpm.BxM.OG) <- c("Gene", "B73.1", "B73.2", "B73.3", "Mo17.1", "Mo17.2", "Mo17.3", "BM.1", "BM.2", "BM.3")
 #Remove genes not detected
-cpm.BxM.OG <- cpm.BxM.OG[!(rowSums(cpm.BxM.OG[,2:10])==0),]
-#Limit to genes we detect as proteins
+cpm.BxM.OG <- cpm.BxM.OG[!(rowSums(cpm.BxM.OG[,grep(colnames(cpm.BxM.OG), pattern="seedlingleaf")])==0),]
+#Limit to genes we detect as proteins in paired experiment
 cpm.BxM.OG <- cpm.BxM.OG[cpm.BxM.OG$Gene%in%tmt.BxM.OG$Gene,]
 #Calculate averages of bio reps
-cpm.BxM.OG$B73avg <- rowMeans(cpm.BxM.OG[,2:4])
-cpm.BxM.OG$Mo17avg <- rowMeans(cpm.BxM.OG[,5:7])
-cpm.BxM.OG$HYBavg <- rowMeans(cpm.BxM.OG[,8:10])
-cpm.BxM.OG$MPavg <- rowMeans(cpm.BxM.OG[,c(2:7)])
+cpm.BxM.OG$B73avg <- rowMeans(cpm.BxM.OG[,grep(colnames(cpm.BxM.OG), pattern = "B73$|B73[^x]")])
+cpm.BxM.OG$Mo17avg <- rowMeans(cpm.BxM.OG[,grep(colnames(cpm.BxM.OG), pattern = "_Mo17")])
+cpm.BxM.OG$HYBavg <- rowMeans(cpm.BxM.OG[,grep(colnames(cpm.BxM.OG), pattern = "B73xMo17")])
+cpm.BxM.OG$MPavg <- rowMeans(cpm.BxM.OG[,c("B73avg", "Mo17avg")])
 #calculate ratios
 cpm.BxM.OG$HYB.MP <- cpm.BxM.OG$HYBavg/cpm.BxM.OG$MPavg
 cpm.BxM.OG$l2.BM.MP <- log2(cpm.BxM.OG$HYB.MP)
 cpm.BxM.OG$B73.Mo17 <- cpm.BxM.OG$B73avg/cpm.BxM.OG$Mo17avg
 cpm.BxM.OG$l2.B73.Mo17 <-log2(cpm.BxM.OG$B73.Mo17)
 ```
+
 ```{r subset BxM from 6-hybrid experiment}
 cpm.6H.tm.B73.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR582",]
 cpm.6H.tm.B73.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR583",]
