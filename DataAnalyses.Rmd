@@ -324,6 +324,10 @@ cpm.OG.Samp<-as.data.frame(read_tsv(paste0(PathToData, "samples.tsv")))
 cpm.6H <- readRDS(paste0(PathToData, "rn20b.rds"))
 cpm.6H.tm <- cpm.6H$tm
 cpm.6H.tm_m <- cpm.6H$tm_m
+#get sample names
+cpm.6H.Samp <- as.data.frame(cpm.6H$th)
+#get rid of large object to save memory
+rm(cpm.6H)
 #RIL experiment
 cpm.RIL <- readRDS(paste0(PathToData, "rn20b2.rds"))
 cpm.RIL.tm <- cpm.RIL$tm
@@ -359,16 +363,16 @@ cpm.BxM.OG$l2.B73.Mo17 <-log2(cpm.BxM.OG$B73.Mo17)
 ```
 
 ```{r subset BxM from 6-hybrid experiment}
-cpm.6H.tm.B73.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR582",]
-cpm.6H.tm.B73.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR583",]
-cpm.6H.tm.B73.3 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR584",]
-cpm.6H.tm.M017.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR590",]
-cpm.6H.tm.M017.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR591",]
-cpm.6H.tm.M017.3 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR592",]
-cpm.6H.tm.BM.1 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR598",]
-cpm.6H.tm.BM.2 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR599",]
-cpm.6H.tm.BM.3 <- cpm.6H.tm[cpm.6H.tm$SampleID=="mBR600",]
-cpm.BxM.6H <- data.frame("Gene"=cpm.6H.tm.B73.1$gid, "B73.1"=cpm.6H.tm.B73.1$CPM, "B73.2"=cpm.6H.tm.B73.2$CPM, "B73.3"=cpm.6H.tm.B73.3$CPM, "Mo17.1"=cpm.6H.tm.M017.1$CPM, "Mo17.2"=cpm.6H.tm.M017.2$CPM, "Mo17.3"=cpm.6H.tm.M017.3$CPM, "BM.1"=cpm.6H.tm.BM.1$CPM, "BM.2"=cpm.6H.tm.BM.2$CPM, "BM.3"=cpm.6H.tm.BM.3$CPM)
+#this next segment is a little more complicated than what you wrote, but it's safer in case the gids aren't identical in each sample
+#get B73/Mo17/BM samples
+B73Samp<-cpm.6H.Samp$SampleID[which(cpm.6H.Samp$Tissue=="leaf_V2"&cpm.6H.Samp$Genotype=="B73"&cpm.6H.Samp$Treatment=="m")]
+Mo17Samp<-cpm.6H.Samp$SampleID[which(cpm.6H.Samp$Tissue=="leaf_V2"&cpm.6H.Samp$Genotype=="Mo17"&cpm.6H.Samp$Treatment=="m")]
+BMSamp<-cpm.6H.Samp$SampleID[which(cpm.6H.Samp$Tissue=="leaf_V2"&cpm.6H.Samp$Genotype=="B73xMo17"&cpm.6H.Samp$Treatment=="m")]
+allSamp<-c(B73Samp, Mo17Samp, BMSamp)
+#subset data, get into list
+cpm.BxM.6H<-sapply(allSamp, function(x) as.data.frame(cpm.6H.tm[cpm.6H.tm$SampleID==x,c("gid", "CPM")], simplify = FALSE))
+#use Reduce() to merge across lists by gid, doing full join
+cpm.BxM.6H<-Reduce(function(A, B) merge(A, B, by = "gid", all=T), cpm.BxM.6H)
 #Remove genes not detected
 cpm.BxM.6H <- cpm.BxM.6H[!(rowSums(cpm.BxM.6H[,2:10])==0),]
 #limit to genes detected as proteins
