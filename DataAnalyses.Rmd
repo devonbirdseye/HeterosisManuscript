@@ -332,6 +332,10 @@ rm(cpm.6H)
 cpm.RIL <- readRDS(paste0(PathToData, "rn20b2.rds"))
 cpm.RIL.tm <- cpm.RIL$tm
 cpm.RIL.tm_m <- cpm.RIL$tm_m
+#get sample names
+cpm.RIL.Samp<-as.data.frame(cpm.RIL$th)
+#get rid of large object to save memory
+rm(cpm.RIL)
 ```
 #Subset RNA experiments
 ```{r subset BxM seedling leaf from original experiment}
@@ -370,25 +374,35 @@ Mo17Samp<-cpm.6H.Samp$SampleID[which(cpm.6H.Samp$Tissue=="leaf_V2"&cpm.6H.Samp$G
 BMSamp<-cpm.6H.Samp$SampleID[which(cpm.6H.Samp$Tissue=="leaf_V2"&cpm.6H.Samp$Genotype=="B73xMo17"&cpm.6H.Samp$Treatment=="m")]
 allSamp<-c(B73Samp, Mo17Samp, BMSamp)
 #subset data, get into list
-cpm.BxM.6H<-sapply(allSamp, function(x) as.data.frame(cpm.6H.tm[cpm.6H.tm$SampleID==x,c("gid", "CPM")], simplify = FALSE))
+cpm.BxM.6H<-sapply(allSamp, function(x) as.data.frame(cpm.6H.tm[cpm.6H.tm$SampleID==x,c("gid", "CPM")]), simplify = FALSE)
+cpm.BxM.6H<-sapply(seq(1:length(cpm.BxM.6H)), function(x) {
+  retDF<-cpm.BxM.6H[[x]]
+  colnames(retDF)[colnames(retDF)=="CPM"]<-names(cpm.BxM.6H)[x]
+  return(retDF)
+  }, simplify = FALSE)
 #use Reduce() to merge across lists by gid, doing full join
+#Reduce is pretty handy for this kind of thing, there is also a "tidyverse" way to do it with Purr
 cpm.BxM.6H<-Reduce(function(A, B) merge(A, B, by = "gid", all=T), cpm.BxM.6H)
+#rename gid to Gene to match protein data
+colnames(cpm.BxM.6H)[colnames(cpm.BxM.6H) == "gid"]<-"Gene"
 #Remove genes not detected
 cpm.BxM.6H <- cpm.BxM.6H[!(rowSums(cpm.BxM.6H[,2:10])==0),]
 #limit to genes detected as proteins
 cpm.BxM.6H <- cpm.BxM.6H[cpm.BxM.6H$Gene%in%tmt.BxM.6H$Gene,]
 #Calculate averages of bio reps
-cpm.BxM.6H$B73avg <- rowMeans(cpm.BxM.6H[,2:4])
-cpm.BxM.6H$Mo17avg <- rowMeans(cpm.BxM.6H[,5:7])
-cpm.BxM.6H$HYBavg <- rowMeans(cpm.BxM.6H[,8:10])
-cpm.BxM.6H$MPavg <- rowMeans(cpm.BxM.6H[,c(2:7)])
+cpm.BxM.6H$B73avg <- rowMeans(cpm.BxM.6H[,B73Samp])
+cpm.BxM.6H$Mo17avg <- rowMeans(cpm.BxM.6H[,Mo17Samp])
+cpm.BxM.6H$HYBavg <- rowMeans(cpm.BxM.6H[,BMSamp])
+cpm.BxM.6H$MPavg <- rowMeans(cpm.BxM.6H[,c("B73avg", "Mo17avg")])
 #calculate ratios
 cpm.BxM.6H$HYB.MP <- cpm.BxM.6H$HYBavg/cpm.BxM.6H$MPavg
 cpm.BxM.6H$l2.BM.MP <- log2(cpm.BxM.6H$HYB.MP)
 cpm.BxM.6H$B73.Mo17 <- cpm.BxM.6H$B73avg/cpm.BxM.6H$Mo17avg
 cpm.BxM.6H$l2.B73.Mo17 <-log2(cpm.BxM.6H$B73.Mo17)
 ```
+
 ```{r subset BxM from RIL experiment}
+#start here tomorrow
 cpm.RIL.tm.B73.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR701",]
 cpm.RIL.tm.B73.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR702",]
 cpm.RIL.tm.B73.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR703",]
