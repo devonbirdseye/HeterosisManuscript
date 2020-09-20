@@ -386,7 +386,7 @@ cpm.BxM.6H<-Reduce(function(A, B) merge(A, B, by = "gid", all=T), cpm.BxM.6H)
 #rename gid to Gene to match protein data
 colnames(cpm.BxM.6H)[colnames(cpm.BxM.6H) == "gid"]<-"Gene"
 #Remove genes not detected
-cpm.BxM.6H <- cpm.BxM.6H[!(rowSums(cpm.BxM.6H[,2:10])==0),]
+cpm.BxM.6H <- cpm.BxM.6H[!(rowSums(cpm.BxM.6H[,!(colnames(cpm.BxM.6H)%in%c("Gene"))])==0),]
 #limit to genes detected as proteins
 cpm.BxM.6H <- cpm.BxM.6H[cpm.BxM.6H$Gene%in%tmt.BxM.6H$Gene,]
 #Calculate averages of bio reps
@@ -402,30 +402,31 @@ cpm.BxM.6H$l2.B73.Mo17 <-log2(cpm.BxM.6H$B73.Mo17)
 ```
 
 ```{r subset BxM from RIL experiment}
-#start here tomorrow
-cpm.RIL.tm.B73.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR701",]
-cpm.RIL.tm.B73.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR702",]
-cpm.RIL.tm.B73.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR703",]
-cpm.RIL.tm.B73.4 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR704",]
-cpm.RIL.tm.Mo17.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR757",]
-cpm.RIL.tm.Mo17.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR758",]
-cpm.RIL.tm.Mo17.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR759",]
-cpm.RIL.tm.Mo17.4 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR760",]
-cpm.RIL.tm.BM.1 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR705",]
-cpm.RIL.tm.BM.2 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR707",]
-cpm.RIL.tm.BM.3 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR708",]
-cpm.RIL.tm.BM.4 <- cpm.RIL.tm[cpm.RIL.tm$SampleID=="BR761",]
-#combine
-cpm.BxM.RIL <- data.frame("Gene"=cpm.RIL.tm.B73.1$gid, "B73.1"=cpm.RIL.tm.B73.1$CPM, "B73.2"=cpm.RIL.tm.B73.2$CPM, "B73.3"=cpm.RIL.tm.B73.3$CPM, "B73.4"=cpm.RIL.tm.B73.4$CPM, "Mo17.1"=cpm.RIL.tm.Mo17.1$CPM, "Mo17.2"=cpm.RIL.tm.Mo17.2$CPM, "Mo17.3"=cpm.RIL.tm.Mo17.3$CPM, "Mo17.4"=cpm.RIL.tm.Mo17.4$CPM, "BM.1"=cpm.RIL.tm.BM.1$CPM, "BM.2"=cpm.RIL.tm.BM.2$CPM, "BM.3"=cpm.RIL.tm.BM.3$CPM, "BM.4"=cpm.RIL.tm.BM.4$CPM)
+#get samples
+B73Samp<-cpm.RIL.Samp[which(cpm.RIL.Samp$Genotype=="B73"),"SampleID"]
+Mo17Samp<-cpm.RIL.Samp[which(cpm.RIL.Samp$Genotype=="Mo17"),"SampleID"]
+BMSamp<-cpm.RIL.Samp[which(cpm.RIL.Samp$Genotype=="BxM"),"SampleID"]
+allSamp<-c(B73Samp, Mo17Samp, BMSamp)
+#subset data, get into list
+cpm.BxM.RIL<-sapply(allSamp, function(x) as.data.frame(cpm.RIL.tm[cpm.RIL.tm$SampleID==x,c("gid", "CPM")]), simplify = FALSE)
+cpm.BxM.RIL<-sapply(seq(1:length(cpm.BxM.RIL)), function(x) {
+  retDF<-cpm.BxM.RIL[[x]]
+  colnames(retDF)[colnames(retDF)=="CPM"]<-names(cpm.BxM.RIL)[x]
+  return(retDF)
+  }, simplify = FALSE)
+#use Reduce() to merge across lists by gid, doing full join
+cpm.BxM.RIL<-Reduce(function(A, B) merge(A, B, by = "gid", all=T), cpm.BxM.RIL)
+#rename gid to Gene to match protein data
+colnames(cpm.BxM.RIL)[colnames(cpm.BxM.RIL) == "gid"]<-"Gene"
 #Remove genes not detected
-cpm.BxM.RIL <- cpm.BxM.RIL[!(rowSums(cpm.BxM.RIL[,2:13])==0),]
+cpm.BxM.RIL <- cpm.BxM.RIL[!(rowSums(cpm.BxM.RIL[,!(colnames(cpm.BxM.RIL)%in%c("Gene"))])==0),]
 #limit to genes detected as protein
 cpm.BxM.RIL <- cpm.BxM.RIL[cpm.BxM.RIL$Gene%in%tmt.BxM.RIL$Gene,]
 #Calculate averages of bio reps
-cpm.BxM.RIL$B73avg <- rowMeans(cpm.BxM.RIL[,2:5])
-cpm.BxM.RIL$Mo17avg <- rowMeans(cpm.BxM.RIL[,6:9])
-cpm.BxM.RIL$HYBavg <- rowMeans(cpm.BxM.RIL[,10:13])
-cpm.BxM.RIL$MPavg <- rowMeans(cpm.BxM.RIL[,c(2:9)])
+cpm.BxM.RIL$B73avg <- rowMeans(cpm.BxM.RIL[,B73Samp])
+cpm.BxM.RIL$Mo17avg <- rowMeans(cpm.BxM.RIL[,Mo17Samp])
+cpm.BxM.RIL$HYBavg <- rowMeans(cpm.BxM.RIL[,BMSamp])
+cpm.BxM.RIL$MPavg <- rowMeans(cpm.BxM.RIL[,c("B73avg","Mo17avg")])
 #calculate ratios
 cpm.BxM.RIL$HYB.MP <- cpm.BxM.RIL$HYBavg/cpm.BxM.RIL$MPavg
 cpm.BxM.RIL$l2.BM.MP <- log2(cpm.BxM.RIL$HYB.MP)
@@ -523,6 +524,7 @@ mgdb <- read.csv(paste0(PathToData,"gene_model_xref_v4.csv"), stringsAsFactors =
 colnames(mgdb) <- mgdb[5,]
 mgdb <- mgdb[-c(1:5),]
 ```
+Any particular reason why we can't read in a table for this?
 ```{r organelleEntrez}
 organelleEntrez <- tmt[grep("Zema|Zeam", tmt$Accession),]
 organelleEntrez <- data.frame("Accession"=organelleEntrez$Accession, "Entrez"=NA)
@@ -605,6 +607,7 @@ organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp167.1"] <- "4056007"
 organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp179.1"] <- "4056006"
 organelleEntrez$Entrez[organelleEntrez$Accession=="ZeamMp185.1"] <- "4055892"
 ```
+
 ```{r Entrez conversion}
 Entrez <- mgdb[,c(1,12)]
 colnames(Entrez) <- c("Accession", "Entrez")
@@ -798,7 +801,7 @@ KEGG.zma00196.tib$Entrez <- as.character(KEGG.zma00196.tib$Entrez)
 KEGG.zma00196.tib.digenomic <- join(KEGG.zma00196.tib, Entrez)
 ```
 
-
+Lets read in a table for this
 ###CornCyc - Light Reactions
 ```{r CornCycLightRxns}
 #Retrieved from CornCyc on 02/26/2020
@@ -849,12 +852,10 @@ CornCycLightRxns <- tibble::tribble(
                       )
 
 ```
+
 ```{r CornCycLightRxns digenomic}
 CornCycLightRxns.digenomic <- CornCycLightRxns[CornCycLightRxns$Reaction.EC=="1.97.1.12"|CornCycLightRxns$Reaction.EC=="1.10.3.9",]
 ```
-
-
-
 
 ###NE Rubisco
 ```{r NE.Rubisco}
