@@ -59,7 +59,7 @@ for(i in 1:170){
 ```{r subset BxM seedling leaf from original experiment}
 #BxM from Original Experiment (OG)
 tmt.SL <- tmt[,c(171:176,181:183,12:20)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.SL <- na.omit(tmt.SL)
 #Calculate averages of bio reps
 tmt.SL$B73avg <- rowMeans(tmt.SL[,10:12])
@@ -72,11 +72,10 @@ tmt.SL$l2.B73xMo17.MP <- log2(tmt.SL$HYB.MP)
 tmt.SL$B73.Mo17 <- tmt.SL$B73avg/tmt.SL$Mo17avg
 tmt.SL$l2.B73.Mo17 <-log2(tmt.SL$B73.Mo17)
 ```
-
 ```{r subset BxM from day vs. night experiment (day)}
 #BxM from Day vs. night experiment (DN)
 tmt.DN <- tmt[,c(171:176,181:183,62:70)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.DN <- na.omit(tmt.DN)
 #Calculate averages of bio reps
 tmt.DN$B73avg <- rowMeans(tmt.DN[,10:12])
@@ -92,7 +91,7 @@ tmt.DN$l2.B73.Mo17 <-log2(tmt.DN$B73.Mo17)
 ```{r subset BxM mature leaf blade from original experiment}
 #BxM from Original Experiment (OG)
 tmt.LB <- tmt[,c(171:176,181:183,22:30)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.LB <- na.omit(tmt.LB)
 #Calculate averages of bio reps
 tmt.LB$B73avg <- rowMeans(tmt.LB[,10:12])
@@ -108,7 +107,7 @@ tmt.LB$l2.B73.Mo17 <-log2(tmt.LB$B73.Mo17)
 ```{r subset BxM from day vs. night experiment (both day and night)}
 #BxM from Day vs. night experiment (DN.both)
 tmt.DN.both <- tmt[,c(171:176,181:183,62:70,72:80)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.DN.both <- na.omit(tmt.DN.both)
 #Calculate averages of bio reps
 tmt.DN.both$day.B73avg <- rowMeans(tmt.DN.both[,10:12])
@@ -134,7 +133,7 @@ tmt.DN.both$night.l2.B73.Mo17 <-log2(tmt.DN.both$night.B73.Mo17)
 ```{r subset all hybrids from 6-hybrid experiment}
 #Subset all hybrids from 6-hybrid experiment (6H)
 tmt.6H <- tmt[,c(171:176,181:183,31:60)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.6H <- na.omit(tmt.6H)
 #calculate averages
 tmt.6H$B73 <- rowMeans(tmt.6H[,c(10,20,30)])
@@ -175,11 +174,10 @@ tmt.6H$l2.B84.Mo17 <- log2(tmt.6H$B84.Mo17)
 tmt.6H$l2.A682.B73 <- log2(tmt.6H$A682.B73)
 tmt.6H$l2.A682.Mo17 <- log2(tmt.6H$A682.Mo17)
 ```
-
 ```{r subset all hybrids from RIL experiment}
 #Subset all hybrids from RIL experiment (RIL)
 tmt.RIL <- tmt[,c(171:176,181:183,81:170)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.RIL <- na.omit(tmt.RIL)
 #Calculate averages
 tmt.RIL$BM.B73 <- rowMeans(tmt.RIL[,10:12], na.rm = T)
@@ -248,7 +246,7 @@ tmt.RIL$l2.M0317.317.Mo17  <- log2(tmt.RIL$M0317.317.Mo17)
 ```{r subset acs mutant experiment}
 #Subset acs mutant experiment (acs)
 tmt.acs <- tmt[,c(171:176,181:183,1:10)]
-#Remove proteins not detected in any of the samples
+#Remove proteins not detected in one or more samples
 tmt.acs <- na.omit(tmt.acs)
 #Calculate averages of bio reps - acs
 tmt.acs$B73avg <- rowMeans(tmt.acs[,10:14])
