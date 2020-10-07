@@ -296,6 +296,9 @@ cpm.SL$B73xMo17.MP <- cpm.SL$B73xMo17/rowMeans(cpm.SL[,c("B73", "Mo17")])
 cpm.SL$l2.B73xMo17.MP <- log2(cpm.SL$B73xMo17.MP)
 cpm.SL$B73.Mo17 <- cpm.SL$B73/cpm.SL$Mo17
 cpm.SL$l2.B73.Mo17 <-log2(cpm.SL$B73.Mo17)
+##Remove genes that weren't detected as protein
+cpm.SL.protein <- cpm.SL
+cpm.SL.protein <- cpm.SL.protein[cpm.SL.protein$Gene%in%tmt.SL$Gene,]
 ```
 ```{r subset BxM leaf blade from original experiment}
 #Original experiment seedling leaf BxM
@@ -313,6 +316,9 @@ cpm.LB$B73xMo17.MP <- cpm.LB$B73xMo17/rowMeans(cpm.LB[,c("B73", "Mo17")])
 cpm.LB$l2.B73xMo17.MP <- log2(cpm.LB$B73xMo17.MP)
 cpm.LB$B73.Mo17 <- cpm.LB$B73/cpm.LB$Mo17
 cpm.LB$l2.B73.Mo17 <-log2(cpm.LB$B73.Mo17)
+##Remove genes that weren't detected as protein
+cpm.LB.protein <- cpm.LB
+cpm.LB.protein <- cpm.LB.protein[cpm.LB.protein$Gene%in%tmt.LB$Gene,]
 ```
 ```{r subset 6 hybrid RNA data}
 #subset to leaf samples
@@ -323,8 +329,9 @@ cpm.6H <- dcast(cpm.6H, gid ~ SampleID)
 #Rename columns
 colnames(cpm.6H) <- c("Gene", paste(cpm.6H.th.ID$Genotype, cpm.6H.th.ID$Replicate, sep = "."))
 #Remove genes not detected in one or mor rep
+cpm.6H <- cpm.6H[!rowSums(cpm.6H[,2:ncol(cpm.6H)])==0,]
 cpm.6H[cpm.6H==0] <- NA
-cpm.6H <- na.omit(cpm.6H)
+#cpm.6H <- na.omit(cpm.6H)
 #Calculate averages
 cpm.6H$B73 <- rowMeans(cpm.6H[,2:4], na.rm = T)
 cpm.6H$B84 <- rowMeans(cpm.6H[,5:7], na.rm = T)
@@ -364,11 +371,16 @@ cpm.6H$l2.B84.B73 <- log2(cpm.6H$B84.B73)
 cpm.6H$l2.B84.Mo17 <- log2(cpm.6H$B84.Mo17)
 cpm.6H$l2.A682.B73 <- log2(cpm.6H$A682.B73)
 cpm.6H$l2.A682.Mo17 <- log2(cpm.6H$A682.Mo17)
+##Remove genes that weren't detected as protein
+cpm.6H.protein <- cpm.6H
+cpm.6H.protein <- cpm.6H.protein[cpm.6H.protein$Gene%in%tmt.6H$Gene,]
 ```
+
 ```{r subset RIL RNA data}
 #reformat df
 cpm.RIL <- dcast(cpm.RIL.tm[,c(1,2,6)], gid ~ SampleID)
 #Remove genes not detected in one or mor rep
+#cpm.RIL <- cpm.RIL[!rowSums(cpm.RIL[,2:ncol(cpm.RIL)])==0,]
 cpm.RIL[cpm.RIL==0] <- NA
 cpm.RIL <- na.omit(cpm.RIL)
 #Rename columns
@@ -429,7 +441,11 @@ cpm.RIL$l2.M0021.B73 <- log2(cpm.RIL$M0021.B73)
 cpm.RIL$l2.M0021.Mo17 <- log2(cpm.RIL$M0021.Mo17)
 cpm.RIL$l2.M0317.B73 <- log2(cpm.RIL$M0317.B73)
 cpm.RIL$l2.M0317.Mo17 <- log2(cpm.RIL$M0317.Mo17)
+##Remove genes that weren't detected as protein
+cpm.RIL.protein <- cpm.RIL
+cpm.RIL.protein <- cpm.RIL.protein[cpm.RIL.protein$Gene%in%tmt.RIL$Gene,]
 ```
+
 #Define GOIs
 ##Accession conversion
 ```{r mgdb}
@@ -981,13 +997,6 @@ for(i in 1:nrow(tmt.RIL)){
   tmt.RIL[i,"CV"] <- cv(as.numeric(tmt.RIL[i,16:19]))
 }
 #RNA CV
-##Remove genes that weren't detected as protein
-cpm.SL.protein <- cpm.SL
-cpm.SL.protein <- cpm.SL.protein[cpm.SL.protein$Gene%in%tmt.SL$Gene,]
-cpm.6H.protein <- cpm.6H
-cpm.6H.protein <- cpm.6H.protein[cpm.6H.protein$Gene%in%tmt.6H$Gene,]
-cpm.RIL.protein <- cpm.RIL
-cpm.RIL.protein <- cpm.RIL.protein[cpm.RIL.protein$Gene%in%tmt.RIL$Gene,]
 ##Calculate CV
 cpm.SL.protein$CV <- NA
 for(i in 1:nrow(cpm.SL.protein)){
@@ -1098,7 +1107,7 @@ tmt.SL.lims.plastid.scat <- tmt.SL.lims.plastid.scat+theme(legend.position = "no
       A <- insert_yaxis_grob(A, densityplotY, grid::unit(0.275, "null"), position = "right")
       
       ###Set limits
-cpm.SL.lims <- cpm.SL
+cpm.SL.lims <- cpm.SL.protein
 cpm.SL.lims$l2.B73xMo17.MP[cpm.SL.lims$l2.B73xMo17.MP <= -1] <- -1
 cpm.SL.lims$l2.B73xMo17.MP[cpm.SL.lims$l2.B73xMo17.MP >= 1] <- 1
 cpm.SL.lims$l2.B73.Mo17[cpm.SL.lims$l2.B73.Mo17 <= -2] <- -2
@@ -1407,9 +1416,9 @@ ggsave(plot=dn.plotpanel, filename =paste0(PathToPlots, "DayVsNight.pdf"), dpi=3
 ```
 #Figure cpm.BxM.SL.plastid.all4
 ```{r setup dataframe cpm.BxM.SL.plastid.all4}
-cpm.BxM.SL.OG <- cpm.SL
-cpm.BxM.SL.6h <- cpm.6H
-cpm.BxM.SL.ril <- cpm.RIL
+cpm.BxM.SL.OG <- cpm.SL.protein
+cpm.BxM.SL.6h <- cpm.6H.protein
+cpm.BxM.SL.ril <- cpm.RIL.protein
 
 cpm.BxM.SL.OG$plot <- "A"
 cpm.BxM.SL.6h$plot <- "B"
@@ -1648,12 +1657,12 @@ ggsave(plot=r, filename =paste0(PathToPlots, "tmt.6H.plastid.pdf"),
 #Figure cpm.6H.plastid
 ```{r setup dataframe cpm.6H.plastid}
 #subset to different hybrids
-cpm.6H.bm <- cpm.6H[,c("Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")]
-cpm.6H.mb <- cpm.6H[,c("Gene", "l2.Mo17xB73.MP", "l2.Mo17.B73")]
-cpm.6H.a682xb <- cpm.6H[,c("Gene", "l2.A682xB73.MP", "l2.A682.B73")]
-cpm.6H.a682xm <- cpm.6H[,c("Gene", "l2.A682xMo17.MP", "l2.A682.Mo17")]
-cpm.6H.b84xb <- cpm.6H[,c("Gene", "l2.B84xB73.MP", "l2.B84.B73")]
-cpm.6H.b84xm <- cpm.6H[,c("Gene", "l2.B84xB73.MP", "l2.B84.B73")]
+cpm.6H.bm <- cpm.6H.protein[,c("Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")]
+cpm.6H.mb <- cpm.6H.protein[,c("Gene", "l2.Mo17xB73.MP", "l2.Mo17.B73")]
+cpm.6H.a682xb <- cpm.6H.protein[,c("Gene", "l2.A682xB73.MP", "l2.A682.B73")]
+cpm.6H.a682xm <- cpm.6H.protein[,c("Gene", "l2.A682xMo17.MP", "l2.A682.Mo17")]
+cpm.6H.b84xb <- cpm.6H.protein[,c("Gene", "l2.B84xB73.MP", "l2.B84.B73")]
+cpm.6H.b84xm <- cpm.6H.protein[,c("Gene", "l2.B84xB73.MP", "l2.B84.B73")]
 #rename columns to match
 colnames(cpm.6H.bm)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
 colnames(cpm.6H.mb)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
@@ -1887,7 +1896,7 @@ ggsave(plot = tmt.PlastidRiboCor.Hyb2MP.plot, paste0(PathToPlots, "tmt.PlastidRi
 #Figure cpm.PlastidRiboCor.hyb2MP
 ```{r setup dataframe cpm.PlastidRiboCor.hyb2MP}
 #combine RIL and 6 hybrids
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = T)
+cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL.protein[,c(1,76:84)], cpm.6H.protein[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = T)
 #limit to plastid ribosomal proteins
 cpm.PlastidRiboCor.hyb2MP <- cpm.RIL.6H.Hyb2MP[cpm.RIL.6H.Hyb2MP$Gene %in% GOIs$NE.PtRibo,]
 #re-name columns
@@ -2486,7 +2495,7 @@ write.csv(GOIs.cor, "GOIs.cor.csv", row.names = F)
 ```
 
 #Figure tmt.cpm.BxM.LB.plastid
-```{r setup dataframe tmt.cpm.BxM.LB.plastid}
+```{r tmt.cpm.BxM.LB.plastid}
 ###Set limits
 tmt.LB.lims <- tmt.LB
 tmt.LB.lims$l2.B73xMo17.MP[tmt.LB.lims$l2.B73xMo17.MP <= -1] <- -1
@@ -2511,8 +2520,7 @@ tmt.LB.lims.plastid[(tmt.LB.lims.plastid$Gene %in% GOIs$PhAPGs),"Order"] <- 6
 tmt.LB.lims.plastid <- tmt.LB.lims.plastid[(order(tmt.LB.lims.plastid$Order)),]
 ###factor
 tmt.LB.lims.plastid$Category <- factor(tmt.LB.lims.plastid$Category, levels = c("Other", "Plastid", "NE plastid ribosome","PE plastid ribosome", "PhANGs", "PhAPGs"))
-```
-```{r plot tmt.cpm.BxM.LB.plastid}
+
 ###Scatterplot
 tmt.LB.lims.plastid.scat <- ggplot(tmt.LB.lims.plastid, mapping=aes(x=l2.B73xMo17.MP, y=l2.B73.Mo17, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=1)+
@@ -2555,7 +2563,7 @@ tmt.LB.lims.plastid.scat <- tmt.LB.lims.plastid.scat+theme(legend.position = "no
       A <- insert_yaxis_grob(A, densityplotY, grid::unit(0.275, "null"), position = "right")
       
       ###Set limits
-cpm.LB.lims <- cpm.LB
+cpm.LB.lims <- cpm.LB.protein
 cpm.LB.lims$l2.B73xMo17.MP[cpm.LB.lims$l2.B73xMo17.MP <= -1] <- -1
 cpm.LB.lims$l2.B73xMo17.MP[cpm.LB.lims$l2.B73xMo17.MP >= 1] <- 1
 cpm.LB.lims$l2.B73.Mo17[cpm.LB.lims$l2.B73.Mo17 <= -2] <- -2
@@ -2998,4 +3006,8 @@ FigLB.SL.design <- "AB
 FigLB.SL.plotpanel<-patchwork::wrap_plots(A=FigLB.SL.plotlist[[1]], B=FigLB.SL.plotlist[[2]], C=FigLB.SL.plotlist[[3]],  nrow = 2, heights = c(3,1.2), design = FigLB.SL.design)
 ggsave(plot=FigLB.SL.plotpanel, filename =paste0(PathToPlots, "LeafBladeVsSeedlingLeaf.Parent2Parent.pdf"), dpi=300, width=4.75, height=3)
 ```
+
+
+
+
 
