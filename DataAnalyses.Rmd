@@ -35,15 +35,12 @@ PathToData <- "Data/"
 PathToPlots <- "Plots/"
 ```
 
-
-
 #Import protein data
 ```{r import protein data}
 #Import protein data
 tmt <- read.csv(paste0(PathToData,"Leaf Paper Data 050520-processed.csv"), stringsAsFactors = F)
 #re-define protein column to shortened name
-tmt <- tmt[,1:184]
-tmt <- tmt[,-182]
+tmt <- tmt[,c(1:181,183)]
 colnames(tmt)[182] <- "Protein"
 #make new column for gene accession without transcript id
 tmt$Gene <- substr(tmt$Accession, start = 1, stop = 14)
@@ -58,14 +55,14 @@ for(i in 1:170){
 #Subset protein experiments
 ```{r subset BxM seedling leaf from original experiment}
 #BxM from Original Experiment (OG)
-tmt.SL <- tmt[,c(171:176,181:183,12:20)]
+tmt.SL <- tmt[,c(171:183,12:20)]
 #Remove proteins not detected in one or more samples
 tmt.SL <- na.omit(tmt.SL)
 #Calculate averages of bio reps
-tmt.SL$B73avg <- rowMeans(tmt.SL[,10:12])
-tmt.SL$Mo17avg <- rowMeans(tmt.SL[,13:15])
-tmt.SL$HYBavg <- rowMeans(tmt.SL[,16:18])
-tmt.SL$MPavg <- rowMeans(tmt.SL[,c(10:15)])
+tmt.SL$B73avg <- rowMeans(tmt.SL[,c("SeedlingLeaf.B73.r1", "SeedlingLeaf.B73.r2", "SeedlingLeaf.B73.r3")])
+tmt.SL$Mo17avg <- rowMeans(tmt.SL[,c("SeedlingLeaf.Mo17.r1", "SeedlingLeaf.Mo17.r2", "SeedlingLeaf.Mo17.r3")])
+tmt.SL$HYBavg <- rowMeans(tmt.SL[,c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3")])
+tmt.SL$MPavg <- rowMeans(tmt.SL[,c("B73avg", "Mo17avg")])
 #calculate ratios
 tmt.SL$HYB.MP <- tmt.SL$HYBavg/tmt.SL$MPavg
 tmt.SL$l2.B73xMo17.MP <- log2(tmt.SL$HYB.MP)
@@ -74,14 +71,14 @@ tmt.SL$l2.B73.Mo17 <-log2(tmt.SL$B73.Mo17)
 ```
 ```{r subset BxM from day vs. night experiment (day)}
 #BxM from Day vs. night experiment (DN)
-tmt.DN <- tmt[,c(171:176,181:183,62:70)]
+tmt.DN <- tmt[,c(171:183,62:70)]
 #Remove proteins not detected in one or more samples
 tmt.DN <- na.omit(tmt.DN)
 #Calculate averages of bio reps
-tmt.DN$B73avg <- rowMeans(tmt.DN[,10:12])
-tmt.DN$Mo17avg <- rowMeans(tmt.DN[,13:15])
-tmt.DN$HYBavg <- rowMeans(tmt.DN[,16:18])
-tmt.DN$MPavg <- rowMeans(tmt.DN[,c(10:15)])
+tmt.DN$B73avg <- rowMeans(tmt.DN[,c("Day.B73.r1", "Day.B73.r2", "Day.B73.r3")])
+tmt.DN$Mo17avg <- rowMeans(tmt.DN[,c("Day.Mo17.r1", "Day.Mo17.r2", "Day.Mo17.r3")])
+tmt.DN$HYBavg <- rowMeans(tmt.DN[,c("Day.BM.r1", "Day.BM.r2", "Day.BM.r3")])
+tmt.DN$MPavg <- rowMeans(tmt.DN[,c("B73avg", "Mo17avg")])
 #calculate ratios
 tmt.DN$HYB.MP <- tmt.DN$HYBavg/tmt.DN$MPavg
 tmt.DN$l2.B73xMo17.MP <- log2(tmt.DN$HYB.MP)
@@ -90,14 +87,14 @@ tmt.DN$l2.B73.Mo17 <-log2(tmt.DN$B73.Mo17)
 ```
 ```{r subset BxM mature leaf blade from original experiment}
 #BxM from Original Experiment (OG)
-tmt.LB <- tmt[,c(171:176,181:183,22:30)]
+tmt.LB <- tmt[,c(171:183,22:30)]
 #Remove proteins not detected in one or more samples
 tmt.LB <- na.omit(tmt.LB)
 #Calculate averages of bio reps
-tmt.LB$B73avg <- rowMeans(tmt.LB[,10:12])
-tmt.LB$Mo17avg <- rowMeans(tmt.LB[,13:15])
-tmt.LB$HYBavg <- rowMeans(tmt.LB[,16:18])
-tmt.LB$MPavg <- rowMeans(tmt.LB[,c(10:15)])
+tmt.LB$B73avg <- rowMeans(tmt.LB[,c("MatureLeaf.B73.r1", "MatureLeaf.B73.r2", "MatureLeaf.B73.r3")])
+tmt.LB$Mo17avg <- rowMeans(tmt.LB[,c("MatureLeaf.Mo17.r1", "MatureLeaf.Mo17.r2", "MatureLeaf.Mo17.r3")])
+tmt.LB$HYBavg <- rowMeans(tmt.LB[,c("MatureLeaf.BM.r1", "MatureLeaf.BM.r2", "MatureLeaf.BM.r3")])
+tmt.LB$MPavg <- rowMeans(tmt.LB[,c("B73avg", "Mo17avg")])
 #calculate ratios
 tmt.LB$HYB.MP <- tmt.LB$HYBavg/tmt.LB$MPavg
 tmt.LB$l2.B73xMo17.MP <- log2(tmt.LB$HYB.MP)
@@ -106,19 +103,19 @@ tmt.LB$l2.B73.Mo17 <-log2(tmt.LB$B73.Mo17)
 ```
 ```{r subset BxM from day vs. night experiment (both day and night)}
 #BxM from Day vs. night experiment (DN.both)
-tmt.DN.both <- tmt[,c(171:176,181:183,62:70,72:80)]
+tmt.DN.both <- tmt[,c(171:183,62:70,72:80)]
 #Remove proteins not detected in one or more samples
 tmt.DN.both <- na.omit(tmt.DN.both)
 #Calculate averages of bio reps
-tmt.DN.both$day.B73avg <- rowMeans(tmt.DN.both[,10:12])
-tmt.DN.both$day.Mo17avg <- rowMeans(tmt.DN.both[,13:15])
-tmt.DN.both$day.HYBavg <- rowMeans(tmt.DN.both[,16:18])
-tmt.DN.both$day.MPavg <- rowMeans(tmt.DN.both[,c(10:15)])
+tmt.DN.both$day.B73avg <- rowMeans(tmt.DN.both[,c("Day.B73.r1", "Day.B73.r2", "Day.B73.r3")])
+tmt.DN.both$day.Mo17avg <- rowMeans(tmt.DN.both[,c("Day.Mo17.r1", "Day.Mo17.r2", "Day.Mo17.r3")])
+tmt.DN.both$day.HYBavg <- rowMeans(tmt.DN.both[,c("Day.BM.r1", "Day.BM.r2", "Day.BM.r3")])
+tmt.DN.both$day.MPavg <- rowMeans(tmt.DN.both[,c("day.B73avg", "day.Mo17avg")])
 
-tmt.DN.both$night.B73avg <- rowMeans(tmt.DN.both[,19:21])
-tmt.DN.both$night.Mo17avg <- rowMeans(tmt.DN.both[,22:24])
-tmt.DN.both$night.HYBavg <- rowMeans(tmt.DN.both[,25:27])
-tmt.DN.both$night.MPavg <- rowMeans(tmt.DN.both[,c(19:24)])
+tmt.DN.both$night.B73avg <- rowMeans(tmt.DN.both[,c("Night.B73.r1", "Night.B73.r2", "Night.B73.r3")])
+tmt.DN.both$night.Mo17avg <- rowMeans(tmt.DN.both[,c("Night.Mo17.r1", "Night.Mo17.r2", "Night.Mo17.r3")])
+tmt.DN.both$night.HYBavg <- rowMeans(tmt.DN.both[,c("Night.BM.r1", "Night.BM.r2", "Night.BM.r3")])
+tmt.DN.both$night.MPavg <- rowMeans(tmt.DN.both[,c("night.B73avg", "night.Mo17avg")])
 #calculate ratios
 tmt.DN.both$day.HYB.MP <- tmt.DN.both$day.HYBavg/tmt.DN.both$day.MPavg
 tmt.DN.both$day.l2.B73xMo17.MP <- log2(tmt.DN.both$day.HYB.MP)
@@ -132,27 +129,27 @@ tmt.DN.both$night.l2.B73.Mo17 <-log2(tmt.DN.both$night.B73.Mo17)
 ```
 ```{r subset all hybrids from 6-hybrid experiment}
 #Subset all hybrids from 6-hybrid experiment (6H)
-tmt.6H <- tmt[,c(171:176,181:183,31:60)]
+tmt.6H <- tmt[,c(171:183,31:60)]
 #Remove proteins not detected in one or more samples
 tmt.6H <- na.omit(tmt.6H)
 #calculate averages
-tmt.6H$B73 <- rowMeans(tmt.6H[,c(10,20,30)])
-tmt.6H$Mo17 <- rowMeans(tmt.6H[,c(12,22,32)])
-tmt.6H$B73xMo17 <- rowMeans(tmt.6H[,c(14,24,34)])
-tmt.6H$Mo17xB73 <- rowMeans(tmt.6H[,c(15,25,35)])
-tmt.6H$B84 <- rowMeans(tmt.6H[,c(11,21,31)])
-tmt.6H$B84xB73 <- rowMeans(tmt.6H[,c(16,26,36)])
-tmt.6H$B84xMo17 <- rowMeans(tmt.6H[,c(17,27,37)])
-tmt.6H$A682 <- rowMeans(tmt.6H[,c(13,23,33)])
-tmt.6H$A682xB73 <- rowMeans(tmt.6H[,c(18,28,38)])
-tmt.6H$A682xMo17 <- rowMeans(tmt.6H[,c(19,29,39)])
+tmt.6H$B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r1", "X6Hybrid.B73.r2", "X6Hybrid.B73.r3")])
+tmt.6H$Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r1", "X6Hybrid.Mo17.r2", "X6Hybrid.Mo17.r3")])
+tmt.6H$B73xMo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3")])
+tmt.6H$Mo17xB73 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17xB73.r1", "X6Hybrid.Mo17xB73.r2", "X6Hybrid.Mo17xB73.r3")])
+tmt.6H$B84 <- rowMeans(tmt.6H[,c("X6Hybrid.B84.r1", "X6Hybrid.B84.r2", "X6Hybrid.B84.r3")])
+tmt.6H$B84xB73 <- rowMeans(tmt.6H[,c("X6Hybrid.B84xB73.r1", "X6Hybrid.B84xB73.r2", "X6Hybrid.B84xB73.r3")])
+tmt.6H$B84xMo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B84xMo17.r1", "X6Hybrid.B84xMo17.r2", "X6Hybrid.B84xMo17.r3")])
+tmt.6H$A682 <- rowMeans(tmt.6H[,c("X6Hybrid.A682.r1", "X6Hybrid.A682.r2", "X6Hybrid.A682.r3")])
+tmt.6H$A682xB73 <- rowMeans(tmt.6H[,c("X6Hybrid.A682xB73.r1", "X6Hybrid.A682xB73.r2", "X6Hybrid.A682xB73.r3")])
+tmt.6H$A682xMo17 <- rowMeans(tmt.6H[,c("X6Hybrid.A682xMo17.r1", "X6Hybrid.A682xMo17.r2", "X6Hybrid.A682xMo17.r3")])
 #Calculate hyb/MP ratios
-tmt.6H$B73xMo17.MP <- tmt.6H$B73xMo17/rowMeans(tmt.6H[,40:41])
-tmt.6H$Mo17xB73.MP <- tmt.6H$Mo17xB73/rowMeans(tmt.6H[,40:41])
-tmt.6H$B84xB73.MP <- tmt.6H$B84xB73/rowMeans(tmt.6H[,c(40,44)])
-tmt.6H$B84xMo17.MP <- tmt.6H$B84xMo17/rowMeans(tmt.6H[,c(41,44)])
-tmt.6H$A682xB73.MP <- tmt.6H$A682xB73/rowMeans(tmt.6H[,c(40,47)])
-tmt.6H$A682xMo17.MP <- tmt.6H$A682xMo17/rowMeans(tmt.6H[,c(41,47)])
+tmt.6H$B73xMo17.MP <- tmt.6H$B73xMo17/rowMeans(tmt.6H[,c("B73", "Mo17")])
+tmt.6H$Mo17xB73.MP <- tmt.6H$Mo17xB73/rowMeans(tmt.6H[,c("B73", "Mo17")])
+tmt.6H$B84xB73.MP <- tmt.6H$B84xB73/rowMeans(tmt.6H[,c("B84", "B73")])
+tmt.6H$B84xMo17.MP <- tmt.6H$B84xMo17/rowMeans(tmt.6H[,c("B84", "Mo17")])
+tmt.6H$A682xB73.MP <- tmt.6H$A682xB73/rowMeans(tmt.6H[,c("A682", "B73")])
+tmt.6H$A682xMo17.MP <- tmt.6H$A682xMo17/rowMeans(tmt.6H[,c("A682", "Mo17")])
 #Calculate parent/parent ratios
 tmt.6H$B73.Mo17 <- tmt.6H$B73/tmt.6H$Mo17
 tmt.6H$Mo17.B73 <- tmt.6H$Mo17/tmt.6H$B73
@@ -176,43 +173,43 @@ tmt.6H$l2.A682.Mo17 <- log2(tmt.6H$A682.Mo17)
 ```
 ```{r subset all hybrids from RIL experiment}
 #Subset all hybrids from RIL experiment (RIL)
-tmt.RIL <- tmt[,c(171:176,181:183,81:170)]
+tmt.RIL <- tmt[,c(171:183,81:170)]
 #Remove proteins not detected in one or more samples
 tmt.RIL <- na.omit(tmt.RIL)
 #Calculate averages
-tmt.RIL$BM.B73 <- rowMeans(tmt.RIL[,10:12])
-tmt.RIL$BM.Mo17 <- rowMeans(tmt.RIL[,13:15])
-tmt.RIL$BM.BM <- rowMeans(tmt.RIL[,16:19])
-tmt.RIL$M0014.B73 <- rowMeans(tmt.RIL[,20:23])
-tmt.RIL$M0014.Mo17<- rowMeans(tmt.RIL[,24:27])
-tmt.RIL$M0014.14 <- rowMeans(tmt.RIL[,28:31])
-tmt.RIL$M0014.14B <- rowMeans(tmt.RIL[,32:35])
-tmt.RIL$M0014.14M <- rowMeans(tmt.RIL[,36:39])
-tmt.RIL$M0016.B73 <- rowMeans(tmt.RIL[,40:43])
-tmt.RIL$M0016.Mo17<- rowMeans(tmt.RIL[,44:47])
-tmt.RIL$M0016.16 <- rowMeans(tmt.RIL[,48:51])
-tmt.RIL$M0016.16B <- rowMeans(tmt.RIL[,52:55])
-tmt.RIL$M0016.16M <- rowMeans(tmt.RIL[,56:59])
-tmt.RIL$M0021.B73 <- rowMeans(tmt.RIL[,60:63])
-tmt.RIL$M0021.Mo17<- rowMeans(tmt.RIL[,64:67])
-tmt.RIL$M0021.21 <- rowMeans(tmt.RIL[,68:71])
-tmt.RIL$M0021.21B <- rowMeans(tmt.RIL[,72:75])
-tmt.RIL$M0021.21M <- rowMeans(tmt.RIL[,76:79])
-tmt.RIL$M0317.B73 <- rowMeans(tmt.RIL[,80:83])
-tmt.RIL$M0317.Mo17<- rowMeans(tmt.RIL[,84:87])
-tmt.RIL$M0317.317 <- rowMeans(tmt.RIL[,88:91])
-tmt.RIL$M0317.317B <- rowMeans(tmt.RIL[,92:95])
-tmt.RIL$M0317.317M <- rowMeans(tmt.RIL[,96:99])
+tmt.RIL$BM.B73 <- rowMeans(tmt.RIL[,c("B73.1", "B73.3", "B73.4")])
+tmt.RIL$BM.Mo17 <- rowMeans(tmt.RIL[,c("Mo17.1", "Mo17.3", "Mo17.4")])
+tmt.RIL$BM.BM <- rowMeans(tmt.RIL[,c("BM.1", "BM.2", "BM.3", "BM.4")])
+tmt.RIL$M0014.B73 <- rowMeans(tmt.RIL[,c("B73.1.1", "B73.2", "B73.3.1", "B73.4.1")])
+tmt.RIL$M0014.Mo17<- rowMeans(tmt.RIL[,c("Mo17.1.1", "Mo17.2", "Mo17.3.1", "Mo17.4.1")])
+tmt.RIL$M0014.14 <- rowMeans(tmt.RIL[,c("X14.1", "X14.2", "X14.3", "X14.4")])
+tmt.RIL$M0014.14B <- rowMeans(tmt.RIL[,c("X14B.1", "X14B.2", "X14B.3", "X14B.4")])
+tmt.RIL$M0014.14M <- rowMeans(tmt.RIL[,c("X14M.1", "X14M.2", "X14M.3", "X14M.4")])
+tmt.RIL$M0016.B73 <- rowMeans(tmt.RIL[,c("B73.1.2", "B73.2.1", "B73.3.2", "B73.4.2")])
+tmt.RIL$M0016.Mo17<- rowMeans(tmt.RIL[,c("Mo17.1.2", "Mo17.2.1", "Mo17.3.2", "Mo17.4.2")])
+tmt.RIL$M0016.16 <- rowMeans(tmt.RIL[,c("X16.1", "X16.2", "X16.3", "X16.4")])
+tmt.RIL$M0016.16B <- rowMeans(tmt.RIL[,c("X16B.1", "X16B.2", "X16B.3", "X16B.4")])
+tmt.RIL$M0016.16M <- rowMeans(tmt.RIL[,c("X16M.1", "X16M.2", "X16M.3", "X16M.4")])
+tmt.RIL$M0021.B73 <- rowMeans(tmt.RIL[,c("B73.1.3", "B73.2.2", "B73.3.3", "B73.4.3")])
+tmt.RIL$M0021.Mo17<- rowMeans(tmt.RIL[,c("Mo17.1.3", "Mo17.2.2", "Mo17.3.3", "Mo17.4.3")])
+tmt.RIL$M0021.21 <- rowMeans(tmt.RIL[,c("X21.1", "X21.2", "X21.3", "X21.4")])
+tmt.RIL$M0021.21B <- rowMeans(tmt.RIL[,c("X21B.1", "X21B.2", "X21B.3", "X21B.4")])
+tmt.RIL$M0021.21M <- rowMeans(tmt.RIL[,c("X21M.1", "X21M.2", "X21M.3", "X21M.4")])
+tmt.RIL$M0317.B73 <- rowMeans(tmt.RIL[,c("B73.1.4", "B73.2.3", "B73.3.4", "B73.4.4")])
+tmt.RIL$M0317.Mo17<- rowMeans(tmt.RIL[,c("Mo17.1.4", "Mo17.2.3", "Mo17.3.4", "Mo17.4.4")])
+tmt.RIL$M0317.317 <- rowMeans(tmt.RIL[,c("X317.1", "X317.2", "X317.3", "X317.4")])
+tmt.RIL$M0317.317B <- rowMeans(tmt.RIL[,c("X317B.1", "X317B.2", "X317B.3", "X317B.4")])
+tmt.RIL$M0317.317M <- rowMeans(tmt.RIL[,c("X317M.1", "X317M.2", "X317M.3", "X317M.4")])
 #Calculate hyb/mp ratios
-tmt.RIL$BM.BM.MP <- tmt.RIL$BM.BM/rowMeans(tmt.RIL[,100:101], na.rm = T)
-tmt.RIL$M0014.14B.MP <- tmt.RIL$M0014.14B/rowMeans(tmt.RIL[,c(103,105)], na.rm = T)
-tmt.RIL$M0014.14M.MP <- tmt.RIL$M0014.14M/rowMeans(tmt.RIL[,c(104,105)], na.rm = T)
-tmt.RIL$M0016.16B.MP <- tmt.RIL$M0016.16B/rowMeans(tmt.RIL[,c(108,110)], na.rm = T)
-tmt.RIL$M0016.16M.MP <- tmt.RIL$M0016.16M/rowMeans(tmt.RIL[,c(109,110)], na.rm = T)
-tmt.RIL$M0021.21B.MP <- tmt.RIL$M0021.21B/rowMeans(tmt.RIL[,c(113,115)], na.rm = T)
-tmt.RIL$M0021.21M.MP <- tmt.RIL$M0021.21M/rowMeans(tmt.RIL[,c(114,115)], na.rm = T)
-tmt.RIL$M0317.317B.MP <- tmt.RIL$M0317.317B/rowMeans(tmt.RIL[,c(118,120)], na.rm = T)
-tmt.RIL$M0317.317M.MP <- tmt.RIL$M0317.317M/rowMeans(tmt.RIL[,c(119,120)], na.rm = T)
+tmt.RIL$BM.BM.MP <- tmt.RIL$BM.BM/rowMeans(tmt.RIL[,c("BM.B73", "BM.Mo17")], na.rm = T)
+tmt.RIL$M0014.14B.MP <- tmt.RIL$M0014.14B/rowMeans(tmt.RIL[,c("M0014.14", "M0014.B73")], na.rm = T)
+tmt.RIL$M0014.14M.MP <- tmt.RIL$M0014.14M/rowMeans(tmt.RIL[,c("M0014.14", "M0014.Mo17")], na.rm = T)
+tmt.RIL$M0016.16B.MP <- tmt.RIL$M0016.16B/rowMeans(tmt.RIL[,c("M0016.16", "M0016.B73")], na.rm = T)
+tmt.RIL$M0016.16M.MP <- tmt.RIL$M0016.16M/rowMeans(tmt.RIL[,c("M0016.16", "M0016.Mo17")], na.rm = T)
+tmt.RIL$M0021.21B.MP <- tmt.RIL$M0021.21B/rowMeans(tmt.RIL[,c("M0021.21", "M0021.B73")], na.rm = T)
+tmt.RIL$M0021.21M.MP <- tmt.RIL$M0021.21M/rowMeans(tmt.RIL[,c("M0021.21", "M0021.Mo17")], na.rm = T)
+tmt.RIL$M0317.317B.MP <- tmt.RIL$M0317.317B/rowMeans(tmt.RIL[,c("M0317.317", "M0317.B73")], na.rm = T)
+tmt.RIL$M0317.317M.MP <- tmt.RIL$M0317.317M/rowMeans(tmt.RIL[,c("M0317.317", "M0317.Mo17")], na.rm = T)
 #Calculate parent/parent ratios
 tmt.RIL$BM.B73.Mo17 <- tmt.RIL$BM.B73/tmt.RIL$BM.Mo17
 tmt.RIL$M0014.14.B73 <- tmt.RIL$M0014.14/tmt.RIL$M0014.B73
@@ -243,16 +240,14 @@ tmt.RIL$l2.M0021.21.Mo17  <- log2(tmt.RIL$M0021.21.Mo17)
 tmt.RIL$l2.M0317.317.B73 <- log2(tmt.RIL$M0317.317.B73)
 tmt.RIL$l2.M0317.317.Mo17  <- log2(tmt.RIL$M0317.317.Mo17)
 ```
-
-
 ```{r subset acs mutant experiment}
 #Subset acs mutant experiment (acs)
-tmt.acs <- tmt[,c(171:176,181:183,1:10)]
+tmt.acs <- tmt[,c(171:183,1:10)]
 #Remove proteins not detected in one or more samples
 tmt.acs <- na.omit(tmt.acs)
 #Calculate averages of bio reps - acs
-tmt.acs$B73avg <- rowMeans(tmt.acs[,10:14])
-tmt.acs$ACSavg <- rowMeans(tmt.acs[,15:19])
+tmt.acs$B73avg <- rowMeans(tmt.acs[,c("B73.acs.B73.r1", "B73.acs.B73.r2", "B73.acs.B73.r3", "B73.acs.B73.r4", "B73.acs.B73.r5")])
+tmt.acs$ACSavg <- rowMeans(tmt.acs[,c("B73.acs.acs.r1", "B73.acs.acs.r2", "B73.acs.acs.r3", "B73.acs.acs.r4", "B73.acs.acs.r5")])
 #calculate ratio
 tmt.acs$ACS.B73 <- tmt.acs$ACSavg/tmt.acs$B73avg
 #calculate log2
@@ -958,83 +953,6 @@ PlantHeights.ril.BxM <- as.numeric(PlantHeights.RIL[1,25:33])
 write.csv(PlantHeights.RIL, "PlantHeights.RIL.csv", row.names = F)
 write.csv(PlantHeights.6H, "PlantHeights.6H.csv", row.names = F)
 ```
-
-#New plant height data
-```{r}
-PlantHeights.RIL.new <- read.csv("Data/RILPlantHeightsNew.csv", stringsAsFactors = F)
-```
-```{r}
-PlantHeights.RIL.new$avg <- rowMeans(PlantHeights.RIL.new[,5:14])
-
-PlantHeights.RIL.new.EN <- PlantHeights.RIL.new[PlantHeights.RIL.new$Height.type=="Ear node",]
-PlantHeights.RIL.new.FL <- PlantHeights.RIL.new[PlantHeights.RIL.new$Height.type=="Flag leaf",]
-PlantHeights.RIL.new.TT <- PlantHeights.RIL.new[PlantHeights.RIL.new$Height.type=="Tassel tip",]
-```
-
-```{r}
-PlantHeights.RIL.new.EN <- (PlantHeights.RIL.new.EN[,c(2,3,15)])
-PlantHeights.RIL.new.EN <- dcast(PlantHeights.RIL.new.EN, Genotype ~ Rep)
-
-PlantHeights.RIL.new.FL <- (PlantHeights.RIL.new.FL[,c(2,3,15)])
-PlantHeights.RIL.new.FL <- dcast(PlantHeights.RIL.new.FL, Genotype ~ Rep)
-
-PlantHeights.RIL.new.TT <- (PlantHeights.RIL.new.TT[,c(2,3,15)])
-PlantHeights.RIL.new.TT <- dcast(PlantHeights.RIL.new.TT, Genotype ~ Rep)
-```
-```{r}
-library(matrixStats)
-```
-
-```{r}
-PlantHeights.RIL.new.EN$avg <- rowMeans(PlantHeights.RIL.new.EN[,2:5], na.rm = T)
-PlantHeights.RIL.new.EN$sd <- rowSds(as.matrix(PlantHeights.RIL.new.EN[,2:5]), na.rm = T)
-
-PlantHeights.RIL.new.FL$avg <- rowMeans(PlantHeights.RIL.new.FL[,2:5], na.rm = T)
-PlantHeights.RIL.new.FL$sd <- rowSds(as.matrix(PlantHeights.RIL.new.FL[,2:5]), na.rm = T)
-
-PlantHeights.RIL.new.TT$avg <- rowMeans(PlantHeights.RIL.new.TT[,2:5], na.rm = T)
-PlantHeights.RIL.new.TT$sd <- rowSds(as.matrix(PlantHeights.RIL.new.TT[,2:5]), na.rm = T)
-```
-
-```{r}
-mean(PlantHeights.RIL.new.EN$sd)
-mean(PlantHeights.RIL.new.FL$sd)
-mean(PlantHeights.RIL.new.TT$sd)
-```
-```{r}
-PlantHeights.RIL.new.EN.ratios <- PlantHeights.RIL.new.EN
-PlantHeights.RIL.new.EN.ratios <- PlantHeights.RIL.new.EN.ratios[,c("Genotype", "avg")]
-PlantHeights.RIL.new.EN.ratios <- transpose(PlantHeights.RIL.new.EN.ratios)
-colnames(PlantHeights.RIL.new.EN.ratios) <- c("B73", "B73xMo17", "M0014", "M0014xB73", "M0014xMo17", "M0016", "M0016xB73", "M0016xMo17", "M0021", "M0021xB73", "M0021xMo17", "M0317", "M0317xB73", "M0317xMo17", "Mo17", "Mo17xB73")
-PlantHeights.RIL.new.EN.ratios <- as.data.frame(sapply(PlantHeights.RIL.new.EN.ratios, as.numeric))
-PlantHeights.RIL.new.EN.ratios <- PlantHeights.RIL.new.EN.ratios[-1,]
-#Calculate hyb/MP ratios
-PlantHeights.RIL.new.EN.ratios$B73xMo17.MP <- PlantHeights.RIL.new.EN.ratios$B73xMo17/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("B73", "Mo17")])
-PlantHeights.RIL.new.EN.ratios$M0014xB73.MP <- PlantHeights.RIL.new.EN.ratios$M0014xB73/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("B73", "M0014")])
-PlantHeights.RIL.new.EN.ratios$M0014xMo17.MP <- PlantHeights.RIL.new.EN.ratios$M0014xMo17/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("Mo17", "M0014")])
-PlantHeights.RIL.new.EN.ratios$M0016xB73.MP <- PlantHeights.RIL.new.EN.ratios$M0016xB73/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("B73", "M0016")])
-PlantHeights.RIL.new.EN.ratios$M0016xMo17.MP <- PlantHeights.RIL.new.EN.ratios$M0016xMo17/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("Mo17", "M0016")])
-PlantHeights.RIL.new.EN.ratios$M0021xB73.MP <- PlantHeights.RIL.new.EN.ratios$M0021xB73/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("B73", "M0021")])
-PlantHeights.RIL.new.EN.ratios$M0021xMo17.MP <- PlantHeights.RIL.new.EN.ratios$M0021xMo17/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("Mo17", "M0021")])
-PlantHeights.RIL.new.EN.ratios$M0317xB73.MP <- PlantHeights.RIL.new.EN.ratios$M0317xB73/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("B73", "M0317")])
-PlantHeights.RIL.new.EN.ratios$M0317xMo17.MP <- PlantHeights.RIL.new.EN.ratios$M0317xMo17/rowMeans(PlantHeights.RIL.new.EN.ratios[,c("Mo17", "M0317")])
-#Calculate hybrid/BxM ratios
-PlantHeights.RIL.new.EN.ratios$B73xMo17.BxM <- PlantHeights.RIL.new.EN.ratios$B73xMo17/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0014xB73.BxM <- PlantHeights.RIL.new.EN.ratios$M0014xB73/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0014xMo17.BxM <- PlantHeights.RIL.new.EN.ratios$M0014xMo17/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0016xB73.BxM <- PlantHeights.RIL.new.EN.ratios$M0016xB73/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0016xMo17.BxM <- PlantHeights.RIL.new.EN.ratios$M0016xMo17/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0021xB73.BxM <- PlantHeights.RIL.new.EN.ratios$M0021xB73/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0021xMo17.BxM <- PlantHeights.RIL.new.EN.ratios$M0021xMo17/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0317xB73.BxM <- PlantHeights.RIL.new.EN.ratios$M0317xB73/PlantHeights.RIL.new.EN.ratios$B73xMo17
-PlantHeights.RIL.new.EN.ratios$M0317xMo17.BxM <- PlantHeights.RIL.new.EN.ratios$M0317xMo17/PlantHeights.RIL.new.EN.ratios$B73xMo17
-```
-```{r}
-PlantHeights.ril.MP.new <- as.numeric(PlantHeights.RIL.new.EN.ratios[1,17:25])
-PlantHeights.ril.BxM.new <- as.numeric(PlantHeights.RIL.new.EN.ratios[1,26:34])
-colnames(PlantHeights.RIL.new.EN.ratios)
-```
-
 
 #Define settings and functions for plotting
 ```{r CorFun}
