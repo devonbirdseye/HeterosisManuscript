@@ -295,10 +295,8 @@ cpm.SL$l2.B73xMo17.MP <- log2(cpm.SL$B73xMo17.MP)
 cpm.SL$B73.Mo17 <- cpm.SL$B73/cpm.SL$Mo17
 cpm.SL$l2.B73.Mo17 <-log2(cpm.SL$B73.Mo17)
 ##Remove genes that weren't detected as protein
-cpm.SL.protein <- cpm.SL
-cpm.SL.protein <- cpm.SL.protein[cpm.SL.protein$Gene%in%tmt.SL$Gene,]
+cpm.SL.protein <- cpm.SL[cpm.SL$Gene%in%tmt.SL$Gene,]
 ```
-
 ```{r subset BxM leaf blade from original experiment}
 #Original experiment seedling leaf BxM
 cpm.LB <- as.data.frame(cpm.OG.data[,c(1,2,3,5,4,6,8,7,9,10)])
@@ -316,8 +314,7 @@ cpm.LB$l2.B73xMo17.MP <- log2(cpm.LB$B73xMo17.MP)
 cpm.LB$B73.Mo17 <- cpm.LB$B73/cpm.LB$Mo17
 cpm.LB$l2.B73.Mo17 <-log2(cpm.LB$B73.Mo17)
 ##Remove genes that weren't detected as protein
-cpm.LB.protein <- cpm.LB
-cpm.LB.protein <- cpm.LB.protein[cpm.LB.protein$Gene%in%tmt.LB$Gene,]
+cpm.LB.protein <- cpm.LB[cpm.LB$Gene%in%tmt.LB$Gene,]
 ```
 ```{r subset 6 hybrid RNA data}
 #subset to leaf samples
@@ -331,16 +328,16 @@ colnames(cpm.6H) <- c("Gene", paste(cpm.6H.th.ID$Genotype, cpm.6H.th.ID$Replicat
 cpm.6H[cpm.6H==0] <- NA
 cpm.6H <- na.omit(cpm.6H)
 #Calculate averages
-cpm.6H$B73 <- rowMeans(cpm.6H[,2:4], na.rm = T)
-cpm.6H$B84 <- rowMeans(cpm.6H[,5:7], na.rm = T)
-cpm.6H$Mo17 <- rowMeans(cpm.6H[,8:10], na.rm = T)
-cpm.6H$A682 <- rowMeans(cpm.6H[,11:13], na.rm = T)
-cpm.6H$B73xMo17 <- rowMeans(cpm.6H[,14:16], na.rm = T)
-cpm.6H$Mo17xB73 <- rowMeans(cpm.6H[,17:19], na.rm = T)
-cpm.6H$B84xB73 <- rowMeans(cpm.6H[,20:22], na.rm = T)
-cpm.6H$B84xMo17 <- rowMeans(cpm.6H[,23:25], na.rm = T)
-cpm.6H$A682xB73 <- rowMeans(cpm.6H[,26:28], na.rm = T)
-cpm.6H$A682xMo17 <- rowMeans(cpm.6H[,29:31], na.rm = T)
+cpm.6H$B73 <- rowMeans(cpm.6H[,c("B73.2", "B73.3", "B73.4")], na.rm = T)
+cpm.6H$B84 <- rowMeans(cpm.6H[,c("B84.2", "B84.3", "B84.4")], na.rm = T)
+cpm.6H$Mo17 <- rowMeans(cpm.6H[,c("Mo17.2", "Mo17.3", "Mo17.4")], na.rm = T)
+cpm.6H$A682 <- rowMeans(cpm.6H[,c("A682.2", "A682.3", "A682.4")], na.rm = T)
+cpm.6H$B73xMo17 <- rowMeans(cpm.6H[,c("B73xMo17.2", "B73xMo17.3", "B73xMo17.4")], na.rm = T)
+cpm.6H$Mo17xB73 <- rowMeans(cpm.6H[,c("Mo17xB73.2", "Mo17xB73.3", "Mo17xB73.4")], na.rm = T)
+cpm.6H$B84xB73 <- rowMeans(cpm.6H[,c("B84xB73.2", "B84xB73.3", "B84xB73.4")], na.rm = T)
+cpm.6H$B84xMo17 <- rowMeans(cpm.6H[,c("B84xMo17.2", "B84xMo17.3", "B84xMo17.4")], na.rm = T)
+cpm.6H$A682xB73 <- rowMeans(cpm.6H[,c("A682xB73.2", "A682xB73.3", "A682xB73.4")], na.rm = T)
+cpm.6H$A682xMo17 <- rowMeans(cpm.6H[,c("A682xMo17.2", "A682xMo17.3", "A682xMo17.4")], na.rm = T)
 #calculate ratio of hybrid to midparent
 cpm.6H$B73xMo17.MP <- cpm.6H$B73xMo17/rowMeans(cpm.6H[,c("B73","Mo17")], na.rm = T)
 cpm.6H$Mo17xB73.MP <- cpm.6H$Mo17xB73/rowMeans(cpm.6H[,c("B73","Mo17")], na.rm = T)
@@ -370,8 +367,7 @@ cpm.6H$l2.B84.Mo17 <- log2(cpm.6H$B84.Mo17)
 cpm.6H$l2.A682.B73 <- log2(cpm.6H$A682.B73)
 cpm.6H$l2.A682.Mo17 <- log2(cpm.6H$A682.Mo17)
 ##Remove genes that weren't detected as protein
-cpm.6H.protein <- cpm.6H
-cpm.6H.protein <- cpm.6H.protein[cpm.6H.protein$Gene%in%tmt.6H$Gene,]
+cpm.6H.protein <- cpm.6H[cpm.6H$Gene%in%tmt.6H$Gene,]
 ```
 ```{r subset RIL RNA data}
 #reformat df
@@ -382,21 +378,21 @@ cpm.RIL <- na.omit(cpm.RIL)
 #Rename columns
 colnames(cpm.RIL) <- c("Gene", paste(cpm.RIL.th$Genotype, cpm.RIL.th$Replicate, sep = "."))
 #Calculate averages
-cpm.RIL$B73 <- rowMeans(cpm.RIL[,2:5], na.rm = T)
-cpm.RIL$B73xMo17 <- rowMeans(cpm.RIL[,c(6:8,60)], na.rm = T)
-cpm.RIL$Mo17 <- rowMeans(cpm.RIL[,56:59], na.rm = T)
-cpm.RIL$M0014 <- rowMeans(cpm.RIL[,9:12], na.rm = T)
-cpm.RIL$M0014xB73 <- rowMeans(cpm.RIL[,13:16], na.rm = T)
-cpm.RIL$M0014xMo17 <- rowMeans(cpm.RIL[,17:20], na.rm = T)
-cpm.RIL$M0016 <- rowMeans(cpm.RIL[,21:24], na.rm = T)
-cpm.RIL$M0016xB73 <- rowMeans(cpm.RIL[,25:27], na.rm = T)
-cpm.RIL$M0016xMo17 <- rowMeans(cpm.RIL[,28:31], na.rm = T)
-cpm.RIL$M0021 <- rowMeans(cpm.RIL[,32:35], na.rm = T)
-cpm.RIL$M0021xB73 <- rowMeans(cpm.RIL[,36:39], na.rm = T)
-cpm.RIL$M0021xMo17 <- rowMeans(cpm.RIL[,40:43], na.rm = T)
-cpm.RIL$M0317 <- rowMeans(cpm.RIL[,44:47], na.rm = T)
-cpm.RIL$M0317xB73 <- rowMeans(cpm.RIL[,48:51], na.rm = T)
-cpm.RIL$M0317xMo17 <- rowMeans(cpm.RIL[,52:55], na.rm = T)
+cpm.RIL$B73 <- rowMeans(cpm.RIL[,c("B73.1", "B73.2", "B73.3", "B73.4")], na.rm = T)
+cpm.RIL$Mo17 <- rowMeans(cpm.RIL[,c("Mo17.1", "Mo17.2", "Mo17.3", "Mo17.4")], na.rm = T)
+cpm.RIL$B73xMo17 <- rowMeans(cpm.RIL[,c("BxM.1", "BxM.2", "BxM.3", "BxM.4")], na.rm = T)
+cpm.RIL$M0014 <- rowMeans(cpm.RIL[,c("M0014.1", "M0014.2", "M0014.3", "M0014.4")], na.rm = T)
+cpm.RIL$M0014xB73 <- rowMeans(cpm.RIL[,c("M0014xB73.1", "M0014xB73.2", "M0014xB73.3", "M0014xB73.4")], na.rm = T)
+cpm.RIL$M0014xMo17 <- rowMeans(cpm.RIL[,c("M0014xMo17.1", "M0014xMo17.2", "M0014xMo17.3", "M0014xMo17.4")], na.rm = T)
+cpm.RIL$M0016 <- rowMeans(cpm.RIL[,c("M0016.1", "M0016.2", "M0016.3", "M0016.4")], na.rm = T)
+cpm.RIL$M0016xB73 <- rowMeans(cpm.RIL[,c("M0016xB73.1", "M0016xB73.2", "M0016xB73.3")], na.rm = T)
+cpm.RIL$M0016xMo17 <- rowMeans(cpm.RIL[,c("M0016xMo17.1", "M0016xMo17.2", "M0016xMo17.3", "M0016xMo17.4")], na.rm = T)
+cpm.RIL$M0021 <- rowMeans(cpm.RIL[,c("M0021.1", "M0021.2", "M0021.3", "M0021.4")], na.rm = T)
+cpm.RIL$M0021xB73 <- rowMeans(cpm.RIL[,c("M0021xB73.1", "M0021xB73.2", "M0021xB73.3", "M0021xB73.4")], na.rm = T)
+cpm.RIL$M0021xMo17 <- rowMeans(cpm.RIL[,c("M0021xMo17.1", "M0021xMo17.2", "M0021xMo17.3", "M0021xMo17.4")], na.rm = T)
+cpm.RIL$M0317 <- rowMeans(cpm.RIL[,c("M0317.1", "M0317.2", "M0317.3", "M0317.4")], na.rm = T)
+cpm.RIL$M0317xB73 <- rowMeans(cpm.RIL[,c("M0317xB73.1", "M0317xB73.2", "M0317xB73.3", "M0317xB73.4")], na.rm = T)
+cpm.RIL$M0317xMo17 <- rowMeans(cpm.RIL[,c("M0317xMo17.1", "M0317xMo17.2", "M0317xMo17.3", "M0317xMo17.4")], na.rm = T)
 #calculate ratio of hybrid to midparent
 cpm.RIL$B73xMo17.MP <- cpm.RIL$B73xMo17/rowMeans(cpm.RIL[,c("B73","Mo17")], na.rm = T)
 cpm.RIL$M0014xB73.MP <- cpm.RIL$M0014xB73/rowMeans(cpm.RIL[,c("M0014", "B73")], na.rm = T)
