@@ -945,10 +945,6 @@ PlantHeights.RIL$M0317xB73.BxM <- PlantHeights.RIL$M0317xB73/PlantHeights.RIL$B7
 PlantHeights.RIL$M0317xMo17.BxM <- PlantHeights.RIL$M0317xMo17/PlantHeights.RIL$B73xMo17
 PlantHeights.ril.BxM <- as.numeric(PlantHeights.RIL[1,25:33])
 ```
-```{r}
-write.csv(PlantHeights.RIL, "PlantHeights.RIL.csv", row.names = F)
-write.csv(PlantHeights.6H, "PlantHeights.6H.csv", row.names = F)
-```
 
 #Define settings and functions for plotting
 ```{r CorFun}
@@ -994,6 +990,8 @@ colors.e <- c("Other"="black","Methionine adenosyltransferase"="#24ff24", "ACC s
 colors.pe <- c("Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
 
 colors.c <- c("Other"="black", "Cytosolic ribosome"="#ffa744", "NE plastid ribosome"="#ff0000", "PhANGs"="#3447ff")
+
+colors.pc <- c("Other"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Cytosolic ribosome"="#fab5bd")
 ```
 #Figure CV
 ```{r setup dataframe CV}
@@ -1001,29 +999,29 @@ colors.c <- c("Other"="black", "Cytosolic ribosome"="#ffa744", "NE plastid ribos
 ##Calculate CV for BxM reps
 tmt.SL$CV <- NA
 for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"CV"] <- cv(as.numeric(tmt.SL[i,16:18]))
+  tmt.SL[i,"CV"] <- cv(as.numeric(tmt.SL[i,c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3")]))
 }
 tmt.6H$CV <- NA
 for(i in 1:nrow(tmt.6H)){
-  tmt.6H[i,"CV"] <- cv(as.numeric(tmt.6H[i,c(14,24,34)]))
+  tmt.6H[i,"CV"] <- cv(as.numeric(tmt.6H[i,c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3")]))
 }
 tmt.RIL$CV <- NA
 for(i in 1:nrow(tmt.RIL)){
-  tmt.RIL[i,"CV"] <- cv(as.numeric(tmt.RIL[i,16:19]))
+  tmt.RIL[i,"CV"] <- cv(as.numeric(tmt.RIL[i,c("BM.1", "BM.2", "BM.3", "BM.4")]))
 }
 #RNA CV
 ##Calculate CV
 cpm.SL.protein$CV <- NA
 for(i in 1:nrow(cpm.SL.protein)){
-  cpm.SL.protein[i,"CV"] <- cv(as.numeric(cpm.SL.protein[i,8:10]))
+  cpm.SL.protein[i,"CV"] <- cv(as.numeric(cpm.SL.protein[i,c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3")]))
 }
 cpm.6H.protein$CV <- NA
 for(i in 1:nrow(cpm.6H.protein)){
-  cpm.6H.protein[i,"CV"] <- cv(as.numeric(cpm.6H.protein[i,14:16]))
+  cpm.6H.protein[i,"CV"] <- cv(as.numeric(cpm.6H.protein[i,c("B73xMo17.2", "B73xMo17.3", "B73xMo17.4")]))
 }
 cpm.RIL.protein$CV <- NA
 for(i in 1:nrow(cpm.RIL.protein)){
-  cpm.RIL.protein[i,"CV"] <- cv(as.numeric(cpm.RIL.protein[i,c(6:8,60)]))
+  cpm.RIL.protein[i,"CV"] <- cv(as.numeric(cpm.RIL.protein[i,c("BxM.1", "BxM.2", "BxM.3", "BxM.4")]))
 }
 #merge protein and RNA CVs
 CV.SL.protein <- merge.data.frame(tmt.SL[,c("Gene", "CV")], cpm.SL.protein[,c("Gene", "CV")], by.x = "Gene", by.y = "Gene", all=F)
@@ -1580,19 +1578,19 @@ legend <- get_legend(df.lims.plastid.scat)
 #Figure tmt.6H.plastid
 ```{r setup dataframe tmt.6H.plastid}
 #subset hybrids
-tmt.6h.b73xmo17 <- tmt.6H[,c(1:9,62,68)]
-tmt.6h.mo17xb73 <- tmt.6H[,c(1:9,63,69)]
-tmt.6h.b84xb73 <- tmt.6H[,c(1:9,64,70)]
-tmt.6h.b84xmo17 <- tmt.6H[,c(1:9,65,71)]
-tmt.6h.a682xb73 <- tmt.6H[,c(1:9,66,72)]
-tmt.6h.a682xmo17<- tmt.6H[,c(1:9,67,73)]
+tmt.6h.b73xmo17 <- tmt.6H[,c("Gene","l2.B73xMo17.MP", "l2.B73.Mo17")]
+tmt.6h.mo17xb73 <- tmt.6H[,c("Gene", "l2.Mo17xB73.MP", "l2.Mo17.B73" )]
+tmt.6h.b84xb73 <- tmt.6H[,c("Gene", "l2.B84xB73.MP", "l2.B84.B73")]
+tmt.6h.b84xmo17 <- tmt.6H[,c("Gene", "l2.B84xMo17.MP", "l2.B84.B73")]
+tmt.6h.a682xb73 <- tmt.6H[,c("Gene", "l2.A682xB73.MP", "l2.A682.B73")]
+tmt.6h.a682xmo17<- tmt.6H[,c("Gene", "l2.A682xMo17.MP", "l2.A682.Mo17")]
 #rename columns
-colnames(tmt.6h.b73xmo17)[10:11] <- c("l2.HYB.MP", "l2.parent.parent")
-colnames(tmt.6h.mo17xb73)[10:11] <- c("l2.HYB.MP", "l2.parent.parent")
-colnames(tmt.6h.b84xb73)[10:11] <- c("l2.HYB.MP", "l2.parent.parent")
-colnames(tmt.6h.b84xmo17)[10:11] <- c("l2.HYB.MP", "l2.parent.parent")
-colnames(tmt.6h.a682xb73)[10:11] <- c("l2.HYB.MP", "l2.parent.parent")
-colnames(tmt.6h.a682xmo17)[10:11] <- c("l2.HYB.MP", "l2.parent.parent")
+colnames(tmt.6h.b73xmo17)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
+colnames(tmt.6h.mo17xb73)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
+colnames(tmt.6h.b84xb73)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
+colnames(tmt.6h.b84xmo17)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
+colnames(tmt.6h.a682xb73)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
+colnames(tmt.6h.a682xmo17)[2:3] <- c("l2.HYB.MP", "l2.parent.parent")
 #name plot panels
 tmt.6h.b73xmo17$plot <- "A"
 tmt.6h.mo17xb73$plot <- "B"
@@ -1846,7 +1844,7 @@ ggsave(plot=r, filename =paste0(PathToPlots, "cpm.6H.plastid.pdf"),
 #Figure tmt.PlastidRiboCor.Hyb2BxM
 ```{r setup dataframe tmt.PlastidRiboCor.Hyb2BxM}
 #subset RIL hybrids
-tmt.RIL.Hyb2BxM <- tmt.RIL[,c(6,100:122)]
+tmt.RIL.Hyb2BxM <- tmt.RIL[,c(6,104:126)]
 tmt.RIL.Hyb2BxM$BM.BM.BM <- tmt.RIL.Hyb2BxM$BM.BM/tmt.RIL.Hyb2BxM$BM.BM
 tmt.RIL.Hyb2BxM$M0014.14B.BM <- tmt.RIL.Hyb2BxM$M0014.14B/tmt.RIL.Hyb2BxM$BM.BM
 tmt.RIL.Hyb2BxM$M0014.14M.BM <- tmt.RIL.Hyb2BxM$M0014.14M/tmt.RIL.Hyb2BxM$BM.BM
@@ -1857,7 +1855,7 @@ tmt.RIL.Hyb2BxM$M0021.21M.BM <- tmt.RIL.Hyb2BxM$M0021.21M/tmt.RIL.Hyb2BxM$BM.BM
 tmt.RIL.Hyb2BxM$M0317.317B.BM <- tmt.RIL.Hyb2BxM$M0317.317B/tmt.RIL.Hyb2BxM$BM.BM
 tmt.RIL.Hyb2BxM$M0317.317M.BM <- tmt.RIL.Hyb2BxM$M0317.317M/tmt.RIL.Hyb2BxM$BM.BM
 #subset 6-hybrid
-tmt.6H.Hyb2BxM <- tmt.6H[,c(6,40:49)]
+tmt.6H.Hyb2BxM <- tmt.6H[,c(6,44:53)]
 tmt.6H.Hyb2BxM$B73xMo17.BM <- tmt.6H.Hyb2BxM$B73xMo17/tmt.6H.Hyb2BxM$B73xMo17
 tmt.6H.Hyb2BxM$Mo17xB73.BM <- tmt.6H.Hyb2BxM$Mo17xB73/tmt.6H.Hyb2BxM$B73xMo17
 tmt.6H.Hyb2BxM$B84xB73.BM <- tmt.6H.Hyb2BxM$B84xB73/tmt.6H.Hyb2BxM$B73xMo17
@@ -1907,9 +1905,9 @@ ggsave(plot = tmt.PlastidRiboCor.Hyb2BxM.plot, paste0(PathToPlots, "tmt.PlastidR
 #Figure tmt.PlastidRiboCor.Hyb2MP
 ```{r setup dataframe tmt.PlastidRiboCor.Hyb2MP}
 #subset RIL hybrids
-tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,123:131)]
+tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,127:135)]
 #subset 6-hybrid
-tmt.6H.Hyb2MP <- tmt.6H[,c(6,50:55)]
+tmt.6H.Hyb2MP <- tmt.6H[,c(6,54:59)]
 #combine RIL and 6 hybrids
 tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL.Hyb2MP, tmt.6H.Hyb2MP, by.x = "Accession", by.y = "Accession", all.x = T, all.y = F)
 #Make gene column to call genes of interest
@@ -1994,11 +1992,13 @@ ggsave(plot=cpm.PlastidRiboCor.hyb2MP.plot, filename =paste0(PathToPlots, "cpm.P
 ```
 
 #Figure tmt.cpm.RIL.6H.Hyb2MP.cor
+
+
 ```{r setup dataframe tmt.cpm.RIL.6H.Hyb2MP.cor}
 #combine RIL and 6 hybrids RNA
 cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = T)
 #combine RIL and 6 hybrids Protein
-tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,123:131)], tmt.6H[,c(6,50:55)], by.x = "Accession", by.y = "Accession", all = F)
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
 #convert Accession column to gene column
 tmt.RIL.6H.Hyb2MP$Accession <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 14)
 colnames(tmt.RIL.6H.Hyb2MP)[1] <- "Gene"
@@ -2021,19 +2021,63 @@ tmt.cpm.RIL.6H.Hyb2MP.cor <- tmt.cpm.RIL.6H.Hyb2MP.cor[(order(tmt.cpm.RIL.6H.Hyb
 #factor
 tmt.cpm.RIL.6H.Hyb2MP.cor$Category <- factor(tmt.cpm.RIL.6H.Hyb2MP.cor$Category, levels = c("Other", "Cytosolic ribosome", "NE plastid ribosome", "PhANGs"))
 ```
-```{r}
-tmt.RIL.6H.Hyb2MP.cor$Gene <- substr(tmt.RIL.6H.Hyb2MP.cor$Accession, start = 1, stop = 14)
-write.csv(tmt.RIL.6H.Hyb2MP.cor[,c("Gene", "Accession", "cor")], "tmt.RIL.6H.Hyb2MP.cor.csv", row.names = F)
-write.csv(cpm.RIL.6H.Hyb2MP.cor[,c("Gene", "cor")], "cpm.RIL.6H.Hyb2MP.cor.csv", row.names = F)
+
+```{r plot tmt.cpm.RIL.6H.Hyb2MP.cor}
+tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor, mapping=aes(x=cor.x, y=cor.y, color=Category, shape=Category))+
+    geom_point(size=2.5)+
+    scale_colour_manual(values = colors.c)+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+      xlim(-1,1)+
+      ylim(-1,1)+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
+      geom_hline(yintercept=0, linetype="dashed", color = "gray20", size=0.7)+
+      geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
+      geom_hline(yintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
+      geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
+      geom_hline(yintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
+      xlab("Protein correlation")+
+      ylab("RNA correlation")+
+      theme(aspect.ratio=1)+
+      coord_fixed(expand = F)+
+      ggtitle("B")+
+      theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.title = element_text(size = 14, hjust = -0.2))+
+          guides(col=guide_legend(nrow=2))
+
+###Add density curves
+    densityplotX<-axis_canvas(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, axis="x")+
+      geom_density(aes(tmt.cpm.RIL.6H.Hyb2MP.cor[,"cor.x"], color=tmt.cpm.RIL.6H.Hyb2MP.cor[,"Category"]), size=1)+
+    scale_color_manual(values=colors.c, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
+      geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
+      geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      xlim(-1,1)+
+      coord_cartesian(expand = F)
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, axis="y", coord_flip = T)+
+      geom_density(aes(tmt.cpm.RIL.6H.Hyb2MP.cor[,"cor.y"], color=tmt.cpm.RIL.6H.Hyb2MP.cor[,"Category"]), size=1)+
+      scale_color_manual(values=colors.c, name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
+      geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
+      geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      xlim(-1,1)+
+      coord_flip(expand = F)
+    #put two plots together
+      tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- insert_xaxis_grob(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, densityplotX, grid::unit(0.275, "null"), position = "top")
+      tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- insert_yaxis_grob(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, densityplotY, grid::unit(0.275, "null"), position = "right")
+ggsave(plot=tmt.cpm.RIL.6H.Hyb2MP.cor.plot, filename =paste0(PathToPlots, "tmt.cpm.RIL.6H.Hyb2MP.cor.pdf"),
+          dpi=300, width = 4.75, height = 6)  
 ```
-
-
-
-
+#Figure Cor Densities
 ```{r}
-tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,123:131,9)]
-tmt.6H.Hyb2MP <-tmt.6H[,c(6,50:55, 9)]
-tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,123:131)], tmt.6H[,c(6,50:55)], by.x = "Accession", by.y = "Accession", all = F)
+tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,127:135,9)]
+tmt.6H.Hyb2MP <-tmt.6H[,c(6,54:59, 9)]
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
 
 tmt.RIL.Hyb2MP.cor <- CorFun(tmt.RIL.Hyb2MP, 2:10, PlantHeights.ril.MP)
 tmt.6H.Hyb2MP.cor <- CorFun(tmt.6H.Hyb2MP, 2:7, PlantHeights.6h.MP)
@@ -2136,10 +2180,6 @@ ggsave(filename =paste0(PathToPlots, "tmt.RIL.6H.Hyb2MP.cor.densities.pdf"), dpi
 tmt.RIL.6H.Hyb2MP.cor.densities.panel<-patchwork::wrap_plots(A=tmt.RIL.6H.Hyb2MP.cor.plot, B=tmt.RIL.Hyb2MP.cor.plot, C=tmt.6H.Hyb2MP.cor.plot,  nrow = 3, heights = c(1,1,1), design = des)
 ggsave(plot=tmt.RIL.6H.Hyb2MP.cor.densities.panel, filename =paste0(PathToPlots, "tmt.RIL.6H.Hyb2MP.cor.densities.panel.pdf"), dpi=300, width=4.75, height=7)
 ```
-```{r}
-write.csv(tmt.RIL.6H.Hyb2MP.cor[order(-tmt.RIL.6H.Hyb2MP.cor$cor),c(1,17,19)], "tmt.RIL.6H.Hyb2MP.cor.csv", row.names = F)
-```
-
 
 ```{r}
 #6H
@@ -2227,63 +2267,6 @@ ggsave(filename =paste0(PathToPlots, "cpm.RIL.6H.Hyb2MP.cor.densities.pdf"), dpi
                 C"
 cpm.RIL.6H.Hyb2MP.cor.densities.panel<-patchwork::wrap_plots(A=cpm.RIL.6H.Hyb2MP.cor.plot, B=cpm.RIL.Hyb2MP.cor.plot, C=cpm.6H.Hyb2MP.cor.plot,  nrow = 3, heights = c(1,1,1), design = des)
 ggsave(plot=cpm.RIL.6H.Hyb2MP.cor.densities.panel, filename =paste0(PathToPlots, "cpm.RIL.6H.Hyb2MP.cor.densities.panel.pdf"), dpi=300, width=4.75, height=7)
-```
-
-
-
-
-
-
-```{r plot tmt.cpm.RIL.6H.Hyb2MP.cor}
-tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor, mapping=aes(x=cor.x, y=cor.y, color=Category, shape=Category))+
-    geom_point(size=2.5)+
-    scale_colour_manual(values = colors.c)+
-  scale_shape_manual(values=c(1,19,19,19))+
-    theme_classic()+
-      xlim(-1,1)+
-      ylim(-1,1)+
-      geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
-      geom_hline(yintercept=0, linetype="dashed", color = "gray20", size=0.7)+
-      geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
-      geom_hline(yintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
-      geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
-      geom_hline(yintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
-      xlab("Protein correlation")+
-      ylab("RNA correlation")+
-      theme(aspect.ratio=1)+
-      coord_fixed(expand = F)+
-      ggtitle("B")+
-      theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
-                legend.position="bottom", legend.title = element_blank(), plot.title = element_text(size = 14, hjust = -0.2))+
-          guides(col=guide_legend(nrow=2))
-
-###Add density curves
-    densityplotX<-axis_canvas(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, axis="x")+
-      geom_density(aes(tmt.cpm.RIL.6H.Hyb2MP.cor[,"cor.x"], color=tmt.cpm.RIL.6H.Hyb2MP.cor[,"Category"]), size=1)+
-    scale_color_manual(values=colors.c, name="Category")+
-      geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
-      geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
-      geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
-      theme_void()+
-      theme(legend.title = element_blank())+
-      xlim(-1,1)+
-      coord_cartesian(expand = F)
-    #set up marginal density plot Y axis
-    densityplotY<-axis_canvas(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, axis="y", coord_flip = T)+
-      geom_density(aes(tmt.cpm.RIL.6H.Hyb2MP.cor[,"cor.y"], color=tmt.cpm.RIL.6H.Hyb2MP.cor[,"Category"]), size=1)+
-      scale_color_manual(values=colors.c, name="Category")+
-      geom_vline(xintercept=0, linetype="dashed", color = "gray20", size=0.7)+
-      geom_vline(xintercept=0.5, linetype="dashed", color = "gray40", size=0.5)+
-      geom_vline(xintercept= -0.5, linetype="dashed", color = "gray40", size=0.5)+
-      theme_void()+
-      theme(legend.title = element_blank())+
-      xlim(-1,1)+
-      coord_flip(expand = F)
-    #put two plots together
-      tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- insert_xaxis_grob(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, densityplotX, grid::unit(0.275, "null"), position = "top")
-      tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- insert_yaxis_grob(tmt.cpm.RIL.6H.Hyb2MP.cor.plot, densityplotY, grid::unit(0.275, "null"), position = "right")
-ggsave(plot=tmt.cpm.RIL.6H.Hyb2MP.cor.plot, filename =paste0(PathToPlots, "tmt.cpm.RIL.6H.Hyb2MP.cor.pdf"),
-          dpi=300, width = 4.75, height = 6)  
 ```
 ##Figure S8
 ```{r}
@@ -2860,8 +2843,8 @@ pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", specie
 ```{r GOIcor protein}
 #make dataframe
 GOIs.cor <- data.frame("Group"=c("PE plastid ribosome", "PhANGs", "PhAPGs", "plastid", "NE plastid ribosome", "Cytosolic ribosome", "Ethylene biosynthesis", "Methionine adenosyltransferase", "ACC synthase", "ACC oxidase"), "protein.Rsquared.RILs"=NA, "protein.Rsquared.6Hybrid"=NA, "protein.Rsquared.RILs.6Hybrid"=NA, "RNA.Rsquared.RILs"=NA, "RNA.Rsquared.6Hybrid"=NA, "RNA.Rsquared.RILs.6Hybrid"=NA)
-tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,123:131)]
-tmt.6H.Hyb2MP <- tmt.6H[,c(6,50:55)]
+tmt.RIL.Hyb2MP <- tmt.RIL[,c(6,127:135)]
+tmt.6H.Hyb2MP <- tmt.6H[,c(6,54:59)]
 #combine RIL and 6 hybrids
 tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL.Hyb2MP, tmt.6H.Hyb2MP, by.x = "Accession", by.y = "Accession", all=F)
 #Rename columns
@@ -3600,17 +3583,20 @@ p <- ggplot(cpm.cor, aes(x = Cor.HtoMP, y = Cor.PtoP, color=GOI))+
       q <- insert_yaxis_grob(q, densityplotY, grid::unit(0.275, "null"), position = "right")
 ggsave(plot=q, filename = paste0(PathToPlots,"cpm.6H.cor.png"))
 ```
+```{r}
+colnames(tmt.RIL)
+```
+
 #Figure tmt.6H.RIL.cor
 ```{r setup dataframe tmt.6H.RIL.cor}
 #Protein correlations
-tmt.6H.cor <- CorFun(tmt.6H, 62:67, PlantHeights.6h.MP)
-tmt.RIL.cor <- CorFun(tmt.RIL, 141:149, PlantHeights.ril.MP)
+tmt.6H.cor <- CorFun(tmt.6H, 66:71, PlantHeights.6h.MP)
+tmt.RIL.cor <- CorFun(tmt.RIL, 145:153, PlantHeights.ril.MP)
 #Combine protein correlations
 tmt.cor <- merge.data.frame(tmt.6H.cor[,c("Accession", "cor")], tmt.RIL.cor[,c("Accession", "cor")], by.x="Accession", by.y="Accession", all=T)
 colnames(tmt.cor) <- c("Accession", "Cor.6h", "Cor.RIL")
 #Define GOIs
 tmt.cor$Gene <- substr(tmt.cor$Accession, start = 1, stop = 14)
-tmt.cor <- merge.data.frame(tmt.cor, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all.x = T, all.y = F)
 tmt.cor$GOI <- "Other"
 tmt.cor$Order <- 1
 tmt.cor$GOI[tmt.cor$Gene%in%GOIs$CytoRibo] <- "Cytosolic ribosome"
@@ -3657,15 +3643,11 @@ p <- ggplot(tmt.cor, aes(x = Cor.6h, y = Cor.RIL, color=GOI))+
 ggsave(plot=q, paste0(PathToPlots, "tmt.6H.RIL.cor.png"))
 ```
 
-```{r}
-colors.pc <- c("Other"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Cytosolic ribosome"="#fab5bd")
-```
-
 
 #Cor between parent/parent and hyb/mp
 ```{r}
-tmt.6H.Hyb2MP.Par2Par <- tmt.6H[,c(6,62:73)]
-tmt.RIL.Hyb2MP.Par2Par <- tmt.RIL[,c(6,141:158)]
+tmt.6H.Hyb2MP.Par2Par <- tmt.6H[,c(6,66:77)]
+tmt.RIL.Hyb2MP.Par2Par <- tmt.RIL[,c(6,145:162)]
 
 for(i in 2:ncol(tmt.6H.Hyb2MP.Par2Par)){
   tmt.6H.Hyb2MP.Par2Par[,i] <- abs(tmt.6H.Hyb2MP.Par2Par[,i])
@@ -3702,11 +3684,7 @@ mean(tmt.6H.RIL.Hyb2MP.Par2Par.cor$cor)
 tmt.cpm.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL.6H.Hyb2MP, cpm.RIL.6H.Hyb2MP, by.x = "Gene", by.y = "Gene", all=F)
 tmt.cpm.RIL.6H.Hyb2MP <- na.omit(tmt.cpm.RIL.6H.Hyb2MP)
 tmt.cpm.RIL.6H.Hyb2MP.cor2 <- CorFun2(tmt.cpm.RIL.6H.Hyb2MP, 2:16, 17:31)
-mean(tmt.cpm.RIL.6H.Hyb2MP.cor2$cor[tmt.cpm.RIL.6H.Hyb2MP.cor2$Gene %in% PhANGs])
-```
-
-```{r}
-colnames(tmt.cpm.RIL.6H.Hyb2MP.cor2)
+mean(tmt.cpm.RIL.6H.Hyb2MP.cor2$cor[tmt.cpm.RIL.6H.Hyb2MP.cor2$Gene %in% GOIs$PhANGs])
 ```
 
 ```{r}
