@@ -1259,7 +1259,7 @@ df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Plastid
       coord_fixed(expand = F)+
       theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
       theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
-        legend.position="bottom", legend.title = element_blank(), plot.title = element_text(vjust = -3.5, hjust = -0.485), axis.text.x = element_text(size = 9), axis.text.y = element_text(size = 9), legend.spacing.x = unit(0.1, 'cm'), legend.spacing.y = unit(-3, 'cm'))+
+        legend.position="bottom", legend.title = element_blank(), plot.title = element_text(vjust = -3.5, hjust = -0.485), legend.spacing.x = unit(0.1, 'cm'), legend.spacing.y = unit(-3, 'cm'))+
       guides(col=guide_legend(nrow = 3))
 legend <- get_legend(df.lims.plastid.scat)
     df.lims.plastid.scat <- df.lims.plastid.scat+theme(legend.position = "none")
@@ -1301,46 +1301,6 @@ legend <- get_legend(df.lims.plastid.scat)
           dpi=300, width=4.75, height=5)  
 ```
 
-
-```{r}
-PlotAccession <- function(Accession){
-#set limits
-tmt.SL.lims <- tmt.SL
-tmt.SL.lims$l2.B73xMo17.MP[tmt.SL.lims$l2.B73xMo17.MP <= -1] <- -1
-tmt.SL.lims$l2.B73xMo17.MP[tmt.SL.lims$l2.B73xMo17.MP >= 1] <- 1
-tmt.SL.lims$l2.B73.Mo17[tmt.SL.lims$l2.B73.Mo17 <= -1] <- -1
-tmt.SL.lims$l2.B73.Mo17[tmt.SL.lims$l2.B73.Mo17 >= 1] <- 1
-#Set GOIs
-tmt.SL.lims$Category <- "Other"
-tmt.SL.lims$Order <- 1
-tmt.SL.lims[(tmt.SL.lims$Accession %in% Accession),"Category"] <- "Accession"
-tmt.SL.lims[(tmt.SL.lims$Accession %in% Accession),"Order"] <- 2
-#Re-order
-tmt.SL.lims <- tmt.SL.lims[(order(tmt.SL.lims$Order)),]
-#factor
-tmt.SL.lims$Category <- factor(tmt.SL.lims$Category, levels = c("Other", "Accession"))
-
-#scatter plot with marginal density curves
-    tmt.SL.lims.scat <- ggplot(tmt.SL.lims, mapping=aes(x=l2.B73xMo17.MP, y=l2.B73.Mo17, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=3.5)+
-  scale_color_manual(values=c("black", "red"))+
-      scale_shape_manual(values=c(1,19))+
-    theme_classic()+
-      xlim(c(-1,1))+
-      ylim(c(-1,1))+
-      geom_vline(xintercept=0, linetype="dashed", color = "gray60", size=0.5)+
-      geom_hline(yintercept=0, linetype="dashed", color = "gray60", size=0.5)+
-      xlab("log2 BxM/MP")+
-      ylab("log2 B73/Mo17")+
-      theme(aspect.ratio=1)+
-      coord_fixed(expand = F)+
-      theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
-      theme(axis.text=element_text(size=10),
-        legend.position="none", axis.text.x = element_text(size = 15), axis.text.y = element_text(size = 15), legend.spacing.x = unit(0.1, 'cm'), legend.spacing.y = unit(-3, 'cm'))+
-      guides(col=guide_legend(nrow = 3))
-    tmt.SL.lims.scat
-}
-```
 
 
 
@@ -2410,7 +2370,8 @@ cpm.SL.lims.etbio.scat <- ggplot(cpm.SL.lims.etbio, mapping=aes(x=l2.B73xMo17.MP
 tmt.cpm.SL.lims.etbio.scat<-patchwork::wrap_plots(A=tmt.SL.lims.etbio.scat, B=cpm.SL.lims.etbio.scat, C=tmt.SL.lims.etbio.scat.legend,  nrow = 2, heights = c(3,1.2), design = des)
 ggsave(plot=tmt.cpm.SL.lims.etbio.scat, filename =paste0(PathToPlots, "tmt.cpm.SL.etbio.pdf"), dpi=300, width=4.75, height=3)
 ```
-#Figure tmt.SL.EtBio.vol
+#Figure tmt.cpm.all4.EtBio.vol
+##SL
 ```{r setup dataframe tmt.SL.EtBio}
 ###Set GOIs
 tmt.SL.etbio <- tmt.SL
@@ -2419,7 +2380,7 @@ tmt.SL.etbio$l2.B73xMo17.MP[tmt.SL.etbio$l2.B73xMo17.MP >= 1] <- 1
 tmt.SL.etbio$MP1 <- rowMeans(tmt.SL.etbio[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
 tmt.SL.etbio$MP2 <- rowMeans(tmt.SL.etbio[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
 tmt.SL.etbio$MP3 <- rowMeans(tmt.SL.etbio[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
-tmt.SL.etbio$ttest <- ttestFun(tmt.SL.etbio, 27:29, 16:18)
+tmt.SL.etbio$ttest <- ttestFun(tmt.SL.etbio, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
 tmt.SL.etbio$l10.ttest <- -(log10(tmt.SL.etbio$ttest))
 tmt.SL.etbio$Category <- "Other"
 tmt.SL.etbio$Order <- 1
@@ -2442,7 +2403,7 @@ cpm.SL.etbio$l2.B73xMo17.MP[cpm.SL.etbio$l2.B73xMo17.MP >= 2.5] <- 2.5
 cpm.SL.etbio$MP1 <- rowMeans(cpm.SL.etbio[,c("B73.1","Mo17.1")])
 cpm.SL.etbio$MP2 <- rowMeans(cpm.SL.etbio[,c("B73.2","Mo17.2")])
 cpm.SL.etbio$MP3 <- rowMeans(cpm.SL.etbio[,c("B73.3","Mo17.3")])
-cpm.SL.etbio$ttest <- ttestFun(cpm.SL.etbio, 18:20, 8:10)
+cpm.SL.etbio$ttest <- ttestFun(cpm.SL.etbio, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("MP1", "MP2", "MP3"))
 cpm.SL.etbio$l10.ttest <- -(log10(cpm.SL.etbio$ttest))
 cpm.SL.etbio$Category <- "Other"
 cpm.SL.etbio$Order <- 1
@@ -2468,18 +2429,80 @@ tmt.SL.etbio.vol <- ggplot(tmt.SL.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.tte
           geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
           geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
           theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
-                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
           guides(col=guide_legend(nrow=2))+
     xlab("log2 BxM/MP")+
     ylab("-log10(p-value)")+
     theme(aspect.ratio=1)+
     coord_fixed(expand = F)
-tmt.SL.etbio.vol.legend <- get_legend(tmt.SL.etbio.vol)
-tmt.SL.etbio.vol <- tmt.SL.etbio.vol+theme(legend.position = "none")
-      
       
 #volterplot - cpm
 cpm.SL.etbio.vol <- ggplot(cpm.SL.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.e, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+```
+##6H
+```{r setup dataframe tmt.6H.EtBio}
+###Set GOIs
+tmt.6H.etbio <- tmt.6H
+tmt.6H.etbio$l2.B73xMo17.MP[tmt.6H.etbio$l2.B73xMo17.MP <= -1] <- -1
+tmt.6H.etbio$l2.B73xMo17.MP[tmt.6H.etbio$l2.B73xMo17.MP >= 1] <- 1
+tmt.6H.etbio$MP1 <- rowMeans(tmt.6H.etbio[,c("X6Hybrid.B73.r1","X6Hybrid.Mo17.r1")])
+tmt.6H.etbio$MP2 <- rowMeans(tmt.6H.etbio[,c("X6Hybrid.B73.r2","X6Hybrid.Mo17.r2")])
+tmt.6H.etbio$MP3 <- rowMeans(tmt.6H.etbio[,c("X6Hybrid.B73.r3","X6Hybrid.Mo17.r3")])
+tmt.6H.etbio$ttest <- ttestFun(tmt.6H.etbio, c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3"), c("MP1", "MP2", "MP3"))
+tmt.6H.etbio$l10.ttest <- -(log10(tmt.6H.etbio$ttest))
+tmt.6H.etbio$Category <- "Other"
+tmt.6H.etbio$Order <- 1
+tmt.6H.etbio[(tmt.6H.etbio$Gene %in% GOIs$MAT),"Category"] <- "Methionine adenosyltransferase"
+tmt.6H.etbio[(tmt.6H.etbio$Gene %in% GOIs$MAT),"Order"] <- 2
+tmt.6H.etbio[(tmt.6H.etbio$Gene %in% GOIs$ACS),"Category"] <- "ACC synthase"
+tmt.6H.etbio[(tmt.6H.etbio$Gene %in% GOIs$ACS),"Order"] <- 3
+tmt.6H.etbio[(tmt.6H.etbio$Gene %in% GOIs$ACO),"Category"] <- "ACC oxidase"
+tmt.6H.etbio[(tmt.6H.etbio$Gene %in% GOIs$ACO),"Order"] <- 4
+###Re-order
+tmt.6H.etbio <- tmt.6H.etbio[(order(tmt.6H.etbio$Order)),]
+###factor
+tmt.6H.etbio$Category <- factor(tmt.6H.etbio$Category, levels = c("Other", "Methionine adenosyltransferase", "ACC synthase", "ACC oxidase"))
+```
+```{r setup dataframe cpm.6H.EtBio}
+###Set GOIs
+cpm.6H.etbio <- cpm.6H
+cpm.6H.etbio$l2.B73xMo17.MP[cpm.6H.etbio$l2.B73xMo17.MP <= -2.5] <- -2.5
+cpm.6H.etbio$l2.B73xMo17.MP[cpm.6H.etbio$l2.B73xMo17.MP >= 2.5] <- 2.5
+cpm.6H.etbio$MP1 <- rowMeans(cpm.6H.etbio[,c("B73.2","Mo17.2")])
+cpm.6H.etbio$MP2 <- rowMeans(cpm.6H.etbio[,c("B73.3","Mo17.3")])
+cpm.6H.etbio$MP3 <- rowMeans(cpm.6H.etbio[,c("B73.4","Mo17.4")])
+cpm.6H.etbio$ttest <- ttestFun(cpm.6H.etbio, c("B73xMo17.2", "B73xMo17.3", "B73xMo17.4"), c("MP1", "MP2", "MP3"))
+cpm.6H.etbio$l10.ttest <- -(log10(cpm.6H.etbio$ttest))
+cpm.6H.etbio$Category <- "Other"
+cpm.6H.etbio$Order <- 1
+cpm.6H.etbio[(cpm.6H.etbio$Gene %in% GOIs$MAT),"Category"] <- "Methionine adenosyltransferase"
+cpm.6H.etbio[(cpm.6H.etbio$Gene %in% GOIs$MAT),"Order"] <- 2
+cpm.6H.etbio[(cpm.6H.etbio$Gene %in% GOIs$ACS),"Category"] <- "ACC synthase"
+cpm.6H.etbio[(cpm.6H.etbio$Gene %in% GOIs$ACS),"Order"] <- 3
+cpm.6H.etbio[(cpm.6H.etbio$Gene %in% GOIs$ACO),"Category"] <- "ACC oxidase"
+cpm.6H.etbio[(cpm.6H.etbio$Gene %in% GOIs$ACO),"Order"] <- 4
+###Re-order
+cpm.6H.etbio <- cpm.6H.etbio[(order(cpm.6H.etbio$Order)),]
+###factor
+cpm.6H.etbio$Category <- factor(cpm.6H.etbio$Category, levels = c("Other", "Methionine adenosyltransferase", "ACC synthase", "ACC oxidase"))
+```
+```{r plot tmt.cpm.6H.EtBio}
+#Scatterplot - tmt
+tmt.6H.etbio.vol <- ggplot(tmt.6H.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2)+
   scale_color_manual(values=colors.e, name="Category")+
   scale_shape_manual(values=c(1,19,19,19))+
@@ -2495,60 +2518,172 @@ cpm.SL.etbio.vol <- ggplot(cpm.SL.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.tte
     theme(aspect.ratio=1)+
     coord_fixed(expand = F)
       
-#Combine plots into panel
-      des <- "AB
-              CC"
-tmt.cpm.SL.etbio.vol<-patchwork::wrap_plots(A=tmt.SL.etbio.vol, B=cpm.SL.etbio.vol, C=tmt.SL.etbio.vol.legend,  nrow = 2, heights = c(3,1.2), design = des)
-ggsave(plot=tmt.cpm.SL.etbio.vol, filename =paste0(PathToPlots, "tmt.cpm.SL.etbio.volcano.pdf"), dpi=300, width=4.75, height=3)
-```
-```{r}
-colnames(tmt.RIL)
-```
-```{r}
-###Set GOIs
-tmt.RIL.GOIs <- tmt.RIL
-tmt.RIL.GOIs$l2.B73xMo17.MP[tmt.RIL.GOIs$l2.B73xMo17.MP <= -1] <- -1
-tmt.RIL.GOIs$l2.B73xMo17.MP[tmt.RIL.GOIs$l2.B73xMo17.MP >= 1] <- 1
-tmt.RIL.GOIs$MP1 <- rowMeans(tmt.RIL.GOIs[,c("B73.1","Mo17.1")])
-tmt.RIL.GOIs$MP2 <- rowMeans(tmt.RIL.GOIs[,c("B73.3","Mo17.3")])
-tmt.RIL.GOIs$MP3 <- rowMeans(tmt.RIL.GOIs[,c("B73.4","Mo17.4")])
-tmt.RIL.GOIs$ttest <- ttestFun(tmt.RIL.GOIs, 159:161, 16:18)
-tmt.RIL.GOIs$l10.ttest <- -(log10(tmt.RIL.GOIs$ttest))
-tmt.RIL.GOIs$Category <- "Other"
-tmt.RIL.GOIs$Order <- 1
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$plastid),"Order"] <- 2
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhANGs),"Order"] <- 3
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhAPGs),"Order"] <- 4
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$NE.PtRibo),"Order"] <- 5
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
-tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PE.ribo),"Order"] <- 6
-###Re-order
-tmt.RIL.GOIs <- tmt.RIL.GOIs[(order(tmt.RIL.GOIs$Order)),]
-###factor
-tmt.RIL.GOIs$Category <- factor(tmt.RIL.GOIs$Category, levels = c("Other", "Plastid", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
-#Scatterplot - tmt
-tmt.RIL.GOIs.vol <- ggplot(tmt.RIL.GOIs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=3)+
-  scale_color_manual(values=colors.p, name="Category")+
-  scale_shape_manual(values=c(1,19,19,19,19,19))+
+#volterplot - cpm
+cpm.6H.etbio.vol <- ggplot(cpm.6H.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.e, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
     theme_classic()+
-          geom_hline(yintercept=1.30103, linetype="dashed", size=1.5, color = "gray50")+
-          geom_vline(xintercept=0, linetype="dashed",size=1.5, color = "gray50")+
-          theme(axis.text=element_text(size=15), legend.text=element_text(size=15),axis.title = element_text(size=15),
-                legend.position="bottom", legend.title = element_blank(), plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          ggtitle("B")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
           guides(col=guide_legend(nrow=2))+
     xlab("log2 BxM/MP")+
     ylab("-log10(p-value)")+
     theme(aspect.ratio=1)+
     coord_fixed(expand = F)
-tmt.RIL.GOIs.vol.legend <- get_legend(tmt.RIL.GOIs.vol)
-tmt.RIL.GOIs.vol <- tmt.RIL.GOIs.vol+ theme(legend.position = "none")
-ggsave(plot = tmt.RIL.GOIs.vol, filename = "tmt.RIL.GOIs.vol.png", height=4, width=4)
 ```
+##RIL
+```{r setup dataframe tmt.SL.EtBio}
+###Set GOIs
+tmt.RIL.etbio <- tmt.RIL
+tmt.RIL.etbio$l2.B73xMo17.MP[tmt.RIL.etbio$l2.B73xMo17.MP <= -1] <- -1
+tmt.RIL.etbio$l2.B73xMo17.MP[tmt.RIL.etbio$l2.B73xMo17.MP >= 1] <- 1
+tmt.RIL.etbio$MP1 <- rowMeans(tmt.RIL.etbio[,c("B73.1","Mo17.1")])
+tmt.RIL.etbio$MP2 <- rowMeans(tmt.RIL.etbio[,c("B73.3","Mo17.3")])
+tmt.RIL.etbio$MP3 <- rowMeans(tmt.RIL.etbio[,c("B73.4","Mo17.4")])
+tmt.RIL.etbio$ttest <- ttestFun(tmt.RIL.etbio, c("BM.1", "BM.3", "BM.4", "BM.2"), c("MP1", "MP2", "MP3"))
+tmt.RIL.etbio$l10.ttest <- -(log10(tmt.RIL.etbio$ttest))
+tmt.RIL.etbio$Category <- "Other"
+tmt.RIL.etbio$Order <- 1
+tmt.RIL.etbio[(tmt.RIL.etbio$Gene %in% GOIs$MAT),"Category"] <- "Methionine adenosyltransferase"
+tmt.RIL.etbio[(tmt.RIL.etbio$Gene %in% GOIs$MAT),"Order"] <- 2
+tmt.RIL.etbio[(tmt.RIL.etbio$Gene %in% GOIs$ACS),"Category"] <- "ACC synthase"
+tmt.RIL.etbio[(tmt.RIL.etbio$Gene %in% GOIs$ACS),"Order"] <- 3
+tmt.RIL.etbio[(tmt.RIL.etbio$Gene %in% GOIs$ACO),"Category"] <- "ACC oxidase"
+tmt.RIL.etbio[(tmt.RIL.etbio$Gene %in% GOIs$ACO),"Order"] <- 4
+###Re-order
+tmt.RIL.etbio <- tmt.RIL.etbio[(order(tmt.RIL.etbio$Order)),]
+###factor
+tmt.RIL.etbio$Category <- factor(tmt.RIL.etbio$Category, levels = c("Other", "Methionine adenosyltransferase", "ACC synthase", "ACC oxidase"))
+```
+```{r setup dataframe cpm.RIL.EtBio}
+###Set GOIs
+cpm.RIL.etbio <- cpm.RIL
+cpm.RIL.etbio$l2.B73xMo17.MP[cpm.RIL.etbio$l2.B73xMo17.MP <= -2.5] <- -2.5
+cpm.RIL.etbio$l2.B73xMo17.MP[cpm.RIL.etbio$l2.B73xMo17.MP >= 2.5] <- 2.5
+cpm.RIL.etbio$MP1 <- rowMeans(cpm.RIL.etbio[,c("B73.1","Mo17.1")])
+cpm.RIL.etbio$MP2 <- rowMeans(cpm.RIL.etbio[,c("B73.2","Mo17.2")])
+cpm.RIL.etbio$MP3 <- rowMeans(cpm.RIL.etbio[,c("B73.3","Mo17.3")])
+cpm.RIL.etbio$MP4 <- rowMeans(cpm.RIL.etbio[,c("B73.4","Mo17.4")])
+cpm.RIL.etbio$ttest <- ttestFun(cpm.RIL.etbio, c("BxM.1", "BxM.2", "BxM.3", "BxM.4"), c("MP1", "MP2", "MP3", "MP4"))
+cpm.RIL.etbio$l10.ttest <- -(log10(cpm.RIL.etbio$ttest))
+cpm.RIL.etbio$Category <- "Other"
+cpm.RIL.etbio$Order <- 1
+cpm.RIL.etbio[(cpm.RIL.etbio$Gene %in% GOIs$MAT),"Category"] <- "Methionine adenosyltransferase"
+cpm.RIL.etbio[(cpm.RIL.etbio$Gene %in% GOIs$MAT),"Order"] <- 2
+cpm.RIL.etbio[(cpm.RIL.etbio$Gene %in% GOIs$ACS),"Category"] <- "ACC synthase"
+cpm.RIL.etbio[(cpm.RIL.etbio$Gene %in% GOIs$ACS),"Order"] <- 3
+cpm.RIL.etbio[(cpm.RIL.etbio$Gene %in% GOIs$ACO),"Category"] <- "ACC oxidase"
+cpm.RIL.etbio[(cpm.RIL.etbio$Gene %in% GOIs$ACO),"Order"] <- 4
+###Re-order
+cpm.RIL.etbio <- cpm.RIL.etbio[(order(cpm.RIL.etbio$Order)),]
+###factor
+cpm.RIL.etbio$Category <- factor(cpm.RIL.etbio$Category, levels = c("Other", "Methionine adenosyltransferase", "ACC synthase", "ACC oxidase"))
+```
+```{r plot tmt.cpm.RIL.EtBio}
+#Scatterplot - tmt
+tmt.RIL.etbio.vol <- ggplot(tmt.RIL.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.e, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+          ggtitle("C")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+#volterplot - cpm
+cpm.RIL.etbio.vol <- ggplot(cpm.RIL.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.e, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+          ggtitle("C")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+cpm.RIL.etbio.vol.legend <- get_legend(cpm.RIL.etbio.vol)
+cpm.RIL.etbio.vol <- cpm.RIL.etbio.vol+theme(legend.position = "none")
+```
+##DN
+```{r setup dataframe tmt.SL.EtBio}
+###Set GOIs
+tmt.DN.etbio <- tmt.DN
+tmt.DN.etbio$l2.B73xMo17.MP[tmt.DN.etbio$l2.B73xMo17.MP <= -1] <- -1
+tmt.DN.etbio$l2.B73xMo17.MP[tmt.DN.etbio$l2.B73xMo17.MP >= 1] <- 1
+tmt.DN.etbio$MP1 <- rowMeans(tmt.DN.etbio[,c("Day.B73.r1","Day.Mo17.r1")])
+tmt.DN.etbio$MP2 <- rowMeans(tmt.DN.etbio[,c("Day.B73.r2","Day.Mo17.r2")])
+tmt.DN.etbio$MP3 <- rowMeans(tmt.DN.etbio[,c("Day.B73.r3","Day.Mo17.r3")])
+tmt.DN.etbio$ttest <- ttestFun(tmt.DN.etbio, c("Day.BM.r1", "Day.BM.r2", "Day.BM.r3"), c("MP1", "MP2", "MP3"))
+tmt.DN.etbio$l10.ttest <- -(log10(tmt.DN.etbio$ttest))
+tmt.DN.etbio$Category <- "Other"
+tmt.DN.etbio$Order <- 1
+tmt.DN.etbio[(tmt.DN.etbio$Gene %in% GOIs$MAT),"Category"] <- "Methionine adenosyltransferase"
+tmt.DN.etbio[(tmt.DN.etbio$Gene %in% GOIs$MAT),"Order"] <- 2
+tmt.DN.etbio[(tmt.DN.etbio$Gene %in% GOIs$ACS),"Category"] <- "ACC synthase"
+tmt.DN.etbio[(tmt.DN.etbio$Gene %in% GOIs$ACS),"Order"] <- 3
+tmt.DN.etbio[(tmt.DN.etbio$Gene %in% GOIs$ACO),"Category"] <- "ACC oxidase"
+tmt.DN.etbio[(tmt.DN.etbio$Gene %in% GOIs$ACO),"Order"] <- 4
+###Re-order
+tmt.DN.etbio <- tmt.DN.etbio[(order(tmt.DN.etbio$Order)),]
+###factor
+tmt.DN.etbio$Category <- factor(tmt.DN.etbio$Category, levels = c("Other", "Methionine adenosyltransferase", "ACC synthase", "ACC oxidase"))
+```
+```{r plot tmt.DN.EtBio}
+#Scatterplot - tmt
+tmt.DN.etbio.vol <- ggplot(tmt.DN.etbio, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.e, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+          ggtitle("D")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+tmt.DN.etbio.vol.legend <- get_legend(tmt.DN.etbio.vol)
+tmt.DN.etbio.vol <- tmt.DN.etbio.vol+theme(legend.position = "none")
+```
+##Panels
+```{r}
+       des <- "AB
+               CD
+               EE"
+  r<-patchwork::wrap_plots(A=tmt.SL.etbio.vol, B=tmt.6H.etbio.vol, C=tmt.RIL.etbio.vol, D=tmt.DN.etbio.vol, E=tmt.DN.etbio.vol.legend, nrow = 3, heights = c(3,3,1.2), design = des)
+  ggsave(plot=r, filename =paste0(PathToPlots, "tmt.BxM.SL.etbio.all4.vol.pdf"),
+          dpi=300, width=4.75, height=5) 
+```
+```{r}
+       des <- "AB
+               C#
+               EE"
+  r<-patchwork::wrap_plots(A=cpm.SL.etbio.vol, B=cpm.6H.etbio.vol, C=cpm.RIL.etbio.vol, E=cpm.RIL.etbio.vol.legend, nrow = 3, heights = c(3,3,1.2), design = des)
+  ggsave(plot=r, filename =paste0(PathToPlots, "cpm.BxM.SL.etbio.all4.vol.pdf"),
+          dpi=300, width=4.75, height=5) 
+```
+
+
+#Figure tmt.BxM.SL.plastid.all4.vol
+
 ```{r}
 ###Set GOIs
 tmt.SL.GOIs <- tmt.SL
@@ -2557,7 +2692,7 @@ tmt.SL.GOIs$l2.B73xMo17.MP[tmt.SL.GOIs$l2.B73xMo17.MP >= 1] <- 1
 tmt.SL.GOIs$MP1 <- rowMeans(tmt.SL.GOIs[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
 tmt.SL.GOIs$MP2 <- rowMeans(tmt.SL.GOIs[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
 tmt.SL.GOIs$MP3 <- rowMeans(tmt.SL.GOIs[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
-tmt.SL.GOIs$ttest <- ttestFun(tmt.SL.GOIs, 27:29, 16:18)
+tmt.SL.GOIs$ttest <- ttestFun(tmt.SL.GOIs, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
 tmt.SL.GOIs$l10.ttest <- -(log10(tmt.SL.GOIs$ttest))
 tmt.SL.GOIs$Category <- "Other"
 tmt.SL.GOIs$Order <- 1
@@ -2577,24 +2712,21 @@ tmt.SL.GOIs <- tmt.SL.GOIs[(order(tmt.SL.GOIs$Order)),]
 tmt.SL.GOIs$Category <- factor(tmt.SL.GOIs$Category, levels = c("Other", "Plastid", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
 #Scatterplot - tmt
 tmt.SL.GOIs.vol <- ggplot(tmt.SL.GOIs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=3)+
+    geom_point(aes(color=Category), size=1)+
   scale_color_manual(values=colors.p, name="Category")+
   scale_shape_manual(values=c(1,19,19,19,19,19))+
     theme_classic()+
-          geom_hline(yintercept=1.30103, linetype="dashed", size=1.5,color = "gray50")+
-          geom_vline(xintercept=0, linetype="dashed",size=1.5, color = "gray50")+
-          theme(axis.text=element_text(size=15), legend.text=element_text(size=15),axis.title = element_text(size=15),
-                legend.position="bottom", legend.title = element_blank(), plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
           guides(col=guide_legend(nrow=2))+
     xlab("log2 BxM/MP")+
     ylab("-log10(p-value)")+
     theme(aspect.ratio=1)+
     coord_fixed(expand = F)
-tmt.SL.GOIs.vol.legend <- get_legend(tmt.SL.GOIs.vol)
-tmt.SL.GOIs.vol <- tmt.SL.GOIs.vol+ theme(legend.position = "none")
-ggsave(plot = tmt.SL.GOIs.vol, filename = "tmt.SL.GOIs.vol.png", height=4, width=4)
 ```
-
 ```{r}
 ###Set GOIs
 tmt.6H.GOIs <- tmt.6H
@@ -2603,7 +2735,7 @@ tmt.6H.GOIs$l2.B73xMo17.MP[tmt.6H.GOIs$l2.B73xMo17.MP >= 1] <- 1
 tmt.6H.GOIs$MP1 <- rowMeans(tmt.6H.GOIs[,c("X6Hybrid.B73.r1","X6Hybrid.Mo17.r1")])
 tmt.6H.GOIs$MP2 <- rowMeans(tmt.6H.GOIs[,c("X6Hybrid.B73.r2","X6Hybrid.Mo17.r2")])
 tmt.6H.GOIs$MP3 <- rowMeans(tmt.6H.GOIs[,c("X6Hybrid.B73.r3","X6Hybrid.Mo17.r3")])
-tmt.6H.GOIs$ttest <- ttestFun(tmt.6H.GOIs, 74:76, c(14,24,34))
+tmt.6H.GOIs$ttest <- ttestFun(tmt.6H.GOIs, c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3"), c("MP1", "MP2", "MP3"))
 tmt.6H.GOIs$l10.ttest <- -(log10(tmt.6H.GOIs$ttest))
 tmt.6H.GOIs$Category <- "Other"
 tmt.6H.GOIs$Order <- 1
@@ -2623,24 +2755,64 @@ tmt.6H.GOIs <- tmt.6H.GOIs[(order(tmt.6H.GOIs$Order)),]
 tmt.6H.GOIs$Category <- factor(tmt.6H.GOIs$Category, levels = c("Other", "Plastid", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
 #Scatterplot - tmt
 tmt.6H.GOIs.vol <- ggplot(tmt.6H.GOIs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=3)+
+    geom_point(aes(color=Category), size=1)+
   scale_color_manual(values=colors.p, name="Category")+
   scale_shape_manual(values=c(1,19,19,19,19,19))+
     theme_classic()+
-          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          ggtitle("B")+
+          geom_hline(yintercept=1.30103, linetype="dashed",  color = "gray50")+
           geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-          theme(axis.text=element_text(size=15), legend.text=element_text(size=15),axis.title = element_text(size=15),
-                legend.position="bottom", legend.title = element_blank(), plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
           guides(col=guide_legend(nrow=2))+
     xlab("log2 BxM/MP")+
     ylab("-log10(p-value)")+
     theme(aspect.ratio=1)+
     coord_fixed(expand = F)
-tmt.6H.GOIs.vol.legend <- get_legend(tmt.6H.GOIs.vol)
-tmt.6H.GOIs.vol <- tmt.6H.GOIs.vol+ theme(legend.position = "none")
-ggsave(plot = tmt.6H.GOIs.vol, filename = "tmt.6H.GOIs.vol.png", height=4, width=4)
 ```
-
+```{r}
+###Set GOIs
+tmt.RIL.GOIs <- tmt.RIL
+tmt.RIL.GOIs$l2.B73xMo17.MP[tmt.RIL.GOIs$l2.B73xMo17.MP <= -1] <- -1
+tmt.RIL.GOIs$l2.B73xMo17.MP[tmt.RIL.GOIs$l2.B73xMo17.MP >= 1] <- 1
+tmt.RIL.GOIs$MP1 <- rowMeans(tmt.RIL.GOIs[,c("B73.1","Mo17.1")])
+tmt.RIL.GOIs$MP2 <- rowMeans(tmt.RIL.GOIs[,c("B73.3","Mo17.3")])
+tmt.RIL.GOIs$MP3 <- rowMeans(tmt.RIL.GOIs[,c("B73.4","Mo17.4")])
+tmt.RIL.GOIs$ttest <- ttestFun(tmt.RIL.GOIs, c("BM.1", "BM.2", "BM.3", "BM.4"), c("MP1", "MP2", "MP3"))
+tmt.RIL.GOIs$l10.ttest <- -(log10(tmt.RIL.GOIs$ttest))
+tmt.RIL.GOIs$Category <- "Other"
+tmt.RIL.GOIs$Order <- 1
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$plastid),"Category"] <- "Plastid"
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$plastid),"Order"] <- 2
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhANGs),"Order"] <- 3
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PhAPGs),"Order"] <- 4
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$NE.PtRibo),"Order"] <- 5
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+tmt.RIL.GOIs[(tmt.RIL.GOIs$Gene %in% GOIs$PE.ribo),"Order"] <- 6
+###Re-order
+tmt.RIL.GOIs <- tmt.RIL.GOIs[(order(tmt.RIL.GOIs$Order)),]
+###factor
+tmt.RIL.GOIs$Category <- factor(tmt.RIL.GOIs$Category, levels = c("Other", "Plastid", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
+#Scatterplot - tmt
+tmt.RIL.GOIs.vol <- ggplot(tmt.RIL.GOIs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19))+
+    theme_classic()+
+          ggtitle("C")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+```
 ```{r}
 ###Set GOIs
 tmt.DN.GOIs <- tmt.DN
@@ -2649,7 +2821,7 @@ tmt.DN.GOIs$l2.B73xMo17.MP[tmt.DN.GOIs$l2.B73xMo17.MP >= 1] <- 1
 tmt.DN.GOIs$MP1 <- rowMeans(tmt.DN.GOIs[,c("Day.B73.r1","Day.Mo17.r1")])
 tmt.DN.GOIs$MP2 <- rowMeans(tmt.DN.GOIs[,c("Day.B73.r2","Day.Mo17.r2")])
 tmt.DN.GOIs$MP3 <- rowMeans(tmt.DN.GOIs[,c("Day.B73.r3","Day.Mo17.r3")])
-tmt.DN.GOIs$ttest <- ttestFun(tmt.DN.GOIs, 27:29, 16:18)
+tmt.DN.GOIs$ttest <- ttestFun(tmt.DN.GOIs, c("Day.BM.r1", "Day.BM.r2", "Day.BM.r3"), c("MP1", "MP2", "MP3"))
 tmt.DN.GOIs$l10.ttest <- -(log10(tmt.DN.GOIs$ttest))
 tmt.DN.GOIs$Category <- "Other"
 tmt.DN.GOIs$Order <- 1
@@ -2669,14 +2841,15 @@ tmt.DN.GOIs <- tmt.DN.GOIs[(order(tmt.DN.GOIs$Order)),]
 tmt.DN.GOIs$Category <- factor(tmt.DN.GOIs$Category, levels = c("Other", "Plastid", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
 #Scatterplot - tmt
 tmt.DN.GOIs.vol <- ggplot(tmt.DN.GOIs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=3)+
+    geom_point(aes(color=Category), size=1)+
   scale_color_manual(values=colors.p, name="Category")+
   scale_shape_manual(values=c(1,19,19,19,19,19))+
     theme_classic()+
+          ggtitle("D")+
           geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
           geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-          theme(axis.text=element_text(size=15), legend.text=element_text(size=15), axis.title = element_text(size=15),
-                legend.position="bottom", legend.title = element_blank(),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
           guides(col=guide_legend(nrow=2))+
     xlab("log2 BxM/MP")+
     ylab("-log10(p-value)")+
@@ -2684,8 +2857,14 @@ tmt.DN.GOIs.vol <- ggplot(tmt.DN.GOIs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest
     coord_fixed(expand = F)
 tmt.DN.GOIs.vol.legend <- get_legend(tmt.DN.GOIs.vol)
 tmt.DN.GOIs.vol <- tmt.DN.GOIs.vol+ theme(legend.position = "none")
-ggsave(plot=tmt.DN.GOIs.vol.legend, "tmt.DN.GOIs.vol.legend.png")
-ggsave(plot = tmt.DN.GOIs.vol, filename = "tmt.DN.GOIs.vol.png", height=4, width=4)
+```
+```{r}
+ des <- "AB
+         CD
+         EE"
+  r<-patchwork::wrap_plots(A=tmt.SL.GOIs.vol, B=tmt.6H.GOIs.vol, C=tmt.RIL.GOIs.vol, D=tmt.DN.GOIs.vol, E=tmt.DN.GOIs.vol.legend, nrow = 3, heights = c(3,3,1.2), design = des)
+  ggsave(plot=r, filename =paste0(PathToPlots, "tmt.BxM.SL.plastid.all4.vol.pdf"),
+          dpi=300, width=4.75, height=5)
 ```
 
 
@@ -3583,10 +3762,6 @@ p <- ggplot(cpm.cor, aes(x = Cor.HtoMP, y = Cor.PtoP, color=GOI))+
       q <- insert_yaxis_grob(q, densityplotY, grid::unit(0.275, "null"), position = "right")
 ggsave(plot=q, filename = paste0(PathToPlots,"cpm.6H.cor.png"))
 ```
-```{r}
-colnames(tmt.RIL)
-```
-
 #Figure tmt.6H.RIL.cor
 ```{r setup dataframe tmt.6H.RIL.cor}
 #Protein correlations
