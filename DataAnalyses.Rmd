@@ -888,6 +888,11 @@ ACS <- CornCycEtBio$Gene.Accession[(CornCycEtBio$Enzymatic.activity=="1-aminocyc
 ACO <- CornCycEtBio$Gene.Accession[(CornCycEtBio$Enzymatic.activity=="1-aminocyclopropane-1-carboxylate oxidase")]
 EtBio <- c(MAT,ACS,ACO)
 ```
+```{r acs}
+acs2 <- "Zm00001d002592"
+acs6 <- "Zm00001d033862"
+acs7 <- "Zm00001d026060"
+```
 
 
 
@@ -895,12 +900,11 @@ EtBio <- c(MAT,ACS,ACO)
 
 ##GOI list
 ```{r GOIs list}
-GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio, MAT, ACS, ACO)
-names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio", "MAT", "ACS", "ACO")
+GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio, MAT, ACS, ACO, acs2, acs6, acs7)
+names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio", "MAT", "ACS", "ACO", "acs2", "acs6", "acs7")
 saveRDS(GOIs, "GOIs")
 GOIs <- readRDS("GOIs")
 ```
-
 
 
 #Plant Height data
@@ -986,6 +990,8 @@ colors.v <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
  "#920000","#924900","#db6d00","#24ff24","#ffff6d")
 
 colors.e <- c("Other"="black","Methionine adenosyltransferase"="#24ff24", "ACC synthase"="#ff6db6", "ACC oxidase"="#920000")
+
+colors.ea <- c("Other"="grey", "Ethylene biosynthesis"="black", "acs2"="#24ff24", "acs6"="#ff6db6", "acs7"="#b66dff")
 
 colors.pe <- c("Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
 
@@ -2260,7 +2266,7 @@ tmt.SL.lims.etbio$Category <- factor(tmt.SL.lims.etbio$Category, levels = c("Oth
 ```
 ```{r setup dataframe cpm.SL.EtBio}
 ###Set limits
-cpm.SL.lims <- cpm.SL.protein
+cpm.SL.lims <- cpm.SL
 cpm.SL.lims$l2.B73xMo17.MP[cpm.SL.lims$l2.B73xMo17.MP <= -2] <- -2
 cpm.SL.lims$l2.B73xMo17.MP[cpm.SL.lims$l2.B73xMo17.MP >= 2] <- 2
 cpm.SL.lims$l2.B73.Mo17[cpm.SL.lims$l2.B73.Mo17 <= -2] <- -2
@@ -2682,6 +2688,103 @@ tmt.DN.etbio.vol <- tmt.DN.etbio.vol+theme(legend.position = "none")
 ```
 
 
+#Figure tmt.cpm.SL.acs.vol
+
+
+```{r setup dataframe tmt.SL.acs}
+###Set GOIs
+tmt.SL.acs <- tmt.SL
+tmt.SL.acs$l2.B73xMo17.MP[tmt.SL.acs$l2.B73xMo17.MP <= -1] <- -1
+tmt.SL.acs$l2.B73xMo17.MP[tmt.SL.acs$l2.B73xMo17.MP >= 1] <- 1
+tmt.SL.acs$MP1 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
+tmt.SL.acs$MP2 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
+tmt.SL.acs$MP3 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
+tmt.SL.acs$ttest <- ttestFun(tmt.SL.acs, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
+tmt.SL.acs$l10.ttest <- -(log10(tmt.SL.acs$ttest))
+tmt.SL.acs$Category <- "Other"
+tmt.SL.acs$Order <- 1
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$EtBio),"Category"] <- "Ethylene biosynthesis"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$EtBio),"Order"] <- 2
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "acs2"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 3
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs6),"Category"] <- "acs6"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs6),"Order"] <- 4
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs7),"Category"] <- "acs7"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs7),"Order"] <- 5
+###Re-order
+tmt.SL.acs <- tmt.SL.acs[(order(tmt.SL.acs$Order)),]
+###factor
+tmt.SL.acs$Category <- factor(tmt.SL.acs$Category, levels = c("Other", "Ethylene biosynthesis", "acs2", "acs6", "acs7"))
+```
+```{r setup dataframe cpm.SL.acs}
+###Set GOIs
+cpm.SL.acs <- cpm.SL
+cpm.SL.acs$l2.B73xMo17.MP[cpm.SL.acs$l2.B73xMo17.MP <= -2.5] <- -2.5
+cpm.SL.acs$l2.B73xMo17.MP[cpm.SL.acs$l2.B73xMo17.MP >= 2.5] <- 2.5
+cpm.SL.acs$MP1 <- rowMeans(cpm.SL.acs[,c("B73.1","Mo17.1")])
+cpm.SL.acs$MP2 <- rowMeans(cpm.SL.acs[,c("B73.2","Mo17.2")])
+cpm.SL.acs$MP3 <- rowMeans(cpm.SL.acs[,c("B73.3","Mo17.3")])
+cpm.SL.acs$ttest <- ttestFun(cpm.SL.acs, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("MP1", "MP2", "MP3"))
+cpm.SL.acs$l10.ttest <- -(log10(cpm.SL.acs$ttest))
+cpm.SL.acs$Category <- "Other"
+cpm.SL.acs$Order <- 1
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$EtBio),"Category"] <- "Ethylene biosynthesis"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$EtBio),"Order"] <- 2
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "acs2"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 3
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs6),"Category"] <- "acs6"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs6),"Order"] <- 4
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs7),"Category"] <- "acs7"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs7),"Order"] <- 5
+###Re-order
+cpm.SL.acs <- cpm.SL.acs[(order(cpm.SL.acs$Order)),]
+###factor
+cpm.SL.acs$Category <- factor(cpm.SL.acs$Category, levels = c("Other", "Ethylene biosynthesis", "acs2", "acs6", "acs7"))
+```
+```{r plot tmt.cpm.SL.acs}
+#Scatterplot - tmt
+tmt.SL.acs.vol <- ggplot(tmt.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.ea, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+      
+#volterplot - cpm
+cpm.SL.acs.vol <- ggplot(cpm.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.ea, name="Category")+
+  scale_shape_manual(values=c(1,19,19,19))+
+    theme_classic()+
+          ggtitle("B")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+cpm.SL.acs.vol.legend <- get_legend(cpm.SL.acs.vol)
+cpm.SL.acs.vol <- cpm.SL.acs.vol+theme(legend.position = "none")
+```
+```{r}
+design <- "AB
+           CC"
+plotpanel<-patchwork::wrap_plots(A=tmt.SL.acs.vol, B=cpm.SL.acs.vol, C=cpm.SL.acs.vol.legend,  nrow = 2, heights = c(3,1.2), design = design)
+ggsave(plot=plotpanel, filename =paste0(PathToPlots, "tmt.cpm.SL.acs.vol.pdf"), dpi=300, width=4.75, height=3)
+```
+
 #Figure tmt.BxM.SL.plastid.all4.vol
 
 ```{r}
@@ -2866,6 +2969,7 @@ tmt.DN.GOIs.vol <- tmt.DN.GOIs.vol+ theme(legend.position = "none")
   ggsave(plot=r, filename =paste0(PathToPlots, "tmt.BxM.SL.plastid.all4.vol.pdf"),
           dpi=300, width=4.75, height=5)
 ```
+
 
 
 
