@@ -538,258 +538,57 @@ Entrez <- rbind(Entrez, organelleEntrez)
 #Plastid-encoded proteins
 PE<-tmt[grep("ZemaCp", tmt$Accession),]
 #define list of plastid-encoded photosynthesis-associated genes
-PE.PS <- PE$Gene[grep("psb|psa|ndh|rbc|pet|atp|ccs|cem", PE$Protein)]
-PE.PS.PSI <- PE$Gene[grep("psa", PE$Protein)]
-PE.PS.PSII <- PE$Gene[grep("psb", PE$Protein)]
-PE.PS.NADH <- PE$Gene[grep("ndh", PE$Protein)]
-PE.PS.b6f <- PE$Gene[grep("pet", PE$Protein)]
-PE.PS.ATP <- PE$Gene[grep("atp", PE$Protein)]
-PE.PS.rubisco <- PE$Gene[grep("rbc", PE$Protein)]
-PhAPGs <- c(PE.PS.PSI,PE.PS.PSII,PE.PS.NADH,PE.PS.b6f,PE.PS.ATP,PE.PS.rubisco)
-#Plastid encoded ribosomal proteins (EnsemblPlants Annotation)
-#get subset of PE encoded genes annotated as ribosomal proteins
+PEI <- PE$Gene[grep("psa", PE$Protein)]
+PEII <- PE$Gene[grep("psb", PE$Protein)]
+PE.NADH <- PE$Gene[grep("ndh", PE$Protein)]
+PE.b6f <- PE$Gene[grep("pet", PE$Protein)]
+PE.ATP <- PE$Gene[grep("atp", PE$Protein)]
+PE.rubisco <- PE$Gene[grep("rbc", PE$Protein)]
+PhAPGs <- c(PEI,PEII,PE.NADH,PE.b6f,PE.ATP,PE.rubisco)
+#Plastid encoded ribosomal proteins (NCBI Annotation)
+##get subset of PE encoded genes annotated as ribosomal proteins
 PE.ribo <- PE$Gene[grep("rps|rpl", PE$Protein)]
-#Plastid encoded RNA polymerases (EnsemblPlants Annotation)
-PE.rpo <- PE$Gene[grep("rpo", PE$Protein)]
-#Define "other" as everything left
-PE.other <- PE$Gene[!(PE$Gene%in%c(PE.PS.rubisco, PhAPGs, PE.ribo, PE.rpo))]
-PE <- PE$Gene
 ```
 
 ##PhANGs
 ###KEGG - zma00195
-```{r zma00195 tibble}
+```{r}
 #Retrieved from KEGG on 02/26/2020
-KEGG.zma00195.tib <-tibble::tribble(
-              ~V1,                                                                                    ~V2,
-          845199L,                            "psbA; photosystem II protein D1 [KO:K02703] [EC:1.10.3.9]",
-          845200L,                                      "psbB; photosystem II 47 kDa protein [KO:K02704]",
-          845201L,                                      "psbC; photosystem II 44 kDa protein [KO:K02705]",
-          845202L,                            "psbD; photosystem II protein D2 [KO:K02706] [EC:1.10.3.9]",
-          845203L,                                           "psbE; photosystem II protein V [KO:K02707]",
-          845204L,                                          "psbF; photosystem II protein VI [KO:K02708]",
-          845205L,                                           "psbH; photosystem II protein H [KO:K02709]",
-          845206L,                                           "psbI; photosystem II protein I [KO:K02710]",
-          845207L,                                           "psbJ; photosystem II protein J [KO:K02711]",
-          845208L,                                           "psbK; photosystem II protein K [KO:K02712]",
-          845209L,                                           "psbL; photosystem II protein L [KO:K02713]",
-          845210L,                                           "psbM; photosystem II protein M [KO:K02714]",
-       100191684L,                                     "uncharacterized protein LOC100191684 [KO:K02716]",
-       100272890L,                                             "uncharacterized LOC100272890 [KO:K02716]",
-       100281199L,    "chloroplast oxygen-evolving complex/thylakoid lumenal 25.6kDa protein [KO:K02717]",
-       107648855L,                                     "uncharacterized protein LOC107648855 [KO:K02717]",
-       100273117L,                        "oxygen-evolving enhancer protein 2, chloroplastic [KO:K02717]",
-          542279L,               "PSBQ1; oxygen-evolving enhancer protein 3-1, chloroplastic [KO:K08901]",
-       100273120L,                    "oxygen evolving enhancer protein 3 containing protein [KO:K08901]",
-       103647735L,                 "oxygen-evolving enhancer protein 3-1, chloroplastic-like [KO:K08901]",
-       103627333L,          "photosynthetic NDH subunit of lumenal location 2, chloroplastic [KO:K08901]",
-       103653672L,          "photosynthetic NDH subunit of lumenal location 2, chloroplastic [KO:K08901]",
-       100281646L,                         "photosystem II 10 kDa polypeptide, chloroplastic [KO:K03541]",
-          542126L,                                      "psbs1; photosystem II subunit PsbS1 [KO:K03542]",
-         1466364L,                                           "psbT; photosystem II protein T [KO:K02718]",
-       100283816L,                          "pco070877; uncharacterized protein LOC100283816 [KO:K02721]",
-       100283835L,                           "cl5838_2; uncharacterized protein LOC100283835 [KO:K02721]",
-       100280994L,                                "photosystem II core complex proteins psbY [KO:K02723]",
-       100281349L,                                "photosystem II core complex proteins psbY [KO:K02723]",
-         1466358L,                                           "psbZ; photosystem II protein Z [KO:K02724]",
-       100282043L,                                             "photosystem II 11 kD protein [KO:K08902]",
-       100281235L,                                             "photosystem II 11 kD protein [KO:K08902]",
-       103636309L,         "photosystem II reaction center PSB28 protein, chloroplastic-like [KO:K08903]",
-       100284876L,                                 "photosystem II reaction center W protein [KO:K08903]",
-       103650780L,              "photosystem II reaction center PSB28 protein, chloroplastic [KO:K08903]",
-       109945128L,              "photosystem II reaction center PSB28 protein, chloroplastic [KO:K08903]",
-       103650783L,              "photosystem II reaction center PSB28 protein, chloroplastic [KO:K08903]",
-          845195L,                     "psaA; photosystem I P700 chlorophyll a apoprotein A1 [KO:K02689]",
-          845196L,                     "psaB; photosystem I P700 chlorophyll a apoprotein A2 [KO:K02690]",
-         1466379L,                                          "psaC; photosystem I subunit VII [KO:K02691]",
-       100191984L,                                 "photosystem I reaction center subunit II [KO:K02692]",
-          541791L,                  "photosystem I reaction center subunit II, chloroplastic [KO:K02692]",
-       100283327L,                               "photosystem I reaction center subunit IV A [KO:K02693]",
-       100283085L,                                     "uncharacterized protein LOC100283085 [KO:K02693]",
-       100282027L,                                "photosystem I reaction center subunit III [KO:K02694]",
-       103625835L,                 "photosystem I reaction center subunit III, chloroplastic [KO:K02694]",
-       100285458L,                                  "photosystem I reaction center subunit V [KO:K08905]",
-       100284847L,                                  "photosystem I reaction center subunit V [KO:K08905]",
-          541685L, "psah1; photosystem I reaction center subunit VI, chloroplastic precursor [KO:K02695]",
-          845197L,                                         "psaI; photosystem I subunit VIII [KO:K02696]",
-          845198L,                                           "psaJ; photosystem I subunit IX [KO:K02697]",
-       100286020L,                                    "psa6; photosystem I reaction center 6 [KO:K02698]",
-       100281679L,                                 "photosystem I reaction center subunit XI [KO:K02699]",
-       100383080L,                            "umc1974; uncharacterized protein LOC100383080 [KO:K02699]",
-          542605L,                   "photosystem I reaction center subunit N, chloroplastic [KO:K02701]",
-       103640891L,              "photosystem I reaction center subunit N, chloroplastic-like [KO:K02701]",
-       100283848L,                          "pco139896; uncharacterized protein LOC100283848 [KO:K14332]",
-          845191L,                                                       "petA; cytochrome f [KO:K02634]",
-       103643185L,                                     "uncharacterized protein LOC103643185 [KO:K02634]",
-          845192L,                                                      "petB; cytochrome b6 [KO:K02635]",
-       100273354L,                                 "ris2; iron-sulfur protein 2 [KO:K02636] [EC:7.1.1.6]",
-       100273026L,                 "cytochrome b6-f complex iron-sulfur subunit [KO:K02636] [EC:7.1.1.6]",
-          845193L,                                 "petD; cytochrome b6/f complex subunit IV [KO:K02637]",
-          845194L,                                  "petG; cytochrome b6/f complex subunit V [KO:K02640]",
-         1466360L,                               "petN; cytochrome b6/f complex subunit VIII [KO:K03689]",
-       100192779L,                                     "uncharacterized protein LOC100192779 [KO:K02638]",
-       103629356L,                                              "plastocyanin, chloroplastic [KO:K02638]",
-       100191704L,                                     "uncharacterized protein LOC100191704 [KO:K02639]",
-       103628935L,                                        "fdx5; ferredoxin-5, chloroplastic [KO:K02639]",
-          541619L,                                        "fdx2; ferredoxin-2, chloroplastic [KO:K02639]",
-       100283643L,                                                             "ferredoxin-3 [KO:K02639]",
-          541612L,                              "pco072676(750); ferredoxin-6, chloroplastic [KO:K02639]",
-       100382495L,                                      "putative ferredoxin-4 chloroplastic [KO:K02639]",
-       100281226L,                                                             "ferredoxin-6 [KO:K02639]",
-          542276L,                                        "fdx3; ferredoxin-3, chloroplastic [KO:K02639]",
-       100284745L,                                                               "ferredoxin [KO:K02639]",
-       101027099L,                                         "FDX1; adrenodoxin, mitochondrial [KO:K02639]",
-       103653165L,                                                               "ferredoxin [KO:K02639]",
-          541626L,                                        "L-FNRII; ferredoxin [KO:K02641] [EC:1.18.1.2]",
-       100194249L,               "IDP808; uncharacterized protein LOC100194249 [KO:K02641] [EC:1.18.1.2]",
-          542713L,                          "fnr1; ferredoxin NADP reductase 1 [KO:K02641] [EC:1.18.1.2]",
-       100282643L,                   "ferredoxin--NADP reductase, leaf isozyme [KO:K02641] [EC:1.18.1.2]",
-          542558L,                                         "L-FNRI; ferredoxin [KO:K02641] [EC:1.18.1.2]",
-       103644035L,  "ferredoxin--NADP reductase, leaf isozyme 1, chloroplastic [KO:K02641] [EC:1.18.1.2]",
-       100382419L,                                                            "cytochrome c6 [KO:K08906]",
-          845171L,                                   "atpE; ATP synthase CF1 epsilon subunit [KO:K02114]",
-          845170L,                 "atpB; ATP synthase CF1 beta subunit [KO:K02112] [EC:7.1.2.2 7.2.2.1]",
-       100284505L,        "csu309(atpc); ATP synthase subunit gamma, chloroplastic precursor [KO:K02115]",
-       103637166L,                                "ATP synthase subunit gamma, chloroplastic [KO:K02115]",
-       103655982L,                           "ATP synthase subunit gamma, chloroplastic-like [KO:K02115]",
-       103649250L,                           "ATP synthase subunit gamma, chloroplastic-like [KO:K02115]",
-          845169L,                "atpA; ATP synthase CF1 alpha subunit [KO:K02111] [EC:7.1.2.2 7.2.2.1]",
-       100281924L,                                                 "ATP synthase delta chain [KO:K02113]",
-       103627748L,                                  "ATP synthase delta chain, chloroplastic [KO:K02113]",
-       100282566L,                         "pco080036b; uncharacterized protein LOC100282566 [KO:K02109]",
-          845172L,                                         "atpF; ATP synthase CF0 B subunit [KO:K02109]",
-          845173L,                                         "atpH; ATP synthase CF0 C subunit [KO:K02110]",
-          845174L,                                         "atpI; ATP synthase CF0 A subunit [KO:K02108]"
-       )
-
-#rename columns
-colnames(KEGG.zma00195.tib) <- c("Entrez", "Description")
-KEGG.zma00195.tib$Entrez <- as.character(KEGG.zma00195.tib$Entrez)
+KEGG.zma00195 <- read.csv(paste0(PathToData, "KEGG.zma00195.csv"), stringsAsFactors = F)
+#Trim to digenomic proteins (excludes ferredoxins)
+KEGG.zma00195.digenomic <- KEGG.zma00195[c(1:65,86:98),]
+#Get v4 accessions
+KEGG.zma00195.digenomic <- join(KEGG.zma00195.digenomic, Entrez)
 ```
-```{r zma00195 digenomic proteins}
-KEGG.zma00195.tib.digenomic <- KEGG.zma00195.tib[c(1:65,86:98),]
-KEGG.zma00195.tib.digenomic <- join(KEGG.zma00195.tib.digenomic, Entrez)
-```
-
-
-
-
-
-
-
 ###KEGG - zma00196
 ```{r zma00196 tibble}
 #Retrieved from KEGG on 02/26/2020
-KEGG.zma00196.tib <- tibble::tribble(
-                   ~V1,                                                                              ~V2,
-            100281791L,                                 "chlorophyll a-b binding protein 6A [KO:K08907]",
-            100283212L,                                 "chlorophyll a-b binding protein 6A [KO:K08907]",
-            100273427L,      "Photosystem I chlorophyll a/b-binding protein 6 chloroplastic [KO:K08908]",
-            100191715L,                                    "chlorophyll a-b binding protein [KO:K08908]",
-            100282512L,                                    "chlorophyll a-b binding protein [KO:K08908]",
-            100282214L,                                  "chlorophyll a-b binding protein 8 [KO:K08909]",
-            100284001L,                       "gpm571; uncharacterized protein LOC100284001 [KO:K08910]",
-            100280410L,                               "uncharacterized protein LOC100280410 [KO:K08910]",
-            100281795L,                "csu1028(lhcb); uncharacterized protein LOC100281795 [KO:K08911]",
-            100281248L,         "chlorophyll a-b binding protein 1, chloroplastic precursor [KO:K08912]",
-            100193833L,              "lhcb7; chlorophyll a-b binding protein, chloroplastic [KO:K08912]",
-            100282054L,                                  "chlorophyll a-b binding protein 2 [KO:K08912]",
-               542530L, "lhcb3; chlorophyll a-b binding protein M9, chloroplastic precursor [KO:K08912]",
-            100274453L,                  "light harvesting chlorophyll a/b binding protein1 [KO:K08912]",
-            103651575L,                  "chlorophyll a-b binding protein 48, chloroplastic [KO:K08912]",
-            103651577L,                    "chlorophyll a-b binding protein of LHCII type 1 [KO:K08912]",
-            103651578L,                    "chlorophyll a-b binding protein of LHCII type 1 [KO:K08912]",
-            100281879L,                                    "chlorophyll a-b binding protein [KO:K08913]",
-            103643653L,                     "chlorophyll a-b binding protein, chloroplastic [KO:K08913]",
-            100284154L,                  "chlorophyll a-b binding protein of LHCII type III [KO:K08914]",
-            100216729L,                               "uncharacterized protein LOC100216729 [KO:K08915]",
-               542478L,                                    "psb29; photosystem II subunit29 [KO:K08915]",
-               542320L,         "Lhcb5-2; chlorophyll a/b-binding apoprotein CP26 precursor [KO:K08916]",
-               542716L,          "lhcb5; light harvesting chlorophyll a/b binding protein 5 [KO:K08916]",
-            100273752L,                               "uncharacterized protein LOC100273752 [KO:K08917]",
-               542321L,          "lhcb6; light harvesting chlorophyll a/b binding protein 6 [KO:K08917]",
-            109944964L,            "chlorophyll a-b binding protein CP24 10B, chloroplastic [KO:K08917]",
-            113561367L,                               "chlorophyll a-b binding protein CP24 [KO:K08917]",
-            100274085L,                  "si486069e02; uncharacterized protein LOC100274085 [KO:K14172]"
-            )
-
-#rename columns
-colnames(KEGG.zma00196.tib) <- c("Entrez", "Description")
-KEGG.zma00196.tib$Entrez <- as.character(KEGG.zma00196.tib$Entrez)
+KEGG.zma00196 <- read.csv(paste0(PathToData, "KEGG.zma00196.csv"), stringsAsFactors = F)
+#Get v4 accessions
+KEGG.zma00196 <- join(KEGG.zma00196, Entrez)
 ```
-```{r zma00196 digenomic}
-KEGG.zma00196.tib.digenomic <- join(KEGG.zma00196.tib, Entrez)
-```
-
 
 ###CornCyc - Light Reactions
 ```{r CornCycLightRxns}
 #Retrieved from CornCyc on 02/26/2020
-CornCycLightRxns <- tibble::tribble(
-                          ~Gene.ID,  ~Gene.Accession,       ~Gene.name,                               ~Reaction.id, ~Reaction.EC,                   ~Enzymatic.activity, ~Evidence,
-                       "GDQC-8387", "Zm00001d010715", "Zm00001d010715",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-8546", "Zm00001d020002", "Zm00001d020002",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-8747", "Zm00001d000417", "Zm00001d000417",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-9170", "Zm00001d039715", "Zm00001d039715",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-9254", "Zm00001d011362", "Zm00001d011362",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-9445", "Zm00001d008681", "Zm00001d008681",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-9899", "Zm00001d043167", "Zm00001d043167",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-10138", "Zm00001d008625", "Zm00001d008625",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-10311", "Zm00001d041824", "Zm00001d041824",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-10950", "Zm00001d022464", "Zm00001d022464",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-11782", "Zm00001d044217", "Zm00001d044217",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-11860", "Zm00001d030638", "Zm00001d030638",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-11887",  "GRMZM5G808939",  "GRMZM5G808939",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-11985", "Zm00001d043299", "Zm00001d043299",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-11996", "Zm00001d034153", "Zm00001d034153",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-12078", "Zm00001d000260", "Zm00001d000260",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-13214", "Zm00001d031484", "Zm00001d031484",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                      "GDQC-14006", "Zm00001d039852", "Zm00001d039852",                                 "PSII-RXN",   "1.10.3.9",                      "photosystem II", "EV-COMP",
-                       "GDQC-8316", "Zm00001d016134", "Zm00001d016134", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
-                       "GDQC-9168", "Zm00001d018162", "Zm00001d018162", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
-                      "GDQC-11523", "Zm00001d053432", "Zm00001d053432", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
-                      "GDQC-13682",  "GRMZM5G800780",  "GRMZM5G800780", "PLASTOQUINOL--PLASTOCYANIN-REDUCTASE-RXN",   "1.10.9.1", "plastoquinol-plastocyanin reductase", "EV-COMP",
-                       "GDQC-8046", "Zm00001d003767", "Zm00001d003767",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
-                       "GDQC-8673", "Zm00001d034283", "Zm00001d034283",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
-                       "GDQC-9216",  "GRMZM5G815553",  "GRMZM5G815553",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
-                      "GDQC-10703", "Zm00001d013146", "Zm00001d013146",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
-                      "GDQC-12161", "Zm00001d000272", "Zm00001d000272",                                "RXN-15479",  "1.97.1.12",                       "photosystem I", "EV-COMP",
-                       "GDQC-7635", "Zm00001d011833", "Zm00001d011833",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                       "GDQC-7812", "Zm00001d023296", "Zm00001d023296",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                       "GDQC-8192", "Zm00001d045575", "Zm00001d045575",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                       "GDQC-8377", "Zm00001d051680", "Zm00001d051680",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                       "GDQC-8916", "Zm00001d048452", "Zm00001d048452",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-10511", "Zm00001d005458", "Zm00001d005458",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-10877", "Zm00001d018794", "Zm00001d018794",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-10917", "Zm00001d034099", "Zm00001d034099",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-11276", "Zm00001d042049", "Zm00001d042049",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-11941", "Zm00001d039519", "Zm00001d039519",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-11960", "Zm00001d034345", "Zm00001d034345",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-12126", "Zm00001d051407", "Zm00001d051407",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-12735", "Zm00001d045574", "Zm00001d045574",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-13931", "Zm00001d036041", "Zm00001d036041",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP",
-                      "GDQC-14028", "Zm00001d037231", "Zm00001d037231",                             "1.18.1.2-RXN",   "1.18.1.2",           "ferredoxin NADP reductase", "EV-COMP"
-                      )
-
-```
-```{r CornCycLightRxns digenomic}
+CornCycLightRxns <- read.csv(paste0(PathToData, "CornCycLightRxns.csv"), stringsAsFactors = F)
+#Trim to digenomic proteins
 CornCycLightRxns.digenomic <- CornCycLightRxns[CornCycLightRxns$Reaction.EC=="1.97.1.12"|CornCycLightRxns$Reaction.EC=="1.10.3.9",]
 ```
 
-
-
-
 ###NE Rubisco
 ```{r NE.Rubisco}
+#Defined by MaizeGDB
 NE.Rubisco <- c("Zm00001d052595", "Zm00001d004894")
 ```
 
 ###Combine groups
 ```{r PhANGs}
-Ph <- unique(na.omit(c(KEGG.zma00195.tib.digenomic$Accession, KEGG.zma00196.tib.digenomic$Accession, CornCycLightRxns.digenomic$Gene.Accession, NE.Rubisco)))
+PhA <- unique(na.omit(c(KEGG.zma00195.digenomic$Accession, KEGG.zma00196$Accession, CornCycLightRxns.digenomic$Gene.Accession, NE.Rubisco)))
 
-PhANGs <- Ph[grep("Zm", Ph)]
+PhANGs <- PhA[grep("Zm", PhA)]
 ```
+
 
 ##Plastid background
 ```{r plastid}
@@ -808,10 +607,9 @@ plastid <- unique(na.omit(c(friso.v4, Ph)))
 
 ##Nuclear-encoded plastid ribosome
 ```{r NE.PtRibo}
-#grep plastid ribosomal proteins
+#grep plastid ribosomal proteins from NCBI protein name column
 ribosom <- tmt[(grep("ribosom", tmt$Protein)),]
 ribosom.pt <- ribosom[(grep("30S|50S", ribosom$Protein)),]
-
 # Read in Maize GAMER GO dataset, which lists maize V4 accessions with all associated GO terms (Wimalanathan et al. 2018) downloaded from https://datacommons.cyverse.org/browse/iplant/home/shared/commons_repo/curated/Carolyn_Lawrence-Dill_maize-GAMER_maize.B73_RefGen_v4_Zm00001d.2_Oct_2017.r1/e.agg_data
 GAMER <- read.delim(paste0(PathToData, "maize.B73.AGPv4.aggregate.gaf"), sep = "\t", header = FALSE)
 colnames(GAMER) <- c("db", "db_object_id", "db_object_symbol", "qualifier", "term_accession", "db_reference", "evidence_code", "with", "aspect", "db_object_name", "db_object_synonym", "db_object_type", "taxon", "date", "assigned_by", "annotation_extension", "gene_product_form_id")
@@ -827,7 +625,7 @@ ribosom.pt <- distinct(ribosom.pt)
 ribosom.pt <- unite(ribosom.pt, "GOterm", GOterm1:GOterm9, sep = " // ")
 ribosom.pt$GOterm <- gsub(ribosom.pt$GOterm, pattern = " // NA", replacement = "")
 ribosom.pt <- distinct(ribosom.pt)
-
+#Define NE plastid ribosomal proteins as those having chloroplast or plastid cellular compartment GO terms
 NE.PtRibo <- ribosom.pt$Gene[grep("chloropl|plastid", ribosom.pt$GOterm)]
 ```
 
@@ -839,7 +637,7 @@ NE.PtRibo <- ribosom.pt$Gene[grep("chloropl|plastid", ribosom.pt$GOterm)]
 
 ##Cytosolic ribosome
 ```{r CytoRibo}
-#Cytosolic ribosomal proteins (EnsemblPlants Annotation)
+#Cytosolic ribosomal proteins (NCBI Annotation)
 CytoRibo<-tmt[(grep("40S|60S", tmt$Protein)),]
 #remove the mitochondrial and biogenesis proteins
 CytoRibo<- CytoRibo$Gene[-(grep("mito|Mito|biogen|Biogen", CytoRibo$Protein))]
@@ -847,45 +645,10 @@ CytoRibo<- CytoRibo$Gene[-(grep("mito|Mito|biogen|Biogen", CytoRibo$Protein))]
 ##Etyhlene Biosynthesis
 ```{r CornCycEtBio}
 #Retrieved from CornCyc on 05/11/2020
-CornCycEtBio <- tibble::tribble(
-                      ~Gene.ID,  ~Gene.Accession,       ~Gene.name,       ~Reaction.id, ~Reaction.EC,                          ~Enzymatic.activity, ~Evidence,
-                   "GDQC-8129", "Zm00001d024754", "Zm00001d024754", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
-                   "GDQC-9315", "Zm00001d009146", "Zm00001d009146", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
-                  "GDQC-10512", "Zm00001d008175", "Zm00001d008175", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
-                  "GDQC-11102", "Zm00001d010920", "Zm00001d010920", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
-                  "GDQC-14097", "Zm00001d018517", "Zm00001d018517", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
-                  "GDQC-14756", "Zm00001d040697", "Zm00001d040697", "S-ADENMETSYN-RXN",    "2.5.1.6",             "methionine adenosyltransferase", "EV-COMP",
-                   "GDQC-9936", "Zm00001d026060", "Zm00001d026060",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
-                  "GDQC-10643", "Zm00001d033862", "Zm00001d033862",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
-                  "GDQC-11104", "Zm00001d045479", "Zm00001d045479",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
-                  "GDQC-11257", "Zm00001d039487", "Zm00001d039487",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
-                  "GDQC-12498", "Zm00001d002592", "Zm00001d002592",     "4.4.1.14-RXN",   "4.4.1.14", "1-aminocyclopropane-1-carboxylate synthase", "EV-COMP",
-                   "GDQC-7692", "Zm00001d014572", "Zm00001d014572",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-7977", "Zm00001d024850", "Zm00001d024850",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-8083", "Zm00001d020686", "Zm00001d020686",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-8443", "Zm00001d042996", "Zm00001d042996",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-8648", "Zm00001d015860", "Zm00001d015860",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-9116", "Zm00001d011208", "Zm00001d011208",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-9304", "Zm00001d024853", "Zm00001d024853",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-9498", "Zm00001d024851", "Zm00001d024851",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-9503", "Zm00001d024843", "Zm00001d024843",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                   "GDQC-9749", "Zm00001d018211", "Zm00001d018211",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-11380", "Zm00001d004719", "Zm00001d004719",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-12095", "Zm00001d043503", "Zm00001d043503",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-12184", "Zm00001d024865", "Zm00001d024865",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13009", "Zm00001d005927", "Zm00001d005927",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13037", "Zm00001d024852", "Zm00001d024852",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13116", "Zm00001d000163", "Zm00001d000163",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13242", "Zm00001d052136", "Zm00001d052136",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13842", "Zm00001d048562", "Zm00001d048562",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13898", "Zm00001d046848", "Zm00001d046848",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-13947", "Zm00001d036955", "Zm00001d036955",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP",
-                  "GDQC-14537", "Zm00001d004718", "Zm00001d004718",        "ETHYL-RXN",  "1.14.17.4",  "1-aminocyclopropane-1-carboxylate oxidase", "EV-COMP"
-                  )
-
+CornCycEtBio <- read.csv(paste0(PathToData, "CornCycEtBio.csv"), stringsAsFactors = F)
 EtBio <- CornCycEtBio$Gene.Accession
 ```
-```{r acs}
+```{r acs2 and acs6}
 acs2 <- "Zm00001d002592"
 acs6 <- "Zm00001d033862"
 ```
@@ -3836,5 +3599,80 @@ ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor2, mapping=aes(y=Category, x=cor, fill=Category)
   scale_fill_manual(values=colors.pc)
 ggsave(filename =paste0(PathToPlots, "tmt.cpm.RIL.6H.Hyb2MP.cor2.pdf"), dpi=300, width=4.75, height=3.5)
 ```
+
+
+
+#Table1
+```{r setup dataframe tmt.cpm.RIL.6H.Hyb2MP.cor}
+#combine RIL and 6 hybrids Protein
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
+#convert Accession column to gene column
+tmt.RIL.6H.Hyb2MP$Gene <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 14)
+#run correlation function
+tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+#Set GOIs
+table1 <- tmt.RIL.6H.Hyb2MP.cor[,c(17,1,18)]
+colnames(table1) <- c("Gene", "Accession", "PearsonCor")
+table1$Category <- "Other"
+table1$Category[table1$Gene %in% GOIs$plastid] <- "Plastid"
+table1$Category[table1$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
+table1$Category[table1$Gene %in% GOIs$NE.PtRibo] <- "NE plastid ribosome"
+table1$Category[table1$Gene %in% GOIs$PhANGs] <- "PhANGs"
+table1$Category[table1$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
+table1$Category[table1$Gene %in% GOIs$CytoRibo] <- "Cytosolic ribosome"
+table1$Category[table1$Gene %in% GOIs$EtBio] <- "Ethylene biosynthesis"
+table1$Category[table1$Gene %in% GOIs$acs2] <- "acs2"
+table1$Category[table1$Gene %in% GOIs$acs6] <- "acs6"
+#Re-order
+table1 <- table1[(order(-table1$PearsonCor)),]
+```
+```{r}
+#Trim to top 1.5%
+table1 <- table1[1:(.015*nrow(table1)),]
+
+write.csv(table1, "Table1.csv", row.names = F)
+
+nrow(test[test$Gene %in% c(NE.PtRibo, PE.ribo),])
+nrow(test)
+```
+```{r}
+test <- table1[table1$Gene%in% c(PhANGs, PhAPGs),]
+median(test$PearsonCor)
+```
+```{r}
+test <- table2[table2$Gene%in% c(PhANGs, PhAPGs),]
+median(test$PearsonCor)
+```
+
+
+
+```{r}
+#combine RIL and 6 hybrids RNA
+cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+#run correlation function
+cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+#Set GOIs
+table2 <- cpm.RIL.6H.Hyb2MP.cor[,c(1, 17)]
+colnames(table2) <- c("Gene", "PearsonCor")
+table2$Category <- "Other"
+table2$Category[table2$Gene %in% GOIs$plastid] <- "Plastid"
+table2$Category[table2$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
+table2$Category[table2$Gene %in% GOIs$NE.PtRibo] <- "NE plastid ribosome"
+table2$Category[table2$Gene %in% GOIs$PhANGs] <- "PhANGs"
+table2$Category[table2$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
+table2$Category[table2$Gene %in% GOIs$CytoRibo] <- "Cytosolic ribosome"
+table2$Category[table2$Gene %in% GOIs$EtBio] <- "Ethylene biosynthesis"
+table2$Category[table2$Gene %in% GOIs$acs2] <- "acs2"
+table2$Category[table2$Gene %in% GOIs$acs6] <- "acs6"
+#Re-order
+table2 <- table2[(order(-table2$PearsonCor)),]
+```
+```{r}
+table2
+```
+
+
+
+
 
 
