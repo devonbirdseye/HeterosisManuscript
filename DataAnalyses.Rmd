@@ -251,14 +251,14 @@ tmt.acs$ACSavg <- rowMeans(tmt.acs[,c("B73.acs.acs.r1", "B73.acs.acs.r2", "B73.a
 tmt.acs$ACS.B73 <- tmt.acs$ACSavg/tmt.acs$B73avg
 #calculate log2
 tmt.acs$l2.ACS.B73 <- log2(tmt.acs$ACS.B73)
-#merge with BxM from original data (OG)
+#merge with BxM from original SL data (OG)
 tmt.acs.OG <- merge.data.frame(tmt.acs, tmt.SL[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
+#merge with BxM from original LB data
+tmt.acs.LB <- merge.data.frame(tmt.acs, tmt.LB[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
 #merge with BxM from 6-hybrid data (6H)
 tmt.acs.6H <- merge.data.frame(tmt.acs, tmt.6H[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
 #merge with BxM from RIL data (RIL)
 tmt.acs.RIL <- merge.data.frame(tmt.acs, tmt.RIL[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
-#merge with BxM from day vs. night data (DN)
-tmt.acs.DN <- merge.data.frame(tmt.acs, tmt.DN[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
 ```
 
 #Import RNA data
@@ -435,6 +435,53 @@ cpm.RIL$l2.M0317.Mo17 <- log2(cpm.RIL$M0317.Mo17)
 ##Remove genes that weren't detected as protein
 cpm.RIL.protein <- cpm.RIL
 cpm.RIL.protein <- cpm.RIL.protein[cpm.RIL.protein$Gene%in%tmt.RIL$Gene,]
+```
+
+#Plant Height data
+```{r PlantHeights.6H}
+#Read-in plant height data
+PlantHeights.6H <- read.csv(paste0(PathToData, "6HPlantHeights.csv"), stringsAsFactors = F)
+#calculate ratios
+PlantHeights.6H$B73xMo17.MP <- PlantHeights.6H$B73xMo17/rowMeans(PlantHeights.6H[,c("B73", "Mo17")])
+PlantHeights.6H$Mo17xB73.MP <- PlantHeights.6H$Mo17xB73/rowMeans(PlantHeights.6H[,c("B73", "Mo17")])
+PlantHeights.6H$B84xB73.MP <- PlantHeights.6H$B84xB73/rowMeans(PlantHeights.6H[,c("B84", "B73")])
+PlantHeights.6H$B84xMo17.MP <- PlantHeights.6H$B84xMo17/rowMeans(PlantHeights.6H[,c("B84", "Mo17")])
+PlantHeights.6H$A682xB73.MP <- PlantHeights.6H$A682xB73/rowMeans(PlantHeights.6H[,c("A682", "B73")])
+PlantHeights.6H$A682xMo17.MP <- PlantHeights.6H$A682xMo17/rowMeans(PlantHeights.6H[,c("A682", "Mo17")])
+PlantHeights.6h.MP <- as.numeric(PlantHeights.6H[1,12:17])
+PlantHeights.6h.MP.cob <- as.numeric(PlantHeights.6H[2,12:17])
+PlantHeights.6H$B73xMo17.BxM <- PlantHeights.6H$B73xMo17/PlantHeights.6H$B73xMo17
+PlantHeights.6H$Mo17xB73.BxM <- PlantHeights.6H$Mo17xB73/PlantHeights.6H$B73xMo17
+PlantHeights.6H$B84xB73.BxM <- PlantHeights.6H$B84xB73/PlantHeights.6H$B73xMo17
+PlantHeights.6H$B84xMo17.BxM <- PlantHeights.6H$B84xMo17/PlantHeights.6H$B73xMo17
+PlantHeights.6H$A682xB73.BxM <- PlantHeights.6H$A682xB73/PlantHeights.6H$B73xMo17
+PlantHeights.6H$A682xMo17.BxM <- PlantHeights.6H$A682xMo17/PlantHeights.6H$B73xMo17
+PlantHeights.6h.BxM <- as.numeric(PlantHeights.6H[1,18:23])
+```
+```{r PlantHeights.RIL}
+#Read-in plant height data
+PlantHeights.RIL <- read.csv(paste0(PathToData, "RILPlantHeights.csv"), stringsAsFactors = F)
+#calculate ratios
+PlantHeights.RIL$B73xMo17.MP <- PlantHeights.RIL$B73xMo17/rowMeans(PlantHeights.RIL[,c("B73", "Mo17")])
+PlantHeights.RIL$M0014xB73.MP <- PlantHeights.RIL$M0014xB73/rowMeans(PlantHeights.RIL[,c("M0014", "B73")])
+PlantHeights.RIL$M0014xMo17.MP <- PlantHeights.RIL$M0014xMo17/rowMeans(PlantHeights.RIL[,c("M0014", "Mo17")])
+PlantHeights.RIL$M0016xB73.MP <- PlantHeights.RIL$M0016xB73/rowMeans(PlantHeights.RIL[,c("M0016", "B73")])
+PlantHeights.RIL$M0016xMo17.MP <- PlantHeights.RIL$M0016xMo17/rowMeans(PlantHeights.RIL[,c("M0016", "Mo17")])
+PlantHeights.RIL$M0021xB73.MP <- PlantHeights.RIL$M0021xB73/rowMeans(PlantHeights.RIL[,c("M0021", "B73")])
+PlantHeights.RIL$M0021xMo17.MP <- PlantHeights.RIL$M0021xMo17/rowMeans(PlantHeights.RIL[,c("M0021", "Mo17")])
+PlantHeights.RIL$M0317xB73.MP <- PlantHeights.RIL$M0317xB73/rowMeans(PlantHeights.RIL[,c("M0317", "B73")])
+PlantHeights.RIL$M0317xMo17.MP <- PlantHeights.RIL$M0317xMo17/rowMeans(PlantHeights.RIL[,c("M0317", "Mo17")])
+PlantHeights.ril.MP <- as.numeric(PlantHeights.RIL[1,16:24])
+PlantHeights.RIL$B73xMo17.BxM <- PlantHeights.RIL$B73xMo17/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0014xB73.BxM <- PlantHeights.RIL$M0014xB73/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0014xMo17.BxM <- PlantHeights.RIL$M0014xMo17/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0016xB73.BxM <- PlantHeights.RIL$M0016xB73/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0016xMo17.BxM <- PlantHeights.RIL$M0016xMo17/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0021xB73.BxM <- PlantHeights.RIL$M0021xB73/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0021xMo17.BxM <- PlantHeights.RIL$M0021xMo17/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0317xB73.BxM <- PlantHeights.RIL$M0317xB73/PlantHeights.RIL$B73xMo17
+PlantHeights.RIL$M0317xMo17.BxM <- PlantHeights.RIL$M0317xMo17/PlantHeights.RIL$B73xMo17
+PlantHeights.ril.BxM <- as.numeric(PlantHeights.RIL[1,25:33])
 ```
 
 #Define GOIs
@@ -646,71 +693,32 @@ CytoRibo<- CytoRibo$Gene[-(grep("mito|Mito|biogen|Biogen", CytoRibo$Protein))]
 #Retrieved from CornCyc on 05/11/2020
 CornCycEtBio <- read.csv(paste0(PathToData, "CornCycEtBio.csv"), stringsAsFactors = F)
 EtBio <- CornCycEtBio$Gene.Accession
+SAMS <- CornCycEtBio$Gene.Accession[CornCycEtBio$Reaction.EC=="2.5.1.6"]
+ACS <- CornCycEtBio$Gene.Accession[CornCycEtBio$Reaction.EC=="4.4.1.14"]
+ACO <- CornCycEtBio$Gene.Accession[CornCycEtBio$Reaction.EC=="1.14.17.4"]
 ```
+
+
 ```{r acs2 and acs6}
 acs2 <- "Zm00001d002592"
 acs6 <- "Zm00001d033862"
+aco2 <- "Zm00001d020686"
+sams1 <- "Zm00001d010920"
 ```
-
-
-
+```{r etbio TFs}
+tcptf7 <- "Zm00001d010730"
+tcptf23 <- "Zm00001d038683"
+```
 
 
 ##GOI list
 ```{r GOIs list}
-GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio, acs2, acs6)
-names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio", "acs2", "acs6")
+GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio, acs2, aco2, sams1, SAMS, ACS, ACO)
+names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio", "acs2",  "aco2", "sams1", "SAMS", "ACS", "ACO")
 saveRDS(GOIs, "GOIs")
 GOIs <- readRDS("GOIs")
 ```
 
-
-#Plant Height data
-```{r PlantHeights.6H}
-#Read-in plant height data
-PlantHeights.6H <- read.csv(paste0(PathToData, "6HPlantHeights.csv"), stringsAsFactors = F)
-#calculate ratios
-PlantHeights.6H$B73xMo17.MP <- PlantHeights.6H$B73xMo17/rowMeans(PlantHeights.6H[,c("B73", "Mo17")])
-PlantHeights.6H$Mo17xB73.MP <- PlantHeights.6H$Mo17xB73/rowMeans(PlantHeights.6H[,c("B73", "Mo17")])
-PlantHeights.6H$B84xB73.MP <- PlantHeights.6H$B84xB73/rowMeans(PlantHeights.6H[,c("B84", "B73")])
-PlantHeights.6H$B84xMo17.MP <- PlantHeights.6H$B84xMo17/rowMeans(PlantHeights.6H[,c("B84", "Mo17")])
-PlantHeights.6H$A682xB73.MP <- PlantHeights.6H$A682xB73/rowMeans(PlantHeights.6H[,c("A682", "B73")])
-PlantHeights.6H$A682xMo17.MP <- PlantHeights.6H$A682xMo17/rowMeans(PlantHeights.6H[,c("A682", "Mo17")])
-PlantHeights.6h.MP <- as.numeric(PlantHeights.6H[1,12:17])
-PlantHeights.6h.MP.cob <- as.numeric(PlantHeights.6H[2,12:17])
-PlantHeights.6H$B73xMo17.BxM <- PlantHeights.6H$B73xMo17/PlantHeights.6H$B73xMo17
-PlantHeights.6H$Mo17xB73.BxM <- PlantHeights.6H$Mo17xB73/PlantHeights.6H$B73xMo17
-PlantHeights.6H$B84xB73.BxM <- PlantHeights.6H$B84xB73/PlantHeights.6H$B73xMo17
-PlantHeights.6H$B84xMo17.BxM <- PlantHeights.6H$B84xMo17/PlantHeights.6H$B73xMo17
-PlantHeights.6H$A682xB73.BxM <- PlantHeights.6H$A682xB73/PlantHeights.6H$B73xMo17
-PlantHeights.6H$A682xMo17.BxM <- PlantHeights.6H$A682xMo17/PlantHeights.6H$B73xMo17
-PlantHeights.6h.BxM <- as.numeric(PlantHeights.6H[1,18:23])
-```
-```{r PlantHeights.RIL}
-#Read-in plant height data
-PlantHeights.RIL <- read.csv(paste0(PathToData, "RILPlantHeights.csv"), stringsAsFactors = F)
-#calculate ratios
-PlantHeights.RIL$B73xMo17.MP <- PlantHeights.RIL$B73xMo17/rowMeans(PlantHeights.RIL[,c("B73", "Mo17")])
-PlantHeights.RIL$M0014xB73.MP <- PlantHeights.RIL$M0014xB73/rowMeans(PlantHeights.RIL[,c("M0014", "B73")])
-PlantHeights.RIL$M0014xMo17.MP <- PlantHeights.RIL$M0014xMo17/rowMeans(PlantHeights.RIL[,c("M0014", "Mo17")])
-PlantHeights.RIL$M0016xB73.MP <- PlantHeights.RIL$M0016xB73/rowMeans(PlantHeights.RIL[,c("M0016", "B73")])
-PlantHeights.RIL$M0016xMo17.MP <- PlantHeights.RIL$M0016xMo17/rowMeans(PlantHeights.RIL[,c("M0016", "Mo17")])
-PlantHeights.RIL$M0021xB73.MP <- PlantHeights.RIL$M0021xB73/rowMeans(PlantHeights.RIL[,c("M0021", "B73")])
-PlantHeights.RIL$M0021xMo17.MP <- PlantHeights.RIL$M0021xMo17/rowMeans(PlantHeights.RIL[,c("M0021", "Mo17")])
-PlantHeights.RIL$M0317xB73.MP <- PlantHeights.RIL$M0317xB73/rowMeans(PlantHeights.RIL[,c("M0317", "B73")])
-PlantHeights.RIL$M0317xMo17.MP <- PlantHeights.RIL$M0317xMo17/rowMeans(PlantHeights.RIL[,c("M0317", "Mo17")])
-PlantHeights.ril.MP <- as.numeric(PlantHeights.RIL[1,16:24])
-PlantHeights.RIL$B73xMo17.BxM <- PlantHeights.RIL$B73xMo17/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0014xB73.BxM <- PlantHeights.RIL$M0014xB73/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0014xMo17.BxM <- PlantHeights.RIL$M0014xMo17/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0016xB73.BxM <- PlantHeights.RIL$M0016xB73/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0016xMo17.BxM <- PlantHeights.RIL$M0016xMo17/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0021xB73.BxM <- PlantHeights.RIL$M0021xB73/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0021xMo17.BxM <- PlantHeights.RIL$M0021xMo17/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0317xB73.BxM <- PlantHeights.RIL$M0317xB73/PlantHeights.RIL$B73xMo17
-PlantHeights.RIL$M0317xMo17.BxM <- PlantHeights.RIL$M0317xMo17/PlantHeights.RIL$B73xMo17
-PlantHeights.ril.BxM <- as.numeric(PlantHeights.RIL[1,25:33])
-```
 
 #Define settings and functions for plotting
 ```{r CorFun}
@@ -766,7 +774,7 @@ colors.v <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
 
 colors.e <- c("Other"="black","Methionine adenosyltransferase"="#24ff24", "ACC synthase"="#ff6db6", "ACC oxidase"="#920000")
 
-colors.ea <- c("Other"="grey", "Ethylene biosynthesis"="black", "acs2"="#24ff24", "acs6"="#ff6db6", "acs7"="#b66dff")
+colors.ea <- c("Other"="grey", "SAMS"="black", "ACS"="black", "ACO"="black", "ZmACS2"="#24ff24", "ZmACO2"="#ff6db6", "ZmSAMS1"="#006ddb")
 
 colors.pe <- c("Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
 
@@ -1878,6 +1886,39 @@ ggsave(filename =paste0(PathToPlots, "cpm.RIL.6H.Hyb2MP.cor.densities.pdf"), dpi
   ggsave(plot=S8, filename =paste0(PathToPlots, "S8.pdf"),
           dpi=300, width=10, height=5)
 ```
+#Figure tmt.cpm.RIL.6H.Hyb2MP.cor.densities
+
+```{r}
+tmt.RIL.6H.Hyb2MP.cor$data <- "Protein"
+cpm.RIL.6H.Hyb2MP.cor$data <- "RNA"
+tmt.cpm.RIL.6H.Hyb2MP.cor <- rbind(tmt.RIL.6H.Hyb2MP.cor[,c(17,18,21)], cpm.RIL.6H.Hyb2MP.cor[,c(1,17,20)])
+tmt.cpm.RIL.6H.Hyb2MP.cor$Category <- "Other"
+tmt.cpm.RIL.6H.Hyb2MP.cor$Order <- 1
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$CytoRibo),"Order"] <- 2
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$PE.ribo),"Order"] <- 4
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$PhANGs),"Order"] <- 5
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+tmt.cpm.RIL.6H.Hyb2MP.cor[(tmt.cpm.RIL.6H.Hyb2MP.cor$Gene %in% GOIs$PhAPGs),"Order"] <- 6
+tmt.cpm.RIL.6H.Hyb2MP.cor <- tmt.cpm.RIL.6H.Hyb2MP.cor[(order(tmt.cpm.RIL.6H.Hyb2MP.cor$Order)),]
+tmt.cpm.RIL.6H.Hyb2MP.cor$Category <- factor(tmt.cpm.RIL.6H.Hyb2MP.cor$Category, levels = c("Other", "Cytosolic ribosome", "NE plastid ribosome", "PE plastid ribosome", "PhANGs", "PhAPGs"))
+tmt.cpm.RIL.6H.Hyb2MP.cor.plot <- ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor, mapping=aes(y=Category, x=cor, fill=Category,  linetype=data))+
+  geom_density_ridges(alpha=0.7) +
+  scale_fill_manual(values=colors.pc, guide = 'none')+
+  scale_linetype_manual(values = c("RNA"="dotted", "Protein"="solid"), name="")+
+  theme_ridges() +
+  theme(legend.position = "bottom", axis.title.y = element_blank(), axis.title.x = element_text(hjust = 0.5, size=12), legend.justification = c(0.5,1))+
+  coord_cartesian(expand = F)+
+  xlab("Pearson correlation")+
+  xlim(-1,1)
+tmt.cpm.RIL.6H.Hyb2MP.cor.plot
+ggsave(filename =paste0(PathToPlots, "tmt.cpm.RIL.6H.Hyb2MP.cor.densities.pdf"), dpi=300, width=4.75, height=4)
+```
+
 #Figure tmt.SL.EtBio
 ```{r setup dataframe tmt.SL.EtBio}
 ###Set limits
@@ -2340,16 +2381,22 @@ tmt.SL.acs$ttest <- ttestFun(tmt.SL.acs, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.B
 tmt.SL.acs$l10.ttest <- -(log10(tmt.SL.acs$ttest))
 tmt.SL.acs$Category <- "Other"
 tmt.SL.acs$Order <- 1
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$EtBio),"Category"] <- "Ethylene biosynthesis"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$EtBio),"Order"] <- 2
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "acs2"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 3
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs6),"Category"] <- "acs6"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs6),"Order"] <- 4
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$SAMS),"Category"] <- "SAMS"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$SAMS),"Order"] <- 2
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACS),"Category"] <- "ACS"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACS),"Order"] <- 3
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACO),"Category"] <- "ACO"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACO),"Order"] <- 4
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "ZmACS2"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 5
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$aco2),"Category"] <- "ZmACO2"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$aco2),"Order"] <- 6
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$sams1),"Category"] <- "ZmSAMS1"
+tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$sams1),"Order"] <- 7
 ###Re-order
 tmt.SL.acs <- tmt.SL.acs[(order(tmt.SL.acs$Order)),]
 ###factor
-tmt.SL.acs$Category <- factor(tmt.SL.acs$Category, levels = c("Other", "Ethylene biosynthesis", "acs2", "acs6"))
+tmt.SL.acs$Category <- factor(tmt.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACO2","ZmSAMS1"))
 ```
 ```{r setup dataframe cpm.SL.acs.vol}
 ###Set GOIs
@@ -2363,23 +2410,29 @@ cpm.SL.acs$ttest <- ttestFun(cpm.SL.acs, c("B73xMo17.1", "B73xMo17.2", "B73xMo17
 cpm.SL.acs$l10.ttest <- -(log10(cpm.SL.acs$ttest))
 cpm.SL.acs$Category <- "Other"
 cpm.SL.acs$Order <- 1
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$EtBio),"Category"] <- "Ethylene biosynthesis"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$EtBio),"Order"] <- 2
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "acs2"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 3
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs6),"Category"] <- "acs6"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs6),"Order"] <- 4
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$SAMS),"Category"] <- "SAMS"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$SAMS),"Order"] <- 2
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACS),"Category"] <- "ACS"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACS),"Order"] <- 3
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACO),"Category"] <- "ACO"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACO),"Order"] <- 4
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "ZmACS2"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 5
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$aco2),"Category"] <- "ZmACO2"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$aco2),"Order"] <- 6
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$sams1),"Category"] <- "ZmSAMS1"
+cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$sams1),"Order"] <- 7
 ###Re-order
 cpm.SL.acs <- cpm.SL.acs[(order(cpm.SL.acs$Order)),]
 ###factor
-cpm.SL.acs$Category <- factor(cpm.SL.acs$Category, levels = c("Other", "Ethylene biosynthesis", "acs2", "acs6"))
+cpm.SL.acs$Category <- factor(cpm.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACO2","ZmSAMS1"))
 ```
 ```{r plot tmt.cpm.SL.acs.vol}
 #Scatterplot - tmt
 tmt.SL.acs.vol <- ggplot(tmt.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2)+
   scale_color_manual(values=colors.ea, name="Category")+
-  scale_shape_manual(values=c(1,19,19,19))+
+  scale_shape_manual(values=c(1,22,23,24,19,19,19))+
     theme_classic()+
           ggtitle("A")+
           geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
@@ -2396,14 +2449,14 @@ tmt.SL.acs.vol <- ggplot(tmt.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, 
 cpm.SL.acs.vol <- ggplot(cpm.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2)+
   scale_color_manual(values=colors.ea, name="Category")+
-  scale_shape_manual(values=c(1,19,19,19))+
+  scale_shape_manual(values=c(1,22,23,24,19,19,19))+
     theme_classic()+
           ggtitle("B")+
           geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
           geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
           theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
                 legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
-          guides(col=guide_legend(nrow=1))+
+          guides(col=guide_legend(nrow=2))+
     xlab("log2 BxM/MP")+
     ylab("-log10(p-value)")+
     theme(aspect.ratio=1)+
@@ -2417,6 +2470,7 @@ design <- "AB
 plotpanel<-patchwork::wrap_plots(A=tmt.SL.acs.vol, B=cpm.SL.acs.vol, C=cpm.SL.acs.vol.legend,  nrow = 2, heights = c(3,1.2), design = design)
 ggsave(plot=plotpanel, filename =paste0(PathToPlots, "tmt.cpm.SL.acs.vol.pdf"), dpi=300, width=4.75, height=3)
 ```
+
 
 #Figure tmt.BxM.SL.plastid.all4.vol
 
@@ -2610,23 +2664,25 @@ tmt.DN.GOIs.vol <- tmt.DN.GOIs.vol+ theme(legend.position = "none")
 #Figure tmt.acs.all4.plastid
 ```{r setup dataframe tmt.acs.all4.plastid}
 panel.acs.tmt.OG <- tmt.acs.OG
+panel.acs.tmt.LB <- tmt.acs.LB
 panel.acs.tmt.6h <- tmt.acs.6H
 panel.acs.tmt.ril <- tmt.acs.RIL
-panel.acs.tmt.dn <- tmt.acs.DN
 
 panel.acs.tmt.OG$plot <- "A"
-panel.acs.tmt.6h$plot <- "B"
-panel.acs.tmt.ril$plot <- "C"
-panel.acs.tmt.dn$plot <- "D"
+panel.acs.tmt.LB$plot <- "B"
+panel.acs.tmt.6h$plot <- "C"
+panel.acs.tmt.ril$plot <- "D"
+
 
 panel.acs.tmt.OG <- panel.acs.tmt.OG[,c("plot", "Gene", "l2.ACS.B73", "l2.B73xMo17.MP")]
+panel.acs.tmt.LB <- panel.acs.tmt.LB[,c("plot", "Gene", "l2.ACS.B73", "l2.B73xMo17.MP")]
 panel.acs.tmt.6h <- panel.acs.tmt.6h[,c("plot", "Gene", "l2.ACS.B73", "l2.B73xMo17.MP")]
 panel.acs.tmt.ril <- panel.acs.tmt.ril[,c("plot", "Gene", "l2.ACS.B73", "l2.B73xMo17.MP")]
-panel.acs.tmt.dn <- panel.acs.tmt.dn[,c("plot", "Gene", "l2.ACS.B73", "l2.B73xMo17.MP")]
 
-panel.acs.tmt <- rbind(panel.acs.tmt.OG,panel.acs.tmt.6h)
+
+panel.acs.tmt <- rbind(panel.acs.tmt.OG,panel.acs.tmt.LB)
+panel.acs.tmt <- rbind(panel.acs.tmt,panel.acs.tmt.6h)
 panel.acs.tmt <- rbind(panel.acs.tmt,panel.acs.tmt.ril)
-panel.acs.tmt <- rbind(panel.acs.tmt,panel.acs.tmt.dn)
 ```
 ```{r plot tmt.acs.all4.plastid}
   plot<-unique(panel.acs.tmt[,"plot"])
@@ -2736,10 +2792,6 @@ rownames(tmt.BxM.6H.entrez.nodups.trim) <- tmt.BxM.6H.entrez.nodups$Entrez
 ```{r plot tmt.BxM.6H.zma00592}
 pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00260", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
 ```
-```{r}
-pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma01230", species="zma", out.suffix = "tmt.BxM", keys.align = "y", kegg.native = F, match.data = F, multi.state = T, same.layer = T, cex=0.125, afactor=3, map.null = T, expand.node = T)
-```
-
 #Figure tmt.acs.zma00592
 ```{r setup dataframe tmt.acs.zma00592}
 #merge with mdb to get entrez 
