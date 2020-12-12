@@ -274,12 +274,10 @@ cpm.RIL.data <- readRDS(paste0(PathToData, "rn20b2.rds"))
 cpm.RIL.tm <- cpm.RIL.data$tm
 cpm.RIL.th <- cpm.RIL.data$th
 ```
-
-
 #Subset RNA experiments
 ```{r subset BxM seedling leaf from original experiment}
 #Original experiment seedling leaf BxM
-cpm.SL <- as.data.frame(cpm.OG.data[,c(1,178:186)])
+cpm.SL <- as.data.frame(cpm.OG.data[,c("gid","BR193","BR194","BR195","BR196","BR197","BR198","BR199", "BR200","BR201")])
 colnames(cpm.SL) <- c("Gene", "B73.1", "B73.2", "B73.3", "Mo17.1", "Mo17.2", "Mo17.3", "B73xMo17.1", "B73xMo17.2", "B73xMo17.3")
 #Remove genes not detected in one or mor rep
 cpm.SL[cpm.SL==0] <- NA
@@ -298,7 +296,7 @@ cpm.SL.protein <- cpm.SL[cpm.SL$Gene%in%tmt.SL$Gene,]
 ```
 ```{r subset BxM leaf blade from original experiment}
 #Original experiment seedling leaf BxM
-cpm.LB <- as.data.frame(cpm.OG.data[,c(1,2,3,5,4,6,8,7,9,10)])
+cpm.LB <- as.data.frame(cpm.OG.data[,c("gid","BR001", "BR002", "BR004", "BR003", "BR005", "BR007", "BR006", "BR008", "BR009")])
 colnames(cpm.LB) <- c("Gene", "B73.1", "B73.2", "B73.3", "Mo17.1", "Mo17.2", "Mo17.3", "B73xMo17.1", "B73xMo17.2", "B73xMo17.3")
 #Remove genes not detected in one or more rep
 cpm.LB[cpm.LB==0] <- NA
@@ -318,7 +316,7 @@ cpm.LB.protein <- cpm.LB[cpm.LB$Gene%in%tmt.LB$Gene,]
 ```{r subset 6 hybrid RNA data}
 #subset to leaf samples
 cpm.6H.th.ID <- cpm.6H.th[cpm.6H.th$Replicate%in%c(2,3,4) & cpm.6H.th$Tissue=="leaf_V2" & cpm.6H.th$Treatment=="m",]
-cpm.6H <- cpm.6H.tm[cpm.6H.tm$SampleID%in%cpm.6H.th.ID$SampleID,c(1,2,6)]
+cpm.6H <- cpm.6H.tm[cpm.6H.tm$SampleID%in%cpm.6H.th.ID$SampleID,c("gid", "SampleID", "CPM")]
 #reformat df
 cpm.6H <- dcast(cpm.6H, gid ~ SampleID)
 #Rename columns
@@ -370,7 +368,7 @@ cpm.6H.protein <- cpm.6H[cpm.6H$Gene%in%tmt.6H$Gene,]
 ```
 ```{r subset RIL RNA data}
 #reformat df
-cpm.RIL <- dcast(cpm.RIL.tm[,c(1,2,6)], gid ~ SampleID)
+cpm.RIL <- dcast(cpm.RIL.tm[,c("gid", "SampleID", "CPM")], gid ~ SampleID)
 #Remove genes not detected in one or mor rep
 cpm.RIL[cpm.RIL==0] <- NA
 cpm.RIL <- na.omit(cpm.RIL)
