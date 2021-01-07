@@ -274,6 +274,9 @@ cpm.RIL.data <- readRDS(paste0(PathToData, "rn20b2.rds"))
 cpm.RIL.tm <- cpm.RIL.data$tm
 cpm.RIL.th <- cpm.RIL.data$th
 ```
+
+
+
 #Subset RNA experiments
 ```{r subset BxM seedling leaf from original experiment}
 #Original experiment seedling leaf BxM
@@ -321,6 +324,8 @@ cpm.6H <- cpm.6H.tm[cpm.6H.tm$SampleID%in%cpm.6H.th.ID$SampleID,c("gid", "Sample
 cpm.6H <- dcast(cpm.6H, gid ~ SampleID)
 #Rename columns
 colnames(cpm.6H) <- c("Gene", paste(cpm.6H.th.ID$Genotype, cpm.6H.th.ID$Replicate, sep = "."))
+#save
+write.csv(cpm.6H, "cpm.6H.csv", row.names = F)
 #Remove genes not detected in one or mor rep
 cpm.6H[cpm.6H==0] <- NA
 cpm.6H <- na.omit(cpm.6H)
@@ -369,11 +374,13 @@ cpm.6H.protein <- cpm.6H[cpm.6H$Gene%in%tmt.6H$Gene,]
 ```{r subset RIL RNA data}
 #reformat df
 cpm.RIL <- dcast(cpm.RIL.tm[,c("gid", "SampleID", "CPM")], gid ~ SampleID)
+#Rename columns
+colnames(cpm.RIL) <- c("Gene", paste(cpm.RIL.th$Genotype, cpm.RIL.th$Replicate, sep = "."))
+#save
+write.csv(cpm.RIL, "cpm.RIL.csv", row.names = F)
 #Remove genes not detected in one or mor rep
 cpm.RIL[cpm.RIL==0] <- NA
 cpm.RIL <- na.omit(cpm.RIL)
-#Rename columns
-colnames(cpm.RIL) <- c("Gene", paste(cpm.RIL.th$Genotype, cpm.RIL.th$Replicate, sep = "."))
 #Calculate averages
 cpm.RIL$B73 <- rowMeans(cpm.RIL[,c("B73.1", "B73.2", "B73.3", "B73.4")], na.rm = T)
 cpm.RIL$Mo17 <- rowMeans(cpm.RIL[,c("Mo17.1", "Mo17.2", "Mo17.3", "Mo17.4")], na.rm = T)
@@ -707,15 +714,279 @@ sams1 <- "Zm00001d010920"
 tcptf7 <- "Zm00001d010730"
 tcptf23 <- "Zm00001d038683"
 ```
+```{r}
+mgdb$v4_gene_model[mgdb$arabidopsis_ortholog=="AT1G28370"]
+```
+```{r}
+tmt.SL.etbio[tmt.SL.etbio$Gene=="Zm00001d047166",]
+```
+```{r}
+walley <- read.csv("WalleyS10.RNA.csv", stringsAsFactors = F)
+colnames(walley) <- as.character(walley[1,])
+walley <- walley[-1,]
+walley <- merge.data.frame(walley, mgdb[,c("v4_gene_model", "v3_gene_model")], by.x = "Regulator (TF)", by.y = "v3_gene_model", all=F)
+colnames(walley)[5] <- "Reg"
+walley <- merge.data.frame(walley, mgdb[,c("v4_gene_model", "v3_gene_model")], by.x = "Target Transcript", by.y = "v3_gene_model", all=F)
+colnames(walley)[6] <- "Targ"
+walley <- walley[walley$`High Confidence Edge?`=="T",]
+```
+```{r}
+walley.freq <- as.data.frame(table(walley[,c("Reg")]))
+colnames(walley.freq) <- c("Reg", "NumberOfTargets")
+walley <- merge.data.frame(walley, walley.freq, by.x = "Reg", by.y = "Reg")
+```
+
+```{r}
+walley.etbio <- distinct(walley[walley$Targ %in% GOIs$EtBio,])
+walley.etbio.freq <-  as.data.frame(table(walley.etbio[,c("Reg")]))
+colnames(walley.etbio.freq) <- c("Reg", "NumberOfEtBioTargets")
+walley.etbio <- merge.data.frame(walley.etbio, walley.etbio.freq, by.x = "Reg", by.y = "Reg")
+walley.etbio <- walley.etbio[order(walley.etbio$NumberOfTargets),]
+walley.etbio.detected <- merge.data.frame(walley.etbio, cpm.SL.etbio[,c("Gene", "B73xMo17.MP", "ttest")], by.x = "Reg", by.y = "Gene", all=F)
+colnames(walley.etbio.detected)[9:10] <- c("Reg_Hyb.MP", "Reg_ttest")
+walley.etbio.detected <- merge.data.frame(walley.etbio.detected, cpm.SL.etbio[,c("Gene", "B73xMo17.MP", "ttest", "Category")], by.x = "Targ", by.y = "Gene", all=F)
+colnames(walley.etbio.detected)[11:13] <- c("Targ_Hyb.MP", "Targ_ttest", "TargEnzyme")
+walley.etbio.detected <- walley.etbio.detected[order(walley.etbio.detected$NumberOfTargets),]
+walley.etbio.detected <- merge.data.frame(walley.etbio.detected, table2[,c("Gene", "PearsonCor")], by.x = "Reg", by.y = "Gene", all.x=T, all.y = F)
+write.csv(walley.etbio.detected, "walley.DetectedEtBioTFs.csv", row.names = F)
+```
+
+```{r}
+walley.detected <- merge.data.frame(walley, cpm.SL.etbio[,c("Gene", "B73xMo17.MP", "ttest")], by.x = "Reg", by.y = "Gene", all=F)
+colnames(walley.detected)[8:9] <- c("Reg_Hyb.MP", "Reg_ttest")
+walley.detected <- merge.data.frame(walley.detected, cpm.SL.etbio[,c("Gene", "B73xMo17.MP", "ttest", "Category")], by.x = "Targ", by.y = "Gene", all=F)
+colnames(walley.detected)[10:12] <- c("Targ_Hyb.MP", "Targ_ttest", "TargEnzyme")
+walley.detected <- merge.data.frame(walley.detected, table2[,c("Gene", "PearsonCor")], by.x = "Reg", by.y = "Gene", all.x=T, all.y = F)
+```
+```{r}
+walley.detected[order(-walley.detected$PearsonCor),]
+```
+```{r}
+mgdb$v4_gene_model[mgdb$arabidopsis_ortholog=="AT5G67160"]
+```
+```{r}
+test <- tmt.SL.etbio[tmt.SL.etbio$Gene %in% SAMMTs,]
+mean(test$HYB.MP)
+```
+
+```{r}
+TransZeatin <- read.delim("TransZeatinGenesCornCyc.txt", stringsAsFactors = F)
+TransZeatin <- TransZeatin$Gene.Accession
+```
+
+```{r}
+SAMMTs <- gamer$db_object_id[gamer$term_accession=="GO:0008757"]
+```
+```{r}
+gamer$db_object_id[gamer$term_accession=="GO:0008930"]
+```
+```{r}
+tmt.SL.etbio[tmt.SL.etbio$Gene %in% GA,]
+```
+```{r}
+mean(cpm.6H.etbio$A682xMo17.MP[cpm.6H.etbio$Gene %in%ABA])
+```
+```{r}
+tmt.acs.zea[tmt.acs.zea$Gene =="Zm00001d051416",]
+```
+```{r ABA}
+ABA <- tibble::tribble(
+       ~Gene,                                                                            ~Name,
+  100273156L,                               "uncharacterized protein LOC100273156 [KO:K15746]",
+  100281136L,                               "uncharacterized protein LOC100281136 [KO:K09840]",
+  100281391L,                               "uncharacterized protein LOC100281391 [KO:K09840]",
+  100281693L,                                          "beta-carotene hydroxylase [KO:K15746]",
+  100282128L,               "sca1; uncharacterized protein LOC100282128 isoform 2 [KO:K09841]",
+  100285076L,                                               "zeaxanthin epoxidase [KO:K09838]",
+  100384384L,                            "uncharacterized LOC100384384 isoform X2 [KO:K09842]",
+  100501444L,            "9-cis-epoxycarotenoid dioxygenase 1, chloroplastic-like [KO:K09840]",
+  100501454L,                               "uncharacterized protein LOC100501454 [KO:K09840]",
+  103626043L,            "9-cis-epoxycarotenoid dioxygenase 1, chloroplastic-like [KO:K09840]",
+  103627610L,             "9-cis-epoxycarotenoid dioxygenase NCED1, chloroplastic [KO:K09840]",
+  103627895L,                          "protein LUTEIN DEFICIENT 5, chloroplastic [KO:K15747]",
+  103631225L,                         "beta-carotene 3-hydroxylase, chloroplastic [KO:K15746]",
+  103631977L,                      "indole-3-acetaldehyde oxidase-like isoform X3 [KO:K09842]",
+  103634160L,        "9-cis-epoxycarotenoid dioxygenase NCED4, chloroplastic-like [KO:K09840]",
+  103634451L,             "9-cis-epoxycarotenoid dioxygenase NCED4, chloroplastic [KO:K09840]",
+  103641704L,                     "zeaxanthin epoxidase, chloroplastic isoform X1 [KO:K09838]",
+  103648268L,             "9-cis-epoxycarotenoid dioxygenase NCED4, chloroplastic [KO:K09840]",
+  103652265L,             "9-cis-epoxycarotenoid dioxygenase NCED4, chloroplastic [KO:K09840]",
+     732775L,                                    "HYD1; beta-carotene hydroxylase [KO:K15746]",
+     732819L, "vp14; 9-cis-epoxycarotenoid dioxygenase 1, chloroplastic precursor [KO:K09840]",
+     732825L,                                    "HYD3; beta-carotene hydroxylase [KO:K15746]"
+  )
+
+ABA <- merge.data.frame(ABA, mgdb[,c("v4_gene_model", "Entrez")], by.x = "Gene", by.y="Entrez", all=F)
+ABA <- ABA$v4_gene_model
+```
+```{r}
+GA <- read.delim("GAGenesCornCyc.txt", stringsAsFactors = F)
+GA <- GA$Gene.Accession
+```
+
+
+
+```{r}
+yuc2 <- "Zm00001d025005"
+yuc4 <- "Zm00001d004467"
+yuc5 <- "Zm00001d019527"
+yuc6 <- "Zm00001d008255"
+yuc7 <- "Zm00001d027759"
+yuc8 <- "Zm00001d011764"
+yuc9 <- "Zm00001d005439"
+ami1 <- "Zm00001d006886"
+ami2 <- "Zm00001d033682"
+ami3 <- "Zm00001d018098"
+ami4 <- "Zm00001d002104"
+ami5 <- "Zm00001d032299"
+ao1 <- "Zm00001d034387"
+```
+```{r}
+ics <- "Zm00001d020220"
+pal1 <- "Zm00001d017274"
+pal4 <- "Zm00001d051166"
+pal5 <- "Zm00001d051163"
+pal6 <- "Zm00001d003015"
+pal7 <- "Zm00001d017279"
+pal8 <- "Zm00001d017276"
+pal9 <- "Zm00001d017275"
+pal10 <- "Zm00001d029015"
+```
+```{r}
+cpm.SL.entrez <- merge.data.frame(cpm.SL, mgdb[,c("v4_gene_model", "Entrez")], by.x = "Gene", by.y = "v4_gene_model", all=F)
+test <- cpm.SL[grep(x = cpm.SL$Gene, pattern = "Zm00"),]
+write.csv(test[,c("Gene", "l2.B73xMo17.MP")], "cpm.SL.csv", row.names = F)
+```
+
+```{r setup dataframe tmt.SL.zea.vol}
+###Set GOIs
+tmt.SL.zea <- tmt.SL
+tmt.SL.zea$l2.B73xMo17.MP[tmt.SL.zea$l2.B73xMo17.MP <= -1] <- -1
+tmt.SL.zea$l2.B73xMo17.MP[tmt.SL.zea$l2.B73xMo17.MP >= 1] <- 1
+tmt.SL.zea$MP1 <- rowMeans(tmt.SL.zea[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
+tmt.SL.zea$MP2 <- rowMeans(tmt.SL.zea[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
+tmt.SL.zea$MP3 <- rowMeans(tmt.SL.zea[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
+tmt.SL.zea$ttest <- ttestFun(tmt.SL.zea, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
+tmt.SL.zea$l10.ttest <- -(log10(tmt.SL.zea$ttest))
+tmt.SL.zea$Category <- "Other"
+tmt.SL.zea$Order <- 1
+tmt.SL.zea[(tmt.SL.zea$Gene %in% TransZeatin),"Category"] <- "Trans-Zeatin Biosynthesis"
+tmt.SL.zea[(tmt.SL.zea$Gene %in% TransZeatin),"Order"] <- 2
+
+###Re-order
+tmt.SL.zea <- tmt.SL.zea[(order(tmt.SL.zea$Order)),]
+###factor
+tmt.SL.zea$Category <- factor(tmt.SL.zea$Category, levels = c("Other", "Trans-Zeatin Biosynthesis"))
+```
+```{r setup dataframe cpm.SL.zea.vol}
+###Set GOIs
+cpm.SL.zea <- cpm.SL
+cpm.SL.zea$l2.B73xMo17.MP[cpm.SL.zea$l2.B73xMo17.MP <= -2.5] <- -2.5
+cpm.SL.zea$l2.B73xMo17.MP[cpm.SL.zea$l2.B73xMo17.MP >= 2.5] <- 2.5
+cpm.SL.zea$MP1 <- rowMeans(cpm.SL.zea[,c("B73.1","Mo17.1")])
+cpm.SL.zea$MP2 <- rowMeans(cpm.SL.zea[,c("B73.2","Mo17.2")])
+cpm.SL.zea$MP3 <- rowMeans(cpm.SL.zea[,c("B73.3","Mo17.3")])
+cpm.SL.zea$ttest <- ttestFun(cpm.SL.zea, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("MP1", "MP2", "MP3"))
+cpm.SL.zea$l10.ttest <- -(log10(cpm.SL.zea$ttest))
+cpm.SL.zea$Category <- "Other"
+cpm.SL.zea$Order <- 1
+cpm.SL.zea[(cpm.SL.zea$Gene %in% TransZeatin),"Category"] <- "Trans-Zeatin Biosynthesis"
+cpm.SL.zea[(cpm.SL.zea$Gene %in% TransZeatin),"Order"] <- 2
+###Re-order
+cpm.SL.zea <- cpm.SL.zea[(order(cpm.SL.zea$Order)),]
+###factor
+cpm.SL.zea$Category <- factor(cpm.SL.zea$Category, levels = c("Other", "Trans-Zeatin Biosynthesis"))
+```
+```{r plot tmt.cpm.SL.zea.vol}
+#Scatterplot - tmt
+tmt.SL.zea.vol <- ggplot(tmt.SL.zea, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=c("black", "red"), name="Category")+
+  scale_shape_manual(values=c(1,19))+
+    theme_classic()+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=1))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+      
+#volterplot - cpm
+cpm.SL.zea.vol <- ggplot(cpm.SL.zea, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=c("black", "red"), name="Category")+
+  scale_shape_manual(values=c(1,19))+
+    theme_classic()+
+          ggtitle("B")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+cpm.SL.zea.vol.legend <- get_legend(cpm.SL.zea.vol)
+cpm.SL.zea.vol <- cpm.SL.zea.vol+theme(legend.position = "none")
+
+#Wrap into panel
+design <- "AB
+           CC"
+plotpanel<-patchwork::wrap_plots(A=tmt.SL.zea.vol, B=cpm.SL.zea.vol, C=cpm.SL.zea.vol.legend,  nrow = 2, heights = c(3,1.2), design = design)
+ggsave(plot=plotpanel, filename =paste0(PathToPlots, "tmt.cpm.SL.zea.vol.pdf"), dpi=300, width=4.75, height=3)
+```
+```{r setup dataframe tmt.acs.zea.vol}
+###Set GOIs
+tmt.acs.zea <- tmt.acs
+tmt.acs.zea$l2.ACS.B73[tmt.acs.zea$l2.ACS.B73 <= -1] <- -1
+tmt.acs.zea$l2.ACS.B73[tmt.acs.zea$l2.ACS.B73 >= 1] <- 1
+tmt.acs.zea$ttest <- ttestFun(tmt.acs.zea, c("B73.acs.B73.r1", "B73.acs.B73.r2", "B73.acs.B73.r3", "B73.acs.B73.r4", "B73.acs.B73.r5"), c("B73.acs.acs.r1", "B73.acs.acs.r2", "B73.acs.acs.r3", "B73.acs.acs.r4", "B73.acs.acs.r5"))
+tmt.acs.zea$l10.ttest <- -(log10(tmt.acs.zea$ttest))
+tmt.acs.zea$Category <- "Other"
+tmt.acs.zea$Order <- 1
+tmt.acs.zea[(tmt.acs.zea$Gene %in% TransZeatin),"Category"] <- "Trans-Zeatin Biosynthesis"
+tmt.acs.zea[(tmt.acs.zea$Gene %in% TransZeatin),"Order"] <- 2
+###Re-order
+tmt.acs.zea <- tmt.acs.zea[(order(tmt.acs.zea$Order)),]
+###factor
+tmt.acs.zea$Category <- factor(tmt.acs.zea$Category, levels = c("Other", "Trans-Zeatin Biosynthesis"))
+```
+```{r}
+tmt.acs.zea.vol <- ggplot(tmt.acs.zea, mapping=aes(x=l2.ACS.B73, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=c("black", "red"), name="Category")+
+  scale_shape_manual(values=c(1,19))+
+    theme_classic()+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank())+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 acs/B73")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+ggsave(paste0(PathToPlots, "tmt.acs.zea.vol.pdf"), width = 3, height = 3)
+```
 
 
 ##GOI list
-```{r GOIs list}
+```{r make GOIs list}
 GOIs <- list(PE.ribo, PhANGs, PhAPGs, plastid, NE.PtRibo, CytoRibo, EtBio, acs2, aco2, sams1, SAMS, ACS, ACO)
 names(GOIs) <- c("PE.ribo", "PhANGs", "PhAPGs", "plastid", "NE.PtRibo", "CytoRibo", "EtBio", "acs2",  "aco2", "sams1", "SAMS", "ACS", "ACO")
 saveRDS(GOIs, "GOIs")
+```
+```{r read GOI list}
 GOIs <- readRDS("GOIs")
 ```
+
+
+
 
 
 #Define settings and functions for plotting
@@ -2470,6 +2741,336 @@ ggsave(plot=plotpanel, filename =paste0(PathToPlots, "tmt.cpm.SL.acs.vol.pdf"), 
 ```
 
 
+
+#Figure tmt.cpm.SL.sa.vol
+```{r setup dataframe tmt.SL.sa.vol}
+###Set GOIs
+tmt.SL.sa <- tmt.SL
+tmt.SL.sa$l2.B73xMo17.MP[tmt.SL.sa$l2.B73xMo17.MP <= -1] <- -1
+tmt.SL.sa$l2.B73xMo17.MP[tmt.SL.sa$l2.B73xMo17.MP >= 1] <- 1
+tmt.SL.sa$MP1 <- rowMeans(tmt.SL.sa[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
+tmt.SL.sa$MP2 <- rowMeans(tmt.SL.sa[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
+tmt.SL.sa$MP3 <- rowMeans(tmt.SL.sa[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
+tmt.SL.sa$ttest <- ttestFun(tmt.SL.sa, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
+tmt.SL.sa$l10.ttest <- -(log10(tmt.SL.sa$ttest))
+tmt.SL.sa$Category <- "Other"
+tmt.SL.sa$Order <- 1
+tmt.SL.sa[(tmt.SL.sa$Gene %in% ics),"Category"] <- "ics"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% ics),"Order"] <- 2
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal1),"Category"] <- "pal1"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal1),"Order"] <- 4
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal4),"Category"] <- "pal4"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal4),"Order"] <- 5
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal5),"Category"] <- "pal5"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal5),"Order"] <- 6
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal6),"Category"] <- "pal6"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal6),"Order"] <- 7
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal7),"Category"] <- "pal7"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal7),"Order"] <- 8
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal8),"Category"] <- "pal8"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal8),"Order"] <- 9
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal9),"Category"] <- "pal9"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal9),"Order"] <- 10
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal10),"Category"] <- "pal10"
+tmt.SL.sa[(tmt.SL.sa$Gene %in% pal10),"Order"] <- 11
+###Re-order
+tmt.SL.sa <- tmt.SL.sa[(order(tmt.SL.sa$Order)),]
+###factor
+tmt.SL.sa$Category <- factor(tmt.SL.sa$Category, levels = c("Other", "ics", "pal1", "pal4", "pal5", "pal6", "pal7","pal8", "pal9", "pal10"))
+```
+```{r setup dataframe cpm.SL.sa.vol}
+###Set GOIs
+cpm.SL.sa <- cpm.SL
+cpm.SL.sa$l2.B73xMo17.MP[cpm.SL.sa$l2.B73xMo17.MP <= -2.5] <- -2.5
+cpm.SL.sa$l2.B73xMo17.MP[cpm.SL.sa$l2.B73xMo17.MP >= 2.5] <- 2.5
+cpm.SL.sa$MP1 <- rowMeans(cpm.SL.sa[,c("B73.1","Mo17.1")])
+cpm.SL.sa$MP2 <- rowMeans(cpm.SL.sa[,c("B73.2","Mo17.2")])
+cpm.SL.sa$MP3 <- rowMeans(cpm.SL.sa[,c("B73.3","Mo17.3")])
+cpm.SL.sa$ttest <- ttestFun(cpm.SL.sa, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("MP1", "MP2", "MP3"))
+cpm.SL.sa$l10.ttest <- -(log10(cpm.SL.sa$ttest))
+cpm.SL.sa$Category <- "Other"
+cpm.SL.sa$Order <- 1
+cpm.SL.sa[(cpm.SL.sa$Gene %in% ics),"Category"] <- "ics"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% ics),"Order"] <- 2
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal1),"Category"] <- "pal1"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal1),"Order"] <- 4
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal4),"Category"] <- "pal4"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal4),"Order"] <- 5
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal5),"Category"] <- "pal5"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal5),"Order"] <- 6
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal6),"Category"] <- "pal6"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal6),"Order"] <- 7
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal7),"Category"] <- "pal7"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal7),"Order"] <- 8
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal8),"Category"] <- "pal8"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal8),"Order"] <- 9
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal9),"Category"] <- "pal9"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal9),"Order"] <- 10
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal10),"Category"] <- "pal10"
+cpm.SL.sa[(cpm.SL.sa$Gene %in% pal10),"Order"] <- 11
+###Re-order
+cpm.SL.sa <- cpm.SL.sa[(order(cpm.SL.sa$Order)),]
+###factor
+cpm.SL.sa$Category <- factor(cpm.SL.sa$Category, levels = c("Other", "ics", "pal1", "pal4", "pal5", "pal6", "pal7","pal8", "pal9", "pal10"))
+```
+
+```{r setup dataframe tmt.acs.sa.vol}
+###Set GOIs
+tmt.acs.sa <- tmt.acs
+tmt.acs.sa$l2.ACS.B73[tmt.acs.sa$l2.ACS.B73 <= -1] <- -1
+tmt.acs.sa$l2.ACS.B73[tmt.acs.sa$l2.ACS.B73 >= 1] <- 1
+tmt.acs.sa$ttest <- ttestFun(tmt.acs.sa, c("B73.acs.B73.r1", "B73.acs.B73.r2", "B73.acs.B73.r3", "B73.acs.B73.r4", "B73.acs.B73.r5"), c("B73.acs.acs.r1", "B73.acs.acs.r2", "B73.acs.acs.r3", "B73.acs.acs.r4", "B73.acs.acs.r5"))
+tmt.acs.sa$l10.ttest <- -(log10(tmt.acs.sa$ttest))
+tmt.acs.sa$Category <- "Other"
+tmt.acs.sa$Order <- 1
+tmt.acs.sa[(tmt.acs.sa$Gene %in% ics),"Category"] <- "ics"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% ics),"Order"] <- 2
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal1),"Category"] <- "pal1"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal1),"Order"] <- 4
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal4),"Category"] <- "pal4"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal4),"Order"] <- 5
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal5),"Category"] <- "pal5"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal5),"Order"] <- 6
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal6),"Category"] <- "pal6"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal6),"Order"] <- 7
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal7),"Category"] <- "pal7"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal7),"Order"] <- 8
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal8),"Category"] <- "pal8"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal8),"Order"] <- 9
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal9),"Category"] <- "pal9"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal9),"Order"] <- 10
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal10),"Category"] <- "pal10"
+tmt.acs.sa[(tmt.acs.sa$Gene %in% pal10),"Order"] <- 11
+###Re-order
+tmt.acs.sa <- tmt.acs.sa[(order(tmt.acs.sa$Order)),]
+###factor
+tmt.acs.sa$Category <- factor(tmt.acs.sa$Category, levels = c("Other", "ics", "pal1", "pal4", "pal5", "pal6", "pal7","pal8", "pal9", "pal10"))
+```
+```{r}
+tmt.acs.sa.vol <- ggplot(tmt.acs.sa, mapping=aes(x=l2.ACS.B73, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.v[c(1,3,4,8,9,11:15)], name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19,19,19,19,19))+
+    theme_classic()+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank())+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 acs/B73")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+ggsave(paste0(PathToPlots, "tmt.acs.sa.vol.pdf"), width = 3, height = 3)
+```
+
+```{r plot tmt.cpm.SL.sa.vol}
+#Scatterplot - tmt
+tmt.SL.sa.vol <- ggplot(tmt.SL.sa, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.v[c(1,3,4,8,9,11:15)], name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19,19,19,19,19))+
+    theme_classic()+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=1))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+      
+#volterplot - cpm
+cpm.SL.sa.vol <- ggplot(cpm.SL.sa, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.v[c(1,3,4,8,9,11:15)], name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19,19,19,19,19))+
+    theme_classic()+
+          ggtitle("B")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+cpm.SL.sa.vol.legend <- get_legend(cpm.SL.sa.vol)
+cpm.SL.sa.vol <- cpm.SL.sa.vol+theme(legend.position = "none")
+
+#Wrap into panel
+design <- "AB
+           CC"
+plotpanel<-patchwork::wrap_plots(A=tmt.SL.sa.vol, B=cpm.SL.sa.vol, C=cpm.SL.sa.vol.legend,  nrow = 2, heights = c(3,1.2), design = design)
+ggsave(plot=plotpanel, filename =paste0(PathToPlots, "tmt.cpm.SL.sa.vol.pdf"), dpi=300, width=4.75, height=3)
+```
+
+
+
+
+
+#Figure tmt.cpm.SL.yuc.vol
+```{r setup dataframe tmt.SL.yuc.vol}
+###Set GOIs
+tmt.SL.yuc <- tmt.SL
+tmt.SL.yuc$l2.B73xMo17.MP[tmt.SL.yuc$l2.B73xMo17.MP <= -1] <- -1
+tmt.SL.yuc$l2.B73xMo17.MP[tmt.SL.yuc$l2.B73xMo17.MP >= 1] <- 1
+tmt.SL.yuc$MP1 <- rowMeans(tmt.SL.yuc[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
+tmt.SL.yuc$MP2 <- rowMeans(tmt.SL.yuc[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
+tmt.SL.yuc$MP3 <- rowMeans(tmt.SL.yuc[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
+tmt.SL.yuc$ttest <- ttestFun(tmt.SL.yuc, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
+tmt.SL.yuc$l10.ttest <- -(log10(tmt.SL.yuc$ttest))
+tmt.SL.yuc$Category <- "Other"
+tmt.SL.yuc$Order <- 1
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc2),"Category"] <- "yuc2"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc2),"Order"] <- 2
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc4),"Category"] <- "yuc4"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc4),"Order"] <- 3
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc5),"Category"] <- "yuc5"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc5),"Order"] <- 4
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc6),"Category"] <- "yuc6"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc6),"Order"] <- 5
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc7),"Category"] <- "yuc7"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc7),"Order"] <- 6
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc8),"Category"] <- "yuc8"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc8),"Order"] <- 7
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc9),"Category"] <- "yuc9"
+tmt.SL.yuc[(tmt.SL.yuc$Gene %in% yuc9),"Order"] <- 8
+###Re-order
+tmt.SL.yuc <- tmt.SL.yuc[(order(tmt.SL.yuc$Order)),]
+###factor
+tmt.SL.yuc$Category <- factor(tmt.SL.yuc$Category, levels = c("Other", "yuc2", "yuc4", "yuc5", "yuc6", "yuc7","yuc8", "yuc9"))
+```
+```{r setup dataframe cpm.SL.yuc.vol}
+###Set GOIs
+cpm.SL.yuc <- cpm.SL
+cpm.SL.yuc$l2.B73xMo17.MP[cpm.SL.yuc$l2.B73xMo17.MP <= -2.5] <- -2.5
+cpm.SL.yuc$l2.B73xMo17.MP[cpm.SL.yuc$l2.B73xMo17.MP >= 2.5] <- 2.5
+cpm.SL.yuc$MP1 <- rowMeans(cpm.SL.yuc[,c("B73.1","Mo17.1")])
+cpm.SL.yuc$MP2 <- rowMeans(cpm.SL.yuc[,c("B73.2","Mo17.2")])
+cpm.SL.yuc$MP3 <- rowMeans(cpm.SL.yuc[,c("B73.3","Mo17.3")])
+cpm.SL.yuc$ttest <- ttestFun(cpm.SL.yuc, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("MP1", "MP2", "MP3"))
+cpm.SL.yuc$l10.ttest <- -(log10(cpm.SL.yuc$ttest))
+cpm.SL.yuc$Category <- "Other"
+cpm.SL.yuc$Order <- 1
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc2),"Category"] <- "yuc2"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc2),"Order"] <- 2
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc4),"Category"] <- "yuc4"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc4),"Order"] <- 3
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc5),"Category"] <- "yuc5"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc5),"Order"] <- 4
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc6),"Category"] <- "yuc6"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc6),"Order"] <- 5
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc7),"Category"] <- "yuc7"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc7),"Order"] <- 6
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc8),"Category"] <- "yuc8"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc8),"Order"] <- 7
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc9),"Category"] <- "yuc9"
+cpm.SL.yuc[(cpm.SL.yuc$Gene %in% yuc9),"Order"] <- 8
+###Re-order
+cpm.SL.yuc <- cpm.SL.yuc[(order(cpm.SL.yuc$Order)),]
+###factor
+cpm.SL.yuc$Category <- factor(cpm.SL.yuc$Category, levels = c("Other", "yuc2", "yuc4", "yuc5", "yuc6", "yuc7","yuc8", "yuc9"))
+```
+
+```{r setup dataframe tmt.SL.yuc.vol}
+###Set GOIs
+tmt.acs.yuc <- tmt.acs
+tmt.acs.yuc$l2.ACS.B73[tmt.acs.yuc$l2.ACS.B73 <= -1] <- -1
+tmt.acs.yuc$l2.ACS.B73[tmt.acs.yuc$l2.ACS.B73 >= 1] <- 1
+tmt.acs.yuc$ttest <- ttestFun(tmt.acs.yuc, c("B73.acs.B73.r1", "B73.acs.B73.r2", "B73.acs.B73.r3", "B73.acs.B73.r4", "B73.acs.B73.r5"), c("B73.acs.acs.r1", "B73.acs.acs.r2", "B73.acs.acs.r3", "B73.acs.acs.r4", "B73.acs.acs.r5"))
+tmt.acs.yuc$l10.ttest <- -(log10(tmt.acs.yuc$ttest))
+tmt.acs.yuc$Category <- "Other"
+tmt.acs.yuc$Order <- 1
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc2),"Category"] <- "yuc2"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc2),"Order"] <- 2
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc4),"Category"] <- "yuc4"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc4),"Order"] <- 3
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc5),"Category"] <- "yuc5"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc5),"Order"] <- 4
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc6),"Category"] <- "yuc6"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc6),"Order"] <- 5
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc7),"Category"] <- "yuc7"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc7),"Order"] <- 6
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc8),"Category"] <- "yuc8"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc8),"Order"] <- 7
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc9),"Category"] <- "yuc9"
+tmt.acs.yuc[(tmt.acs.yuc$Gene %in% yuc9),"Order"] <- 8
+###Re-order
+tmt.acs.yuc <- tmt.acs.yuc[(order(tmt.acs.yuc$Order)),]
+###factor
+tmt.acs.yuc$Category <- factor(tmt.acs.yuc$Category, levels = c("Other", "yuc2", "yuc4", "yuc5", "yuc6", "yuc7","yuc8", "yuc9"))
+```
+```{r}
+tmt.acs.yuc.vol <- ggplot(tmt.acs.yuc, mapping=aes(x=l2.ACS.B73, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.v[c(1,11:15)], name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19,19))+
+    theme_classic()+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=1))+
+    xlab("log2 acs/B73")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+ggsave(paste0(PathToPlots, "tmt.acs.yuc.vol.pdf"), width = 3, height = 3)
+```
+
+```{r plot tmt.cpm.SL.yuc.vol}
+#Scatterplot - tmt
+tmt.SL.yuc.vol <- ggplot(tmt.SL.yuc, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.v[c(1,11:15)], name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19,19))+
+    theme_classic()+
+          ggtitle("A")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="none", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=1))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+      
+#volterplot - cpm
+cpm.SL.yuc.vol <- ggplot(cpm.SL.yuc, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=2)+
+  scale_color_manual(values=colors.v[c(1,11:15)], name="Category")+
+  scale_shape_manual(values=c(1,19,19,19,19,19,19,19))+
+    theme_classic()+
+          ggtitle("B")+
+          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"),  plot.title = element_text(vjust = -0.14, hjust = -0.075))+
+          guides(col=guide_legend(nrow=2))+
+    xlab("log2 BxM/MP")+
+    ylab("-log10(p-value)")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+cpm.SL.yuc.vol.legend <- get_legend(cpm.SL.yuc.vol)
+cpm.SL.yuc.vol <- cpm.SL.yuc.vol+theme(legend.position = "none")
+
+#Wrap into panel
+design <- "AB
+           CC"
+plotpanel<-patchwork::wrap_plots(A=tmt.SL.yuc.vol, B=cpm.SL.yuc.vol, C=cpm.SL.yuc.vol.legend,  nrow = 2, heights = c(3,1.2), design = design)
+ggsave(plot=plotpanel, filename =paste0(PathToPlots, "tmt.cpm.SL.yuc.vol.pdf"), dpi=300, width=4.75, height=3)
+```
+
+
+
+
+
 #Figure tmt.BxM.SL.plastid.all4.vol
 
 
@@ -2790,6 +3391,9 @@ rownames(tmt.BxM.6H.entrez.nodups.trim) <- tmt.BxM.6H.entrez.nodups$Entrez
 ```{r plot tmt.BxM.6H.zma00592}
 pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00260", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
 ```
+```{r plot tmt.BxM.6H.zma00592}
+pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00260", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
+```
 #Figure tmt.acs.zma00592
 ```{r setup dataframe tmt.acs.zma00592}
 #merge with mdb to get entrez 
@@ -3052,7 +3656,7 @@ ProteinVsRNA.lims.plastid.scat <- ggplot(ProteinVsRNA.lims.plastid, mapping=aes(
 ```{r setup dataframe LeafBladeVsSeedlingLeaf}
 tmt.LB.SL <- merge.data.frame(tmt.LB[,c("Accession", "l2.B73xMo17.MP", "l2.B73.Mo17")], tmt.SL[,c("Accession", "l2.B73xMo17.MP", "l2.B73.Mo17")], by.x = "Accession", by.y = "Accession", all=F)
 tmt.LB.SL$Gene <- substr(tmt.LB.SL$Accession, start = 1, stop = 14)
-cpm.LB.SL <- merge.data.frame(cpm.LB[,c("Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")], cpm.SL[,c("Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")], by.x = "Gene", by.y = "Gene", all = F)
+cpm.LB.SL <- merge.data.frame(cpm.LB.protein[,c("Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")], cpm.SL.protein[,c("Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")], by.x = "Gene", by.y = "Gene", all = F)
 ```
 ```{r plot LeafBladeVsSeedlingLeaf.Hyb2MP}
 ###Set limits
@@ -3528,6 +4132,7 @@ ggsave(filename =paste0(PathToPlots, "tmt.cpm.RIL.6H.Hyb2MP.cor2.pdf"), dpi=300,
 
 
 #Table1
+
 ```{r setup dataframe tmt.cpm.RIL.6H.Hyb2MP.cor}
 #combine RIL and 6 hybrids Protein
 tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
@@ -3550,54 +4155,55 @@ table1$Category[table1$Gene %in% GOIs$acs2] <- "acs2"
 table1$Category[table1$Gene %in% GOIs$acs6] <- "acs6"
 #Re-order
 table1 <- table1[(order(-table1$PearsonCor)),]
-```
-```{r}
 #Trim to top 1.5%
 table1 <- table1[1:(.015*nrow(table1)),]
 
 write.csv(table1, "Table1.csv", row.names = F)
+```
+#Supplemental Table 1
+```{r}
+SupTab1 <- Reduce(function(x,y) merge(x,y,by="Accession",all=TRUE) ,list(tmt.SL[,c("Accession", "HYB.MP")], tmt.LB[,c("Accession", "HYB.MP")], tmt.6H[,c("Accession", "B73xMo17.MP")], tmt.RIL[,c("Accession", "BM.BM.MP")]))
 
-nrow(test[test$Gene %in% c(NE.PtRibo, PE.ribo),])
-nrow(test)
-```
-```{r}
-test <- table1[table1$Gene%in% c(PhANGs, PhAPGs),]
-median(test$PearsonCor)
-```
-```{r}
-test <- table2[table2$Gene%in% c(PhANGs, PhAPGs),]
-median(test$PearsonCor)
+colnames(SupTab1) <- c("Accession", "SeedlingLeaf_BxM.MP", "LeafBlade_BxM.MP", "6Hybrids_BxM.MP", "RILhybrids_BxM.MP")
+
+write.csv(SupTab1, "SupplementalTable1.csv", row.names = F)
 ```
 
 
 
-```{r}
-#combine RIL and 6 hybrids RNA
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+
+
+
+
+
+
+
+
+
+#Supplemental Table 2
+```{r supplemental table 2}
+#combine RIL and 6 hybrids Protein
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
+#convert Accession column to gene column
+tmt.RIL.6H.Hyb2MP$Gene <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 14)
 #run correlation function
-cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 #Set GOIs
-table2 <- cpm.RIL.6H.Hyb2MP.cor[,c(1, 17)]
-colnames(table2) <- c("Gene", "PearsonCor")
-table2$Category <- "Other"
-table2$Category[table2$Gene %in% GOIs$plastid] <- "Plastid"
-table2$Category[table2$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
-table2$Category[table2$Gene %in% GOIs$NE.PtRibo] <- "NE plastid ribosome"
-table2$Category[table2$Gene %in% GOIs$PhANGs] <- "PhANGs"
-table2$Category[table2$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
-table2$Category[table2$Gene %in% GOIs$CytoRibo] <- "Cytosolic ribosome"
-table2$Category[table2$Gene %in% GOIs$EtBio] <- "Ethylene biosynthesis"
-table2$Category[table2$Gene %in% GOIs$acs2] <- "acs2"
-table2$Category[table2$Gene %in% GOIs$acs6] <- "acs6"
+SupTab2 <- tmt.RIL.6H.Hyb2MP.cor[,c(17,1,18)]
+colnames(SupTab2) <- c("Gene", "Accession", "PearsonCor")
+SupTab2$Category <- "Other"
+SupTab2$Category[SupTab2$Gene %in% GOIs$plastid] <- "Plastid"
+SupTab2$Category[SupTab2$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
+SupTab2$Category[SupTab2$Gene %in% GOIs$NE.PtRibo] <- "NE plastid ribosome"
+SupTab2$Category[SupTab2$Gene %in% GOIs$PhANGs] <- "PhANGs"
+SupTab2$Category[SupTab2$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
+SupTab2$Category[SupTab2$Gene %in% GOIs$CytoRibo] <- "Cytosolic ribosome"
+SupTab2$Category[SupTab2$Gene %in% GOIs$EtBio] <- "Ethylene biosynthesis"
+SupTab2$Category[SupTab2$Gene %in% GOIs$acs2] <- "ACS2"
+SupTab2$Category[SupTab2$Gene %in% GOIs$acs6] <- "ACS6"
+SupTab2$Category[SupTab2$Gene %in% GOIs$sams1] <- "SAMS1"
 #Re-order
-table2 <- table2[(order(-table2$PearsonCor)),]
+SupTab2 <- SupTab2[(order(-SupTab2$PearsonCor)),]
+write.csv(SupTab2, "SupplementalTable2.csv", row.names = F)
 ```
-```{r}
-table2
-```
-
-
-
-
-
 
