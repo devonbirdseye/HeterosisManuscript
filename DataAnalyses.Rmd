@@ -1034,6 +1034,7 @@ ttestFun <- function(df, col1, col2){
   result
 }
 ```
+
 ```{r plotting colors}
 colors.p <- c("Other"="grey70", "Plastid"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
 
@@ -2157,7 +2158,7 @@ ggsave(filename =paste0(PathToPlots, "cpm.RIL.6H.Hyb2MP.cor.densities.pdf"), dpi
 ```
 #Figure tmt.cpm.RIL.6H.Hyb2MP.cor.densities
 
-```{r}
+```{r tmt.cpm.RIL.6H.Hyb2MP.cor.densities}
 tmt.RIL.6H.Hyb2MP.cor$data <- "Protein"
 cpm.RIL.6H.Hyb2MP.cor$data <- "RNA"
 tmt.cpm.RIL.6H.Hyb2MP.cor <- rbind(tmt.RIL.6H.Hyb2MP.cor[,c(17,18,21)], cpm.RIL.6H.Hyb2MP.cor[,c(1,17,20)])
@@ -2846,7 +2847,7 @@ tmt.acs.sa <- tmt.acs.sa[(order(tmt.acs.sa$Order)),]
 ###factor
 tmt.acs.sa$Category <- factor(tmt.acs.sa$Category, levels = c("Other", "ics", "pal1", "pal4", "pal5", "pal6", "pal7","pal8", "pal9", "pal10"))
 ```
-```{r}
+```{r plot tmt.acs.sa.vol}
 tmt.acs.sa.vol <- ggplot(tmt.acs.sa, mapping=aes(x=l2.ACS.B73, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2)+
   scale_color_manual(values=colors.v[c(1,3,4,8,9,11:15)], name="Category")+
@@ -3004,7 +3005,7 @@ tmt.acs.yuc <- tmt.acs.yuc[(order(tmt.acs.yuc$Order)),]
 ###factor
 tmt.acs.yuc$Category <- factor(tmt.acs.yuc$Category, levels = c("Other", "yuc2", "yuc4", "yuc5", "yuc6", "yuc7","yuc8", "yuc9"))
 ```
-```{r}
+```{r plot tmt.acs.yuc.vol}
 tmt.acs.yuc.vol <- ggplot(tmt.acs.yuc, mapping=aes(x=l2.ACS.B73, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2)+
   scale_color_manual(values=colors.v[c(1,11:15)], name="Category")+
@@ -3389,10 +3390,12 @@ tmt.BxM.6H.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=tmt.BxM.6H.entrez.n
 rownames(tmt.BxM.6H.entrez.nodups.trim) <- tmt.BxM.6H.entrez.nodups$Entrez
 ```
 ```{r plot tmt.BxM.6H.zma00592}
-pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00260", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
+tmt.BxM.6H.entrez.nodups.trim.pv <- pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
 ```
-```{r plot tmt.BxM.6H.zma00592}
-pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00260", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
+```{r}
+tmt.BxM.6H.entrez.nodups.trim.pv.df <- tmt.BxM.6H.entrez.nodups.trim.pv$plot.data.gene
+tmt.BxM.6H.entrez.nodups.trim.pv.df <- merge.data.frame(tmt.BxM.6H.entrez.nodups.trim.pv.df, mgdb[,c("Entrez", "v4_gene_model")], by.x="kegg.names", by.y = "Entrez", all.x = T, all.y = F)
+tmt.BxM.6H.entrez.nodups.trim.pv.df <- unique(tmt.BxM.6H.entrez.nodups.trim.pv.df[,c("v4_gene_model", "kegg.names", "labels", "all.mapped", "l2.B73xMo17.MP")])
 ```
 #Figure tmt.acs.zma00592
 ```{r setup dataframe tmt.acs.zma00592}
@@ -3407,8 +3410,43 @@ tmt.acs.entrez.nodups.trim <- data.frame("l2.ACS.B73"=tmt.acs.entrez.nodups$l2.A
 rownames(tmt.acs.entrez.nodups.trim) <- tmt.acs.entrez.nodups$Entrez
 ```
 ```{r plot tmt.acs.zma00592}
-pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.acs.zma00592")
+tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.acs.zma00592")
 ```
+```{r}
+tmt.acs.entrez.nodups.trim.pv.df <- tmt.acs.entrez.nodups.trim.pv$plot.data.gene
+tmt.acs.entrez.nodups.trim.pv.df <- merge.data.frame(tmt.acs.entrez.nodups.trim.pv.df, mgdb[,c("Entrez", "v4_gene_model")], by.x="kegg.names", by.y = "Entrez", all.x = T, all.y = F)
+tmt.acs.entrez.nodups.trim.pv.df <- unique(tmt.acs.entrez.nodups.trim.pv.df[,c("v4_gene_model", "kegg.names", "labels", "all.mapped", "l2.ACS.B73")])
+```
+
+#Supplemental Figure S3
+```{r}
+SupTab3a <- (tmt.BxM.6H.entrez.nodups.trim.pv.df[,c("labels", "all.mapped")])
+SupTab3a <- separate(SupTab3a, 'all.mapped', paste("all.mapped", 1:4, sep="."), sep=",", extra="drop")
+SupTab3a <- melt(SupTab3a, id.vars="labels")
+SupTab3a <- SupTab3a[,c("labels", "value")]
+SupTab3a$value[SupTab3a$value==""] <- NA
+SupTab3a <- na.omit(SupTab3a)
+colnames(SupTab3a) <- c("labels", "Gene.entrez")
+
+SupTab3b <- (tmt.acs.entrez.nodups.trim.pv.df[,c("labels", "all.mapped")])
+SupTab3b <- separate(SupTab3b, 'all.mapped', paste("all.mapped", 1:4, sep="."), sep=",", extra="drop")
+SupTab3b <- melt(SupTab3b, id.vars="labels")
+SupTab3b <- SupTab3b[,c("labels", "value")]
+SupTab3b$value[SupTab3b$value==""] <- NA
+SupTab3b <- na.omit(SupTab3b)
+colnames(SupTab3b) <- c("labels", "Gene.entrez")
+
+SupTab3 <- merge.data.frame(SupTab3a, SupTab3b, by.x = "labels", by.y = "labels", all=T)
+SupTab3 <- unique(SupTab3[,c(1,3)])
+colnames(SupTab3) <- c("labels", "Gene.entrez")
+SupTab3 <- merge.data.frame(SupTab3, mgdb[,c("v4_gene_model", "Entrez")],by.x="Gene.entrez", by.y="Entrez", all.x = T, all.y = F)
+SupTab3 <- merge.data.frame(SupTab3, tmt.6H[,c("Gene", "l2.B73xMo17.MP")], by.x = "v4_gene_model", by.y = "Gene", all.x = T, ally.=F)
+SupTab3 <- merge.data.frame(SupTab3, tmt.acs[,c("Gene", "l2.ACS.B73")], by.x = "v4_gene_model", by.y = "Gene", all.x = T, ally.=F)
+write.csv(SupTab3, "SupplementalTable3.csv", row.names = F)
+```
+
+
+
 
 #Figure tmt.cpm.BxM.LB.plastid
 ```{r tmt.cpm.BxM.LB.plastid}
