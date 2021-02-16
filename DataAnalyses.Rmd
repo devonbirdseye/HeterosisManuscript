@@ -1,5 +1,5 @@
 ---
-title: "Data Analyses"
+title: "Data Analyses of protein and RNA expression"
 output: github_document
 author: "Devon Birdseye"
 date: "08/07/2020"
@@ -2032,7 +2032,17 @@ table1 <- table1[,c("Accession", "Pearson", "Group")]
 write.csv(table1, "Table1.csv", row.names = F)
 ```
 #Supplemental Table 2
-```{r}
+```{r SupTab2a}
+#merge pathview data with MaizeGDB info
+tmt.BxM.6H.entrez.nodups.trim.pv.df <- tmt.BxM.6H.entrez.nodups.trim.pv$plot.data.gene
+tmt.BxM.6H.entrez.nodups.trim.pv.df <- merge.data.frame(tmt.BxM.6H.entrez.nodups.trim.pv.df, mgdb[,c("Entrez", "v4_gene_model")], by.x="kegg.names", by.y = "Entrez", all.x = T, all.y = F)
+tmt.BxM.6H.entrez.nodups.trim.pv.df <- unique(tmt.BxM.6H.entrez.nodups.trim.pv.df[,c("v4_gene_model", "kegg.names", "labels", "all.mapped", "l2.B73xMo17.MP")])
+
+tmt.acs.entrez.nodups.trim.pv.df <- tmt.acs.entrez.nodups.trim.pv$plot.data.gene
+tmt.acs.entrez.nodups.trim.pv.df <- merge.data.frame(tmt.acs.entrez.nodups.trim.pv.df, mgdb[,c("Entrez", "v4_gene_model")], by.x="kegg.names", by.y = "Entrez", all.x = T, all.y = F)
+tmt.acs.entrez.nodups.trim.pv.df <- unique(tmt.acs.entrez.nodups.trim.pv.df[,c("v4_gene_model", "kegg.names", "labels", "all.mapped", "l2.ACS.B73")])
+
+#Format table
 SupTab2a <- (tmt.BxM.6H.entrez.nodups.trim.pv.df[,c("labels", "all.mapped")])
 SupTab2a <- separate(SupTab2a, 'all.mapped', paste("all.mapped", 1:4, sep="."), sep=",", extra="drop")
 SupTab2a <- melt(SupTab2a, id.vars="labels")
@@ -2062,43 +2072,43 @@ write.csv(SupTab2, "SupplementalTable2.csv", row.names = F)
 
 
 #Supplemental Data Set 1
-```{r supDS1 protein}
-SupDS1a <- Reduce(function(x,y) merge(x,y,by="Accession",all=TRUE) ,list(tmt.SL[,c("Accession", "HYB.MP")], tmt.LB[,c("Accession", "HYB.MP")], tmt.6H[,c("Accession", "B73xMo17.MP")], tmt.RIL[,c("Accession", "BM.BM.MP")]))
+```{r SDS1 protein}
+SDS1a <- Reduce(function(x,y) merge(x,y,by="Accession",all=TRUE) ,list(tmt.SL[,c("Accession", "HYB.MP")], tmt.LB[,c("Accession", "HYB.MP")], tmt.6H[,c("Accession", "B73xMo17.MP")], tmt.RIL[,c("Accession", "BM.BM.MP")]))
 
-colnames(SupDS1a) <- c("Accession", "Protein_SeedlingLeaf_BxM.MP", "Protein_LeafBlade_BxM.MP", "Protein_6Hybrids_BxM.MP", "Protein_RILhybrids_BxM.MP")
+colnames(SDS1a) <- c("Accession", "Protein_SeedlingLeaf_BxM.MP", "Protein_LeafBlade_BxM.MP", "Protein_6Hybrids_BxM.MP", "Protein_RILhybrids_BxM.MP")
 ```
-```{r supDS1 rna}
-SupDS1b <- Reduce(function(x,y) merge(x,y,by="Gene",all=TRUE) ,list(cpm.SL[,c("Gene", "B73xMo17.MP")], cpm.LB[,c("Gene", "B73xMo17.MP")], cpm.6H[,c("Gene", "B73xMo17.MP")], cpm.RIL[,c("Gene", "B73xMo17.MP")]))
+```{r SDS1 rna}
+SDS1b <- Reduce(function(x,y) merge(x,y,by="Gene",all=TRUE) ,list(cpm.SL[,c("Gene", "B73xMo17.MP")], cpm.LB[,c("Gene", "B73xMo17.MP")], cpm.6H[,c("Gene", "B73xMo17.MP")], cpm.RIL[,c("Gene", "B73xMo17.MP")]))
 
-colnames(SupDS1b) <- c("Gene", "RNA_SeedlingLeaf_BxM.MP", "RNA_LeafBlade_BxM.MP", "RNA_6Hybrids_BxM.MP", "RNA_RILhybrids_BxM.MP")
+colnames(SDS1b) <- c("Gene", "RNA_SeedlingLeaf_BxM.MP", "RNA_LeafBlade_BxM.MP", "RNA_6Hybrids_BxM.MP", "RNA_RILhybrids_BxM.MP")
 ```
-```{r supDS1 combine protein and rna}
-SupDS1a$Gene <- substr(SupDS1a$Accession, start = 1, stop = 14)
-SupDS1 <- merge.data.frame(SupDS1a, SupDS1b, by.x = "Gene", by.y = "Gene", all = T)
-SupDS1 <- SupDS1[order(-SupDS1$Protein_SeedlingLeaf_BxM.MP),]
+```{r SDS1 combine protein and rna}
+SDS1a$Gene <- substr(SDS1a$Accession, start = 1, stop = 14)
+SDS1 <- merge.data.frame(SDS1a, SDS1b, by.x = "Gene", by.y = "Gene", all = T)
+SDS1 <- SDS1[order(-SDS1$Protein_SeedlingLeaf_BxM.MP),]
 ```
-```{r supDS1 add category column}
-SupDS1$Category <- "Other"
-SupDS1$Category[SupDS1$Gene %in% GOIs$plastid] <- "Plastid"
-SupDS1$Category[SupDS1$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
-SupDS1$Category[SupDS1$Gene %in% GOIs$NE.PtRibo] <- "NE plastid ribosome"
-SupDS1$Category[SupDS1$Gene %in% GOIs$PhANGs] <- "PhANGs"
-SupDS1$Category[SupDS1$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
-SupDS1$Category[SupDS1$Gene %in% GOIs$CytoRibo] <- "Cytosolic ribosome"
-SupDS1$Category[SupDS1$Gene %in% GOIs$SAMS] <- "Ethylene biosynthesis - SAM synthase"
-SupDS1$Category[SupDS1$Gene %in% GOIs$ACS] <- "Ethylene biosynthesis - ACC synthase"
-SupDS1$Category[SupDS1$Gene %in% GOIs$ACO] <- "Ethylene biosynthesis - ACC oxidase"
-SupDS1$Category[SupDS1$Gene %in% GOIs$acs2] <- "Ethylene biosynthesis - ACS2"
-SupDS1$Category[SupDS1$Gene %in% GOIs$acs6] <- "Ethylene biosynthesis - ACS6"
-SupDS1$Category[SupDS1$Gene %in% GOIs$AtACO1hom] <- "Ethylene biosynthesis - AtACO1 homolog"
-SupDS1$Category[SupDS1$Gene %in% GOIs$AtACO2hom] <- "Ethylene biosynthesis - AtACO2 homolog"
-SupDS1$Category[SupDS1$Gene %in% GOIs$AtSAM1AtSAM2hom] <- "Ethylene biosynthesis - AtSAM1/2 homolog"
+```{r SDS1 add category column}
+SDS1$Category <- "Other"
+SDS1$Category[SDS1$Gene %in% GOIs$plastid] <- "Plastid"
+SDS1$Category[SDS1$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
+SDS1$Category[SDS1$Gene %in% GOIs$NE.PtRibo] <- "NE plastid ribosome"
+SDS1$Category[SDS1$Gene %in% GOIs$PhANGs] <- "PhANGs"
+SDS1$Category[SDS1$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
+SDS1$Category[SDS1$Gene %in% GOIs$CytoRibo] <- "Cytosolic ribosome"
+SDS1$Category[SDS1$Gene %in% GOIs$SAMS] <- "Ethylene biosynthesis - SAM synthase"
+SDS1$Category[SDS1$Gene %in% GOIs$ACS] <- "Ethylene biosynthesis - ACC synthase"
+SDS1$Category[SDS1$Gene %in% GOIs$ACO] <- "Ethylene biosynthesis - ACC oxidase"
+SDS1$Category[SDS1$Gene %in% GOIs$acs2] <- "Ethylene biosynthesis - ACS2"
+SDS1$Category[SDS1$Gene %in% GOIs$acs6] <- "Ethylene biosynthesis - ACS6"
+SDS1$Category[SDS1$Gene %in% GOIs$AtACO1hom] <- "Ethylene biosynthesis - AtACO1 homolog"
+SDS1$Category[SDS1$Gene %in% GOIs$AtACO2hom] <- "Ethylene biosynthesis - AtACO2 homolog"
+SDS1$Category[SDS1$Gene %in% GOIs$AtSAM1AtSAM2hom] <- "Ethylene biosynthesis - AtSAM1/2 homolog"
 
-write.csv(SupDS1[,c(1,2,11,3:10)], "SupplementalDataSet1.csv", row.names = F)
+write.csv(SDS1[,c(1,2,11,3:10)], "SplementalDataSet1.csv", row.names = F)
 ```
 
 #Supplemental Data Set 3
-```{r supplemental table 3}
+```{r SDS3}
 #combine RIL and 6 hybrids Protein
 tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
 #combine RIL and 6 hybrids RNA
@@ -2135,7 +2145,7 @@ write.csv(SupTDS3[,c(1,2,5,3,4)], "SupplementalDataSet3.csv", row.names = F)
 
 
 #Supplemental Data Set 4
-```{r write GOI dataframe}
+```{r SDS4}
 GOI.df <- as.data.frame(unlist(GOIs, use.names = F))
 colnames(GOI.df) <- "Accession"
 GOI.df$Accession <- as.character(GOI.df$Accession)
