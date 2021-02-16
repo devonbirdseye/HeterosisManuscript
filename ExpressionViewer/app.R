@@ -1,11 +1,5 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+#author: Devon Birdseye
+#date: 11/16/2020
 
 library(shiny)
 library(ggplot2)
@@ -52,13 +46,13 @@ ScatterplotFun <- function(df, xcol, ycol, xlabel, ylabel, lims, Gene, title){
               legend.position="none", plot.title = element_text(size = 12), axis.text.x = element_text(size = 12), axis.text.y = element_text(size = 12), axis.title =  element_text(size = 12))
     df.scat
 }
-# Define UI for application
+#Define UI for application
 ui <- fluidPage(
     titlePanel("Expression Visualization", windowTitle="Expression Visualization"),
-    h4("Data published in Birdseye and Gates et al., 2021"),
+    h4("Data published in Birdseye et al., 2021"),
     h5("Visualize expression heterosis for your gene(s) of interest"),
     h6("(If no points are plotted, the gene was not detected in the dataset)"),
-    # Sidebar with a text input for gene and a button choice for "RNA" or "Protein"
+    #Sidebar with a text input for gene and a button choice for "RNA" or "Protein"
     fluidRow(
         column(width = 6,
             wellPanel(
