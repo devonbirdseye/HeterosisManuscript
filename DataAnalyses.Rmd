@@ -1941,11 +1941,7 @@ rownames(tmt.BxM.6H.entrez.nodups.trim) <- tmt.BxM.6H.entrez.nodups$Entrez
 ```{r plot tmt.BxM.6H.zma00592}
 tmt.BxM.6H.entrez.nodups.trim.pv <- pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.BxM")
 ```
-```{r}
-tmt.BxM.6H.entrez.nodups.trim.pv.df <- tmt.BxM.6H.entrez.nodups.trim.pv$plot.data.gene
-tmt.BxM.6H.entrez.nodups.trim.pv.df <- merge.data.frame(tmt.BxM.6H.entrez.nodups.trim.pv.df, mgdb[,c("Entrez", "v4_gene_model")], by.x="kegg.names", by.y = "Entrez", all.x = T, all.y = F)
-tmt.BxM.6H.entrez.nodups.trim.pv.df <- unique(tmt.BxM.6H.entrez.nodups.trim.pv.df[,c("v4_gene_model", "kegg.names", "labels", "all.mapped", "l2.B73xMo17.MP")])
-```
+
 ```{r setup dataframe tmt.acs.zma00592}
 #merge with mdb to get entrez 
 tmt.acs.entrez <- merge.data.frame(tmt.acs, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
@@ -1958,13 +1954,9 @@ tmt.acs.entrez.nodups.trim <- data.frame("l2.ACS.B73"=tmt.acs.entrez.nodups$l2.A
 rownames(tmt.acs.entrez.nodups.trim) <- tmt.acs.entrez.nodups$Entrez
 ```
 ```{r plot tmt.acs.zma00592}
-tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.acs.zma00592")
+tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.acs")
 ```
-```{r}
-tmt.acs.entrez.nodups.trim.pv.df <- tmt.acs.entrez.nodups.trim.pv$plot.data.gene
-tmt.acs.entrez.nodups.trim.pv.df <- merge.data.frame(tmt.acs.entrez.nodups.trim.pv.df, mgdb[,c("Entrez", "v4_gene_model")], by.x="kegg.names", by.y = "Entrez", all.x = T, all.y = F)
-tmt.acs.entrez.nodups.trim.pv.df <- unique(tmt.acs.entrez.nodups.trim.pv.df[,c("v4_gene_model", "kegg.names", "labels", "all.mapped", "l2.ACS.B73")])
-```
+
 
 #Figure S9
 ```{r setup dataframe tmt.cpm.RIL.6H.Hyb2MP.cor2}
