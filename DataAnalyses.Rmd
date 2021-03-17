@@ -67,22 +67,6 @@ tmt.SL$l2.B73xMo17.MP <- log2(tmt.SL$HYB.MP)
 tmt.SL$B73.Mo17 <- tmt.SL$B73avg/tmt.SL$Mo17avg
 tmt.SL$l2.B73.Mo17 <-log2(tmt.SL$B73.Mo17)
 ```
-```{r subset BxM from day vs. night experiment (day)}
-#BxM from Day vs. night experiment (DN)
-tmt.DN <- tmt[,c(171:183,62:70)]
-#Remove proteins not detected in one or more samples
-tmt.DN <- na.omit(tmt.DN)
-#Calculate averages of bio reps
-tmt.DN$B73avg <- rowMeans(tmt.DN[,c("Day.B73.r1", "Day.B73.r2", "Day.B73.r3")])
-tmt.DN$Mo17avg <- rowMeans(tmt.DN[,c("Day.Mo17.r1", "Day.Mo17.r2", "Day.Mo17.r3")])
-tmt.DN$HYBavg <- rowMeans(tmt.DN[,c("Day.BM.r1", "Day.BM.r2", "Day.BM.r3")])
-tmt.DN$MPavg <- rowMeans(tmt.DN[,c("B73avg", "Mo17avg")])
-#calculate ratios
-tmt.DN$HYB.MP <- tmt.DN$HYBavg/tmt.DN$MPavg
-tmt.DN$l2.B73xMo17.MP <- log2(tmt.DN$HYB.MP)
-tmt.DN$B73.Mo17 <- tmt.DN$B73avg/tmt.DN$Mo17avg
-tmt.DN$l2.B73.Mo17 <-log2(tmt.DN$B73.Mo17)
-```
 ```{r subset BxM mature leaf blade from original experiment}
 #BxM from Original Experiment (OG)
 tmt.LB <- tmt[,c(171:183,22:30)]
@@ -98,32 +82,6 @@ tmt.LB$HYB.MP <- tmt.LB$HYBavg/tmt.LB$MPavg
 tmt.LB$l2.B73xMo17.MP <- log2(tmt.LB$HYB.MP)
 tmt.LB$B73.Mo17 <- tmt.LB$B73avg/tmt.LB$Mo17avg
 tmt.LB$l2.B73.Mo17 <-log2(tmt.LB$B73.Mo17)
-```
-```{r subset BxM from day vs. night experiment (both day and night)}
-#BxM from Day vs. night experiment (DN.both)
-tmt.DN.both <- tmt[,c(171:183,62:70,72:80)]
-#Remove proteins not detected in one or more samples
-tmt.DN.both <- na.omit(tmt.DN.both)
-#Calculate averages of bio reps
-tmt.DN.both$day.B73avg <- rowMeans(tmt.DN.both[,c("Day.B73.r1", "Day.B73.r2", "Day.B73.r3")])
-tmt.DN.both$day.Mo17avg <- rowMeans(tmt.DN.both[,c("Day.Mo17.r1", "Day.Mo17.r2", "Day.Mo17.r3")])
-tmt.DN.both$day.HYBavg <- rowMeans(tmt.DN.both[,c("Day.BM.r1", "Day.BM.r2", "Day.BM.r3")])
-tmt.DN.both$day.MPavg <- rowMeans(tmt.DN.both[,c("day.B73avg", "day.Mo17avg")])
-
-tmt.DN.both$night.B73avg <- rowMeans(tmt.DN.both[,c("Night.B73.r1", "Night.B73.r2", "Night.B73.r3")])
-tmt.DN.both$night.Mo17avg <- rowMeans(tmt.DN.both[,c("Night.Mo17.r1", "Night.Mo17.r2", "Night.Mo17.r3")])
-tmt.DN.both$night.HYBavg <- rowMeans(tmt.DN.both[,c("Night.BM.r1", "Night.BM.r2", "Night.BM.r3")])
-tmt.DN.both$night.MPavg <- rowMeans(tmt.DN.both[,c("night.B73avg", "night.Mo17avg")])
-#calculate ratios
-tmt.DN.both$day.HYB.MP <- tmt.DN.both$day.HYBavg/tmt.DN.both$day.MPavg
-tmt.DN.both$day.l2.B73xMo17.MP <- log2(tmt.DN.both$day.HYB.MP)
-tmt.DN.both$day.B73.Mo17 <- tmt.DN.both$day.B73avg/tmt.DN.both$day.Mo17avg
-tmt.DN.both$day.l2.B73.Mo17 <-log2(tmt.DN.both$day.B73.Mo17)
-
-tmt.DN.both$night.HYB.MP <- tmt.DN.both$night.HYBavg/tmt.DN.both$night.MPavg
-tmt.DN.both$night.l2.B73xMo17.MP <- log2(tmt.DN.both$night.HYB.MP)
-tmt.DN.both$night.B73.Mo17 <- tmt.DN.both$night.B73avg/tmt.DN.both$night.Mo17avg
-tmt.DN.both$night.l2.B73.Mo17 <-log2(tmt.DN.both$night.B73.Mo17)
 ```
 ```{r subset all hybrids from 6-hybrid experiment}
 #Subset all hybrids from 6-hybrid experiment (6H)
@@ -259,6 +217,8 @@ tmt.acs.6H <- merge.data.frame(tmt.acs, tmt.6H[,c("Accession", "l2.B73xMo17.MP")
 #merge with BxM from RIL data (RIL)
 tmt.acs.RIL <- merge.data.frame(tmt.acs, tmt.RIL[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
 ```
+
+
 
 #Import RNA data
 ```{r import RNA data}
@@ -457,6 +417,8 @@ mgdb <- read.csv(paste0(PathToData,"mgdb.csv"), stringsAsFactors = F, header = F
 colnames(mgdb) <- mgdb[5,]
 mgdb <- mgdb[-c(1:5),]
 ```
+
+
 ```{r organelleEntrez}
 organelleEntrez <- tmt[grep("Zema|Zeam", tmt$Accession),]
 organelleEntrez <- data.frame("Accession"=organelleEntrez$Accession, "Entrez"=NA)
@@ -1068,40 +1030,73 @@ ggsave(paste0(PathToPlots, "FigureS1.pdf"), width = 3.25, height = 2.74)
 #Figure S2
 
 ```{r setup dataframe tmt.BxM.HP.SL.plastid.all4}
-#copy
-tmt.BxM.HP.SL.OG <- tmt.SL
-tmt.BxM.HP.SL.lb <- tmt.LB
-tmt.BxM.HP.SL.6h <- tmt.6H
-tmt.BxM.HP.SL.ril <- tmt.RIL
+tmt.SL$HP <- NA
+for(i in 1:nrow(tmt.SL)){
+  if(tmt.SL[i,"B73.Mo17"] > 1.0){
+    tmt.SL[i,"HP"] <- tmt.SL[i, "B73avg"]
+  }
+  else{tmt.SL[i,"HP"] <- tmt.SL[i, "Mo17avg"]}
+}
+tmt.SL$B73xMo17.HP <- tmt.SL$HYBavg/tmt.SL$HP
+tmt.SL$l2.B73xMo17.HP <- log2(tmt.SL$B73xMo17.HP)
+
+tmt.LB$HP <- NA
+for(i in 1:nrow(tmt.LB)){
+  if(tmt.LB[i,"B73.Mo17"] > 1.0){
+    tmt.LB[i,"HP"] <- tmt.LB[i, "B73avg"]
+  }
+  else{tmt.LB[i,"HP"] <- tmt.LB[i, "Mo17avg"]}
+}
+tmt.LB$B73xMo17.HP <- tmt.LB$HYBavg/tmt.LB$HP
+tmt.LB$l2.B73xMo17.HP <- log2(tmt.LB$B73xMo17.HP)
+
+tmt.6H$HP <- NA
+for(i in 1:nrow(tmt.6H)){
+  if(tmt.6H[i,"B73.Mo17"] > 1.0){
+    tmt.6H[i,"HP"] <- tmt.6H[i, "B73"]
+  }
+  else{tmt.6H[i,"HP"] <- tmt.6H[i, "Mo17"]}
+}
+tmt.6H$B73xMo17.HP <- tmt.6H$B73xMo17/tmt.6H$HP
+tmt.6H$l2.B73xMo17.HP <- log2(tmt.6H$B73xMo17.HP)
+
+tmt.RIL$HP <- NA
+for(i in 1:nrow(tmt.RIL)){
+  if(tmt.RIL[i,"BM.B73.Mo17"] > 1.0){
+    tmt.RIL[i,"HP"] <- tmt.RIL[i, "BM.B73"]
+  }
+  else{tmt.RIL[i,"HP"] <- tmt.RIL[i, "BM.Mo17"]}
+}
+tmt.RIL$B73xMo17.HP <- tmt.RIL$BM.BM/tmt.RIL$HP
+tmt.RIL$l2.B73xMo17.HP <- log2(tmt.RIL$B73xMo17.HP)
+
 #name plot panels
-tmt.BxM.HP.SL.OG$plot <- "A"
-tmt.BxM.HP.SL.lb$plot <- "B"
-tmt.BxM.HP.SL.6h$plot <- "C"
-tmt.BxM.HP.SL.ril$plot <- "D"
+tmt.SL$plot <- "A"
+tmt.LB$plot <- "B"
+tmt.6H$plot <- "C"
+tmt.RIL$plot <- "D"
 #trim
-tmt.BxM.HP.SL.OG <- tmt.BxM.HP.SL.OG[,c("plot", "Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")]
-tmt.BxM.HP.SL.lb <- tmt.BxM.HP.SL.lb[,c("plot", "Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")]
-tmt.BxM.HP.SL.6h <- tmt.BxM.HP.SL.6h[,c("plot", "Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")]
-tmt.BxM.HP.SL.ril <- tmt.BxM.HP.SL.ril[,c("plot", "Gene", "l2.B73xMo17.MP", "l2.B73.Mo17")]
+tmt.SL.HP <- tmt.SL[,c("plot", "Gene", "l2.B73xMo17.HP")]
+tmt.LB.HP <- tmt.LB[,c("plot", "Gene", "l2.B73xMo17.HP")]
+tmt.6H.HP <- tmt.6H[,c("plot", "Gene", "l2.B73xMo17.HP")]
+tmt.RIL.HP <- tmt.RIL[,c("plot", "Gene", "l2.B73xMo17.HP")]
 #bind
-tmt.BxM.HP.SL <- rbind(tmt.BxM.HP.SL.OG,tmt.BxM.HP.SL.lb)
-tmt.BxM.HP.SL <- rbind(tmt.BxM.HP.SL,tmt.BxM.HP.SL.6h)
-tmt.BxM.HP.SL <- rbind(tmt.BxM.HP.SL,tmt.BxM.HP.SL.ril)
+tmt.HP <- rbind(tmt.SL.HP,tmt.LB.HP)
+tmt.HP <- rbind(tmt.HP,tmt.6H.HP)
+tmt.HP <- rbind(tmt.HP,tmt.RIL.HP)
 ```
 
-```{r plot tmt.BxM.HP.SL.plastid.all4}
- plot<-unique(tmt.BxM.HP.SL[,"plot"])
+```{r plot tmt.HP.plastid.all4}
+ plot<-unique(tmt.HP[,"plot"])
   plotList<-vector(mode = "list", length = length(plot))
-  plotLab<-unique(tmt.BxM.HP.SL[,"plot"])
+  plotLab<-unique(tmt.HP[,"plot"])
   for(i in 1:length(plot)){
-    df<-tmt.BxM.HP.SL[which(tmt.BxM.HP.SL[,"plot"]==plot[i]),]
+    df<-tmt.HP[which(tmt.HP[,"plot"]==plot[i]),]
     ###Set limits
 df.lims <- df
-df.lims$l2.B73xMo17.MP[df.lims$l2.B73xMo17.MP <= -.75] <- -.75
-df.lims$l2.B73xMo17.MP[df.lims$l2.B73xMo17.MP >= .75] <- .75
+df.lims$l2.B73xMo17.HP[df.lims$l2.B73xMo17.HP <= -.75] <- -.75
+df.lims$l2.B73xMo17.HP[df.lims$l2.B73xMo17.HP >= .75] <- .75
 
-df.lims$l2.B73.Mo17[df.lims$l2.B73.Mo17 <= -1] <- -1
-df.lims$l2.B73.Mo17[df.lims$l2.B73.Mo17 >= 1] <- 1
 ###Set GOIs
 df.lims.plastid <- df.lims
 
@@ -1122,7 +1117,7 @@ df.lims.plastid <- df.lims.plastid[(order(df.lims.plastid$Order)),]
 ###factor
 df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome", "PE plastid ribosome", "PhAPGs"))
     #scatter plot with marginal density curves
-    df.lims.plastid.den <- ggplot(df.lims.plastid, mapping=aes(x=l2.B73xMo17.MP, color=Category))+
+    df.lims.plastid.den <- ggplot(df.lims.plastid, mapping=aes(x=l2.B73xMo17.HP, color=Category))+
    geom_density(size=1)+
       xlim(-.75,.75)+
     scale_color_manual(values=colors.p)+
@@ -1147,7 +1142,7 @@ df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Other",
         theme(plot.title = element_text(size = 10, hjust = 0.5))
     xlab <- get_title(xlab)
     
-    xscale <- ggplot(df.lims.plastid, mapping=aes(x=l2.B73xMo17.MP, color=Category))+
+    xscale <- ggplot(df.lims.plastid, mapping=aes(x=l2.B73xMo17.HP, color=Category))+
    geom_density(size=1)+
       xlim(-.75,.75)+
       coord_cartesian(expand = F)+
@@ -1843,6 +1838,7 @@ tmt.SL.acs <- tmt.SL.acs[(order(tmt.SL.acs$Order)),]
 tmt.SL.acs$Category <- factor(tmt.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACS6","AtACO1 homolog", "AtACO2 homolog", "AtSAM1/AtSAM2 homolog"))
 ```
 
+
 ```{r setup dataframe cpm.SL.acs.vol}
 ###Set GOIs
 cpm.SL.acs <- cpm.SL
@@ -1974,6 +1970,21 @@ tmt.cpm.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL.6H.Hyb2MP, cpm.RIL.6H.Hyb2MP, 
 #Run correlation analysis between protein hyb/mp and RNA hyb/mp values
 tmt.cpm.RIL.6H.Hyb2MP.cor2 <- CorFun2(tmt.cpm.RIL.6H.Hyb2MP, 3:17, 18:32)
 ```
+```{r}
+#Subset hyb/MP values from protein data
+tmt.RIL.6H.Par2Par <- merge.data.frame(tmt.RIL[,c(6,136:144)], tmt.6H[,c(6,60:65)], by.x = "Accession", by.y = "Accession", all = F)
+#Make new gene column to merge with RNA data
+tmt.RIL.6H.Par2Par$Gene <- substr(tmt.RIL.6H.Par2Par$Accession, start = 1, stop = 14)
+
+#Subset hyb/MP values from RNA data
+cpm.RIL.Par2Par <- cpm.RIL[,c(1,85:93)]
+cpm.6H.Par2Par <- cpm.6H[,c(1,48:53)]
+cpm.RIL.6H.Par2Par <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+#Combine tmt and cpm
+tmt.cpm.RIL.6H.Par2Par <- merge.data.frame(tmt.RIL.6H.Par2Par, cpm.RIL.6H.Par2Par, by.x = "Gene", by.y = "Gene", all=F)
+#Run correlation analysis between protein hyb/mp and RNA hyb/mp values
+tmt.cpm.RIL.6H.Par2Par.cor2 <- CorFun2(tmt.cpm.RIL.6H.Par2Par, 3:17, 18:32)
+```
 
 ```{r plot tmt.cpm.RIL.6H.Hyb2MP.cor2}
 tmt.cpm.RIL.6H.Hyb2MP.cor2$Category <- "Other"
@@ -2000,7 +2011,31 @@ ggplot(tmt.cpm.RIL.6H.Hyb2MP.cor2, mapping=aes(y=Category, x=cor, fill=Category)
   scale_fill_manual(values=colors.pc)
 ggsave(filename =paste0(PathToPlots, "FigureS9.pdf"), dpi=300, width=3.25, height=2)
 ```
-
+```{r plot tmt.cpm.RIL.6H.Par2Par.cor2}
+tmt.cpm.RIL.6H.Par2Par.cor2$Category <- "Other"
+tmt.cpm.RIL.6H.Par2Par.cor2$Order <- 1
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$CytoRibo),"Order"] <- 2
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$PE.ribo),"Order"] <- 4
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$PhANGs),"Order"] <- 5
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+tmt.cpm.RIL.6H.Par2Par.cor2[(tmt.cpm.RIL.6H.Par2Par.cor2$Gene %in% GOIs$PhAPGs),"Order"] <- 6
+tmt.cpm.RIL.6H.Par2Par.cor2 <- tmt.cpm.RIL.6H.Par2Par.cor2[(order(tmt.cpm.RIL.6H.Par2Par.cor2$Order)),]
+tmt.cpm.RIL.6H.Par2Par.cor2$Category <- factor(tmt.cpm.RIL.6H.Par2Par.cor2$Category, levels = c("Other", "Cytosolic ribosome", "NE plastid ribosome", "PE plastid ribosome", "PhANGs", "PhAPGs"))
+ggplot(tmt.cpm.RIL.6H.Par2Par.cor2, mapping=aes(y=Category, x=cor, fill=Category))+
+  geom_density_ridges(alpha=0.8) +
+  theme_ridges() +
+  theme(legend.position = "none", axis.title.y = element_blank(), axis.title.x = element_text(hjust = 0.5, size=10), axis.text = element_text(size=10))+
+  coord_cartesian(expand = F)+
+  xlab("Pearson correlation")+
+  xlim(-1,1)+
+  scale_fill_manual(values=colors.pc)
+ggsave(filename =paste0(PathToPlots, "FigureS9.P2P.pdf"), dpi=300, width=3.25, height=2)
+```
 
 #Table1
 ```{r setup dataframe tmt.cpm.RIL.6H.Hyb2MP.cor}
@@ -2186,6 +2221,7 @@ GOI.df <- GOI.df[order(GOI.df$Group),]
 
 write.csv(GOI.df, "SupplementalDataSet4.csv", row.names = F)
 ```
+
 
 
 
