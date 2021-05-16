@@ -1583,6 +1583,8 @@ colnames(cpm.SL.Par2Par)[3:4] <- c("l2.ratio", "l10.ttest")
 cpm.SL.figs3 <- rbind(cpm.SL.Hyb2HP,cpm.SL.Hyb2MP)
 cpm.SL.figs3 <- rbind(cpm.SL.figs3,cpm.SL.Par2Par)
 ```
+
+
 ```{r plot figs3}
  plot<-unique(cpm.SL.figs3[,"plot"])
   plotList<-vector(mode = "list", length = length(plot))
@@ -2381,7 +2383,7 @@ ggsave(plot=plotpanel, filename =paste0(PathToPlots, "FigureS6.pdf"), dpi=300, w
 
 
 #Figure S1
-```{r setup dataframe tmt.BxM.zma00592}
+```{r setup dataframe tmt.SL.zma00710}
 Entrez2 <- Entrez
 colnames(Entrez2)[1] <- "Gene"
 #merge with mdb to get entrez 
@@ -2394,11 +2396,11 @@ tmt.SL.entrez.nodups <- tmt.SL.entrez.nodups[!duplicated(tmt.SL.entrez.nodups$En
 tmt.SL.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=tmt.SL.entrez.nodups$l2.B73xMo17.MP)
 rownames(tmt.SL.entrez.nodups.trim) <- tmt.SL.entrez.nodups$Entrez
 ```
-```{r plot tmt.SL.zma00592}
+```{r plot tmt.SL.zma00710}
 tmt.SL.entrez.nodups.trim.pv <- pathview(gene.data = tmt.SL.entrez.nodups.trim, pathway.id = "zma00710", species = "zma",  bins = 20, limit = 1, out.suffix="tmt.SL.BxM")
 ```
 #Figure S5
-```{r setup dataframe cpm.BxM.zma00592}
+```{r setup dataframe cpm.SL.zma04712}
 #merge with mdb to get entrez 
 cpm.SL.entrez <- join(cpm.SL[,c("Gene", "l2.B73xMo17.MP")], Entrez2)
 #remove proteins with no entrez or duplicate entrez
@@ -2409,24 +2411,25 @@ cpm.SL.entrez.nodups <- cpm.SL.entrez.nodups[!duplicated(cpm.SL.entrez.nodups$En
 cpm.SL.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=cpm.SL.entrez.nodups$l2.B73xMo17.MP)
 rownames(cpm.SL.entrez.nodups.trim) <- cpm.SL.entrez.nodups$Entrez
 ```
-```{r plot cpm.SL.zma00592}
+```{r plot cpm.SL.zma04712}
 cpm.SL.entrez.nodups.trim.pv <- pathview(gene.data = cpm.SL.entrez.nodups.trim, pathway.id = "zma04712", species = "zma",  bins = 20, limit = 1, out.suffix="cpm.SL.BxM")
 ```
+
 #Figure S8
 ##A
-```{r setup dataframe tmt.BxM.zma00592}
+```{r setup dataframe tmt.A682B}
 #merge with mdb to get entrez 
-tmt.BxM.6H.entrez <- merge.data.frame(tmt.6H, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
+tmt.A682B.entrez <- merge.data.frame(tmt.6H, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
 #remove proteins with no entrez or duplicate entrez
-tmt.BxM.6H.entrez.nodups <- tmt.BxM.6H.entrez[!is.na(tmt.BxM.6H.entrez$Entrez),]
-tmt.BxM.6H.entrez.nodups <- tmt.BxM.6H.entrez.nodups[!tmt.BxM.6H.entrez.nodups$Entrez=="",]
-tmt.BxM.6H.entrez.nodups <- tmt.BxM.6H.entrez.nodups[!duplicated(tmt.BxM.6H.entrez.nodups$Entrez),]
+tmt.A682B.entrez.nodups <- tmt.A682B.entrez[!is.na(tmt.A682B.entrez$Entrez),]
+tmt.A682B.entrez.nodups <- tmt.A682B.entrez.nodups[!tmt.A682B.entrez.nodups$Entrez=="",]
+tmt.A682B.entrez.nodups <- tmt.A682B.entrez.nodups[!duplicated(tmt.A682B.entrez.nodups$Entrez),]
 #make new dataframe with just l2(BM/MP) values and Entrez as rownames
-tmt.BxM.6H.entrez.nodups.trim <- data.frame("l2.A682xB73.MP"=tmt.BxM.6H.entrez.nodups$l2.A682xB73.MP)
-rownames(tmt.BxM.6H.entrez.nodups.trim) <- tmt.BxM.6H.entrez.nodups$Entrez
+tmt.A682B.entrez.nodups.trim <- data.frame("l2.A682xB73.MP"=tmt.A682B.entrez.nodups$l2.A682xB73.MP)
+rownames(tmt.A682B.entrez.nodups.trim) <- tmt.A682B.entrez.nodups$Entrez
 ```
-```{r plot tmt.BxM.6H.zma00592}
-tmt.BxM.6H.entrez.nodups.trim.pv <- pathview(gene.data = tmt.BxM.6H.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.A682B.BxM")
+```{r plot tmt.A682B}
+tmt.A682B.entrez.nodups.trim.pv <- pathview(gene.data = tmt.A682B.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.A682B")
 ```
 ##B
 ```{r setup dataframe tmt.acs.zma00592}
