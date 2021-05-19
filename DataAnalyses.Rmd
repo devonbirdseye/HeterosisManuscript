@@ -726,6 +726,8 @@ cpm.SL$l10.ttest.P <- -(log10(cpm.SL$ttest.P))
 ##Remove genes that weren't detected as protein
 cpm.SL.protein <- cpm.SL[cpm.SL$Gene%in%tmt.SL$Gene,]
 ```
+
+
 ```{r subset BxM leaf blade from original experiment}
 #Original experiment seedling leaf BxM
 cpm.LB <- as.data.frame(cpm.OG.data[,c("gid","BR001", "BR002", "BR004", "BR003", "BR005", "BR007", "BR006", "BR008", "BR009")])
@@ -2400,7 +2402,7 @@ rownames(tmt.SL.entrez.nodups.trim) <- tmt.SL.entrez.nodups$Entrez
 tmt.SL.entrez.nodups.trim.pv <- pathview(gene.data = tmt.SL.entrez.nodups.trim, pathway.id = "zma00710", species = "zma",  bins = 20, limit = 1, out.suffix="tmt.SL.BxM")
 ```
 #Figure S5
-```{r setup dataframe cpm.SL.zma04712}
+```{r setup dataframe S5a}
 #merge with mdb to get entrez 
 cpm.SL.entrez <- join(cpm.SL[,c("Gene", "l2.B73xMo17.MP")], Entrez2)
 #remove proteins with no entrez or duplicate entrez
@@ -2411,9 +2413,26 @@ cpm.SL.entrez.nodups <- cpm.SL.entrez.nodups[!duplicated(cpm.SL.entrez.nodups$En
 cpm.SL.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=cpm.SL.entrez.nodups$l2.B73xMo17.MP)
 rownames(cpm.SL.entrez.nodups.trim) <- cpm.SL.entrez.nodups$Entrez
 ```
-```{r plot cpm.SL.zma04712}
+```{r plot S5a}
 cpm.SL.entrez.nodups.trim.pv <- pathview(gene.data = cpm.SL.entrez.nodups.trim, pathway.id = "zma04712", species = "zma",  bins = 20, limit = 1, out.suffix="cpm.SL.BxM")
 ```
+
+```{r setup dataframe S5b}
+#merge with mdb to get entrez 
+cpm.RIL.6H.Hyb2MP.cor.entrez <- merge.data.frame(cpm.RIL.6H.Hyb2MP.cor, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
+#remove proteins with no entrez or duplicate entrez
+cpm.RIL.6H.Hyb2MP.cor.entrez.nodups <- cpm.RIL.6H.Hyb2MP.cor.entrez[!is.na(cpm.RIL.6H.Hyb2MP.cor.entrez$Entrez),]
+cpm.RIL.6H.Hyb2MP.cor.entrez.nodups <- cpm.RIL.6H.Hyb2MP.cor.entrez.nodups[!cpm.RIL.6H.Hyb2MP.cor.entrez.nodups$Entrez=="",]
+cpm.RIL.6H.Hyb2MP.cor.entrez.nodups <- cpm.RIL.6H.Hyb2MP.cor.entrez.nodups[!duplicated(cpm.RIL.6H.Hyb2MP.cor.entrez.nodups$Entrez),]
+#make new dataframe with just l2(BM/MP) values and Entrez as rownames
+cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim <- data.frame("cor"=cpm.RIL.6H.Hyb2MP.cor.entrez.nodups$cor)
+rownames(cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim) <- cpm.RIL.6H.Hyb2MP.cor.entrez.nodups$Entrez
+```
+```{r plot S5b}
+cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim.pv <- pathview(gene.data = cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim, pathway.id = "zma04712", species = "zma",  bins = 20, limit = 1, out.suffix="cpm.cor", node.sum = "max.abs")
+```
+
+
 
 #Figure S8
 ##A
@@ -2449,19 +2468,8 @@ tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim
 
 #Supplemental Table 1
 ```{r ST1 protein}
-ST1a <- Reduce(function(x,y) merge(x,y,by="Accession",all=TRUE) ,list(tmt.SL[,c("Accession", "B73xMo17.MP")], tmt.LB[,c("Accession", "B73xMo17.MP")], tmt.6H[,c("Accession", "B73xMo17.MP")], tmt.RIL[,c("Accession", "BM.BM.MP")]))
-
-colnames(ST1a) <- c("Accession", "Protein_SeedlingLeaf_BxM.MP", "Protein_LeafBlade_BxM.MP", "Protein_6Hybrids_BxM.MP", "Protein_RILhybrids_BxM.MP")
-```
-```{r ST1 rna}
-ST1b <- Reduce(function(x,y) merge(x,y,by="Gene",all=TRUE) ,list(cpm.SL[,c("Gene", "B73xMo17.MP")], cpm.LB[,c("Gene", "B73xMo17.MP")], cpm.6H[,c("Gene", "B73xMo17.MP")], cpm.RIL[,c("Gene", "B73xMo17.MP")]))
-
-colnames(ST1b) <- c("Gene", "RNA_SeedlingLeaf_BxM.MP", "RNA_LeafBlade_BxM.MP", "RNA_6Hybrids_BxM.MP", "RNA_RILhybrids_BxM.MP")
-```
-```{r ST1 combine protein and rna}
-ST1a$Gene <- substr(ST1a$Accession, start = 1, stop = 14)
-ST1 <- merge.data.frame(ST1a, ST1b, by.x = "Gene", by.y = "Gene", all = T)
-ST1 <- ST1[order(-ST1$Protein_SeedlingLeaf_BxM.MP),]
+ST1 <- tmt.SL[,c("Gene", "Accession", "Protein", "B73xMo17.MP", "B73.Mo17")]
+colnames(ST1) <- c("Gene", "Accession", "Protein", "BxM.Midparent", "B73.Mo17")
 ```
 ```{r ST1 add category column}
 ST1$Category <- "Other"
@@ -2480,7 +2488,7 @@ ST1$Category[ST1$Gene %in% GOIs$AtACO1hom] <- "Ethylene biosynthesis - AtACO1 ho
 ST1$Category[ST1$Gene %in% GOIs$AtACO2hom] <- "Ethylene biosynthesis - AtACO2 homolog"
 ST1$Category[ST1$Gene %in% GOIs$AtSAM1AtSAM2hom] <- "Ethylene biosynthesis - AtSAM1/2 homolog"
 
-write.csv(ST1[,c(1,2,11,3:10)], paste0(PathToTables,"SupplementalTable1.csv"), row.names = F)
+write.csv(ST1, paste0(PathToTables,"SupplementalTable1.csv"), row.names = F)
 ```
 
 #Supplemental Table 4
