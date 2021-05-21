@@ -726,8 +726,6 @@ cpm.SL$l10.ttest.P <- -(log10(cpm.SL$ttest.P))
 ##Remove genes that weren't detected as protein
 cpm.SL.protein <- cpm.SL[cpm.SL$Gene%in%tmt.SL$Gene,]
 ```
-
-
 ```{r subset BxM leaf blade from original experiment}
 #Original experiment seedling leaf BxM
 cpm.LB <- as.data.frame(cpm.OG.data[,c("gid","BR001", "BR002", "BR004", "BR003", "BR005", "BR007", "BR006", "BR008", "BR009")])
@@ -1104,10 +1102,6 @@ PlantHeights <- read.csv(paste0(PathToData, "SupplementalTable3.csv"), stringsAs
 PlantHeights.6h.MP <- PlantHeights$Hyb.MP[PlantHeights$Experiment=="6H"]
 #Make vector of RIL hyb/MP ratios
 PlantHeights.ril.MP <- PlantHeights$Hyb.MP[PlantHeights$Experiment=="RIL"]
-#Make vector of 6H hyb/HP ratios
-PlantHeights.6h.HP <- PlantHeights$Hyb.HP[PlantHeights$Experiment=="6H"]
-#Make vector of RIL hyb/HP ratios
-PlantHeights.ril.HP <- PlantHeights$Hyb.HP[PlantHeights$Experiment=="RIL"]
 ```
 
 
@@ -1119,8 +1113,6 @@ mgdb <- read.csv(paste0(PathToData,"mgdb.csv"), stringsAsFactors = F, header = F
 colnames(mgdb) <- mgdb[5,]
 mgdb <- mgdb[-c(1:5),]
 ```
-
-
 ```{r organelleEntrez}
 organelleEntrez <- tmt[grep("Zema|Zeam", tmt$Accession),]
 organelleEntrez <- data.frame("Accession"=organelleEntrez$Accession, "Entrez"=NA)
@@ -1334,7 +1326,7 @@ AtSAM1AtSAM2hom <- "Zm00001d010920"
 ```
 
 ##Carbon fixation
-```{r}
+```{r CarbonFixation}
 CarbonFixationKEGG <- read.csv(paste0(PathToData, "CarbonFixationKEGG.csv"), stringsAsFactors = F)
 CarbonFixation <- join(CarbonFixationKEGG, Entrez)
 CarbonFixation <- na.omit(CarbonFixation$Accession)
@@ -1342,21 +1334,21 @@ CarbonFixation <- na.omit(CarbonFixation$Accession)
 
 
 ##TPR
-```{r}
+```{r TPR}
 TPR <- tmt$Gene[grep("TPR", tmt$Protein)]
 ```
 ##PTAC
-```{r}
+```{r PTAC}
 PTAC <- tmt$Gene[grep("plastid transcriptionally", tmt$Protein)]
 ```
 
 ##Oxidoreductase
-```{r}
+```{r Oxidoreductase}
 Oxidoreductase <- gamer$db_object_id[gamer$term_accession=="GO:0016491"]
 ```
 
 ##Biosynthesis of Secondary Metabolites
-```{r}
+```{r BiosynSecMet}
 BiosynSecMetKEGG <- read.delim(paste0(PathToData, "BiosynSecMetKEGG.txt"))
 colnames(BiosynSecMetKEGG)[4] <- "Entrez"
 BiosynSecMetKEGG$Entrez <- str_replace(BiosynSecMetKEGG$Entrez, ",", "")
@@ -1367,11 +1359,11 @@ length(BiosynSecMet)
 ```
 
 ##Protease
-```{r}
+```{r Protease}
 Protease <- gamer$db_object_id[gamer$term_accession=="GO:0008233"]
 ```
 ##Alpha-linoleic acid metabolism
-```{r}
+```{rAlphaLinAcidMetv}
 AlphaLinAcidMetKEGG <- read.delim(paste0(PathToData, "AlphaLinAcidMet.txt"))
 colnames(AlphaLinAcidMetKEGG)[4] <- "Entrez"
 AlphaLinAcidMetKEGG$Entrez <- str_replace(AlphaLinAcidMetKEGG$Entrez, ",", "")
@@ -1381,7 +1373,7 @@ AlphaLinAcidMet <- na.omit(AlphaLinAcidMet$Accession)
 ```
 
 ##Protein biosynthesis
-```{r}
+```{r ProteinBioSyn}
 elongationF <- tmt$Gene[grep("elongation factor", tmt$Protein)]
 initiationF <- tmt$Gene[grep("initiation factor", tmt$Protein)]
 ProteinBioSyn <- c(elongationF, initiationF)
@@ -1409,18 +1401,6 @@ CorFun <- function(x, xcols, y){
   x
 }
 ```
-```{r CorFun2}
-#Using two column sets from the same dataframe as input
-CorFun2 <- function(x, col1, col2){
-  x$cor <- NA
-  for(i in 1:nrow(x)){
-    v1 <- as.numeric(x[i,col1])
-    v2 <- as.numeric(x[i,col2])
-    c <- cor(v1, v2, method = "pearson")
-    x[i,"cor"]<- c
-  }
-  x}
-```
 ```{r get_legend}
 get_legend<-function(myggplot){
   tmp <- ggplot_gtable(ggplot_build(myggplot))
@@ -1432,22 +1412,12 @@ get_legend<-function(myggplot){
 ```{r plotting colors}
 colors.p <- c("Other"="grey70", "Plastid-localized"="black", "Cytosolic ribosome"="#EF5107", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
 
-colors.v <- c("#000000","#004949","#009292","#ff6db6","#ffb6db",
- "#490092","#006ddb","#b66dff","#6db6ff","#b6dbff",
- "#920000","#924900","#db6d00","#24ff24","#ffff6d")
-
-colors.e <- c("Other"="black","Methionine adenosyltransferase"="#24ff24", "ACC synthase"="#ff6db6", "ACC oxidase"="#920000")
-
 colors.ea <- c("Other"="grey", "SAMS"="black", "ACS"="black", "ACO"="black", "ZmACS2"="#24ff24", "ZmACS6"="#ff6db6", "AtACO1 homolog"="#006ddb", "AtACO2 homolog"="#b66dff", "AtSAM1/AtSAM2 homolog"="#db6d00")
 
-colors.pe <- c("Other"="black", "Plastid-localized"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd", "Cytosolic ribosome"="#EF5107")
-
-colors.c <- c("Other"="black", "Cytosolic ribosome"="#EF5107", "NE plastid ribosome"="#ff0000", "PhANGs"="#3447ff")
-
-colors.pc <- c("Other"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Cytosolic ribosome"="#EF5107")
+colors.pe <- c("Other"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd", "Cytosolic ribosome"="#EF5107")
 ```
 #Figure 1
-```{r setup dataframe tmt.BxM.SL.plastid.all4}
+```{r setup dataframe tmt.SL.fig1}
 #copy
 tmt.SL.Hyb2HP <- tmt.SL
 tmt.SL.Par2Par <- tmt.SL
@@ -1564,7 +1534,7 @@ legend <- get_legend(df.lims.plastid.scat)
 ```
 
 #Figure S3
-```{r setup dataframe cpm.BxM.SL.plastid.all4}
+```{r setup dataframe cpm.SL.figs3}
 #copy
 cpm.SL.Hyb2HP <- cpm.SL
 cpm.SL.Par2Par <- cpm.SL
@@ -1585,8 +1555,6 @@ colnames(cpm.SL.Par2Par)[3:4] <- c("l2.ratio", "l10.ttest")
 cpm.SL.figs3 <- rbind(cpm.SL.Hyb2HP,cpm.SL.Hyb2MP)
 cpm.SL.figs3 <- rbind(cpm.SL.figs3,cpm.SL.Par2Par)
 ```
-
-
 ```{r plot figs3}
  plot<-unique(cpm.SL.figs3[,"plot"])
   plotList<-vector(mode = "list", length = length(plot))
@@ -1679,7 +1647,7 @@ legend <- get_legend(df.lims.plastid.scat)
 ```
 
 #Figure S2
-```{r setup dataframe cpm.BxM.SL.plastid.all4}
+```{r setup dataframe cpm.SL.figs2}
 #copy
 cpm.SL.Hyb2HP <- cpm.SL
 cpm.SL.Par2Par <- cpm.SL
@@ -1792,7 +1760,7 @@ legend <- get_legend(df.lims.plastid.scat)
 ```
 
 #Figure 3
-```{r tmt.RIL.6H.Hyb2MP.cor.densities}
+```{r setup dataframe tmt.RIL.6H.Hyb2MP.Hyb2HP.cor}
 #combine RIL and 6 hybrids Protein
 tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
 #convert Accession column to gene column
@@ -1818,7 +1786,9 @@ tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$Biosyn
 tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
 
 tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- factor(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Category, levels = c("Other", "PE plastid ribosome", "NE plastid ribosome","Cytosolic ribosome", "TPR", "Protein biosynthesis", "PTAC", "PhANGs", "PhAPGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor.plot <- ggplot(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
+```
+```{r plot Fig3}
+ggplot(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
   geom_density_ridges_gradient(alpha=0.7) +
   scale_fill_viridis_c(option = "B")+
   theme_ridges() +
@@ -1826,12 +1796,14 @@ tmt.RIL.6H.Hyb2MP.Hyb2HP.cor.plot <- ggplot(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor, mappin
   coord_cartesian(expand = F)+
   xlab("Pearson correlation")+
   xlim(-1,1)
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor.plot
+
 ggsave(filename =paste0(PathToPlots, "Figure3.pdf"), dpi=300, width=3.4252, height=4)
 ```
+
+
 #Figure S4
 
-```{r cpm.RIL.6H.Hyb2MP.cor.densities}
+```{r setup dataframe cpm.RIL.6H.Hyb2MP.Hyb2HP.cor}
 #combine RIL and 6 hybrids Protein
 cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
 #run correlation function
@@ -1854,7 +1826,10 @@ cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% BiosynSecMe
 cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
 
 cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- factor(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category, levels = c("Other", "NE plastid ribosome","Cytosolic ribosome", "TPR","Protein biosynthesis", "PTAC", "PhANGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor.plot <- ggplot(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
+
+```
+```{r plot Figs4}
+ggplot(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
   geom_density_ridges_gradient(alpha=0.7) +
    scale_fill_viridis_c(option = "B")+
   theme_ridges() +
@@ -1862,11 +1837,12 @@ cpm.RIL.6H.Hyb2MP.Hyb2HP.cor.plot <- ggplot(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor, mappin
   coord_cartesian(expand = F)+
   xlab("Pearson correlation")+
   xlim(-1,1)
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor.plot
 ggsave(filename =paste0(PathToPlots, "FigureS4.pdf"), dpi=300, width=3.4252, height=4)
 ```
+
+
 #Figure 2
-```{r setup dataframe tmt.6H.plastid}
+```{r setup dataframe tmt.6h.all6}
 #subset hybrids
 tmt.6h.a682xb73 <- tmt.6H[,c("Gene", "l2.A682xB73.HP", "l2.A682.B73")]
 tmt.6h.b84xmo17 <- tmt.6H[,c("Gene", "l2.B84xMo17.HP", "l2.B84.Mo17")]
@@ -1891,8 +1867,7 @@ tmt.6h.a682xmo17$plot <- "F"
 #combine
 tmt.6h.all6 <- rbind(tmt.6h.a682xb73,tmt.6h.b84xmo17,tmt.6h.mo17xb73,tmt.6h.b73xmo17,tmt.6h.b84xb73,tmt.6h.a682xmo17)
 ```
-
-```{r plot tmt.6H.plastid}
+```{r plot Fig2}
   plot<-unique(tmt.6h.all6[,"plot"])
   plotList<-vector(mode = "list", length = length(plot))
   plotLab<-unique(tmt.6h.all6[,"plot"])
@@ -1921,8 +1896,6 @@ df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plas
 df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PE.ribo),"Order"] <- 6
 ###Re-order
 df.lims.plastid <- df.lims.plastid[(order(df.lims.plastid$Order)),]
-###remove "other"
-#df.lims.plastid <- df.lims.plastid[!df.lims.plastid$Category=="Other",]
 ###factor
 df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Other", "Plastid-localized", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
     #scatter plot with marginal density curves
@@ -2027,7 +2000,7 @@ tmt.6H.acs <- merge.data.frame(tmt.acs[,c("Accession", "l2.ACS.B73")], tmt.6H[,c
 ##subset hybrids
 tmt.6H.acs$Gene <- substr(tmt.6H.acs$Accession, start = 1, stop = 14)
 ```
-```{r plot tmt.6H.acs}
+```{r plot Fig4}
 tmt.acs.AMPorBMPinA682B.vol <- ggplot(tmt.acs.AMPorBMPinA682B, mapping = aes(x=l2.ACS.B73, y=l10.pvalue, color=A682B))+
   geom_point(size=1)+
   scale_color_manual(values = c("MP"="grey", "AMP"="red", "BMP"="blue"), name="")+
@@ -2122,11 +2095,11 @@ ggsave(plot=r, filename =paste0(PathToPlots, "Figure4.pdf"),
 
 
 #Figure S2
-```{r setup dataframe LeafBladeVsSeedlingLeaf}
+```{r setup dataframe tmt.LB.SL}
 tmt.LB.SL <- merge.data.frame(tmt.LB[,c("Accession", "l2.B73xMo17.MP", "l2.B73.Mo17")], tmt.SL[,c("Accession", "l2.B73xMo17.MP", "l2.B73.Mo17")], by.x = "Accession", by.y = "Accession", all=F)
 tmt.LB.SL$Gene <- substr(tmt.LB.SL$Accession, start = 1, stop = 14)
 ```
-```{r plot LeafBladeVsSeedlingLeaf.Hyb2MP}
+```{r plot FigS2}
 ###Set limits
 tmt.LB.SL.lims <- tmt.LB.SL
 tmt.LB.SL.lims$l2.B73xMo17.MP.x[tmt.LB.SL.lims$l2.B73xMo17.MP.x <= -1] <- -1
@@ -2268,7 +2241,7 @@ ggsave(plot=FigLB.SL.plotpanel, filename =paste0(PathToPlots, "FigureS2.pdf"), d
 
 
 #Figure S6
-```{r setup dataframe tmt.SL.acs.vol}
+```{r setup dataframe tmt.SL.acs}
 ###Set GOIs
 tmt.SL.acs <- tmt.SL
 tmt.SL.acs$MP1 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
@@ -2302,7 +2275,7 @@ tmt.SL.acs <- tmt.SL.acs[(order(tmt.SL.acs$Order)),]
 ###factor
 tmt.SL.acs$Category <- factor(tmt.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACS6","AtACO1 homolog", "AtACO2 homolog", "AtSAM1/AtSAM2 homolog"))
 ```
-```{r setup dataframe cpm.SL.acs.vol}
+```{r setup dataframe cpm.SL.acs}
 ###Set GOIs
 cpm.SL.acs <- cpm.SL
 cpm.SL.acs$MP1 <- rowMeans(cpm.SL.acs[,c("B73.1","Mo17.1")])
@@ -2336,7 +2309,7 @@ cpm.SL.acs <- cpm.SL.acs[(order(cpm.SL.acs$Order)),]
 ###factor
 cpm.SL.acs$Category <- factor(cpm.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACS6","AtACO1 homolog", "AtACO2 homolog", "AtSAM1/AtSAM2 homolog"))
 ```
-```{r plot tmt.cpm.SL.acs.vol}
+```{r plot FigS6}
 #Scatterplot - tmt
 tmt.SL.acs.vol <- ggplot(tmt.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=2)+
@@ -2385,7 +2358,7 @@ ggsave(plot=plotpanel, filename =paste0(PathToPlots, "FigureS6.pdf"), dpi=300, w
 
 
 #Figure S1
-```{r setup dataframe tmt.SL.zma00710}
+```{r setup dataframe tmt.SL.entrez.nodups.trim}
 Entrez2 <- Entrez
 colnames(Entrez2)[1] <- "Gene"
 #merge with mdb to get entrez 
@@ -2398,11 +2371,11 @@ tmt.SL.entrez.nodups <- tmt.SL.entrez.nodups[!duplicated(tmt.SL.entrez.nodups$En
 tmt.SL.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=tmt.SL.entrez.nodups$l2.B73xMo17.MP)
 rownames(tmt.SL.entrez.nodups.trim) <- tmt.SL.entrez.nodups$Entrez
 ```
-```{r plot tmt.SL.zma00710}
+```{r plot FigS1}
 tmt.SL.entrez.nodups.trim.pv <- pathview(gene.data = tmt.SL.entrez.nodups.trim, pathway.id = "zma00710", species = "zma",  bins = 20, limit = 1, out.suffix="tmt.SL.BxM")
 ```
 #Figure S5
-```{r setup dataframe S5a}
+```{r setup dataframe cpm.SL.entrez.nodups.trim}
 #merge with mdb to get entrez 
 cpm.SL.entrez <- join(cpm.SL[,c("Gene", "l2.B73xMo17.MP")], Entrez2)
 #remove proteins with no entrez or duplicate entrez
@@ -2413,11 +2386,10 @@ cpm.SL.entrez.nodups <- cpm.SL.entrez.nodups[!duplicated(cpm.SL.entrez.nodups$En
 cpm.SL.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=cpm.SL.entrez.nodups$l2.B73xMo17.MP)
 rownames(cpm.SL.entrez.nodups.trim) <- cpm.SL.entrez.nodups$Entrez
 ```
-```{r plot S5a}
+```{r plot FigS5A}
 cpm.SL.entrez.nodups.trim.pv <- pathview(gene.data = cpm.SL.entrez.nodups.trim, pathway.id = "zma04712", species = "zma",  bins = 20, limit = 1, out.suffix="cpm.SL.BxM")
 ```
-
-```{r setup dataframe S5b}
+```{r setup dataframe cpm.RIL.6H.Hyb2MP.cor.entrez.nodups}
 #merge with mdb to get entrez 
 cpm.RIL.6H.Hyb2MP.cor.entrez <- merge.data.frame(cpm.RIL.6H.Hyb2MP.cor, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
 #remove proteins with no entrez or duplicate entrez
@@ -2428,7 +2400,7 @@ cpm.RIL.6H.Hyb2MP.cor.entrez.nodups <- cpm.RIL.6H.Hyb2MP.cor.entrez.nodups[!dupl
 cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim <- data.frame("cor"=cpm.RIL.6H.Hyb2MP.cor.entrez.nodups$cor)
 rownames(cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim) <- cpm.RIL.6H.Hyb2MP.cor.entrez.nodups$Entrez
 ```
-```{r plot S5b}
+```{r plot FigS5B}
 cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim.pv <- pathview(gene.data = cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim, pathway.id = "zma04712", species = "zma",  bins = 20, limit = 1, out.suffix="cpm.cor", node.sum = "max.abs")
 ```
 
@@ -2436,7 +2408,7 @@ cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim.pv <- pathview(gene.data = cpm.RIL.6H.H
 
 #Figure S8
 ##A
-```{r setup dataframe tmt.A682B}
+```{r setup dataframe tmt.A682B.entrez.nodups.trim}
 #merge with mdb to get entrez 
 tmt.A682B.entrez <- merge.data.frame(tmt.6H, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
 #remove proteins with no entrez or duplicate entrez
@@ -2447,11 +2419,11 @@ tmt.A682B.entrez.nodups <- tmt.A682B.entrez.nodups[!duplicated(tmt.A682B.entrez.
 tmt.A682B.entrez.nodups.trim <- data.frame("l2.A682xB73.MP"=tmt.A682B.entrez.nodups$l2.A682xB73.MP)
 rownames(tmt.A682B.entrez.nodups.trim) <- tmt.A682B.entrez.nodups$Entrez
 ```
-```{r plot tmt.A682B}
+```{r plot FigS8A}
 tmt.A682B.entrez.nodups.trim.pv <- pathview(gene.data = tmt.A682B.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.A682B")
 ```
 ##B
-```{r setup dataframe tmt.acs.zma00592}
+```{r setup dataframe tmt.acs.entrez.nodups.trim}
 #merge with mdb to get entrez 
 tmt.acs.entrez <- merge.data.frame(tmt.acs, mgdb[,c(1,12)], by.x = "Gene", by.y = "v4_gene_model", all = F)
 #remove proteins with no entrez or duplicate entrez
@@ -2462,16 +2434,15 @@ tmt.acs.entrez.nodups <- tmt.acs.entrez.nodups[!duplicated(tmt.acs.entrez.nodups
 tmt.acs.entrez.nodups.trim <- data.frame("l2.ACS.B73"=tmt.acs.entrez.nodups$l2.ACS.B73)
 rownames(tmt.acs.entrez.nodups.trim) <- tmt.acs.entrez.nodups$Entrez
 ```
-```{r plot tmt.acs.zma00592}
+```{r plot FigS8B}
 tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.acs")
 ```
 
 #Supplemental Table 1
-```{r ST1 protein}
+```{r setp dataframe ST1}
 ST1 <- tmt.SL[,c("Gene", "Accession", "Protein", "B73xMo17.MP", "B73.Mo17")]
 colnames(ST1) <- c("Gene", "Accession", "Protein", "BxM.Midparent", "B73.Mo17")
-```
-```{r ST1 add category column}
+#Add category column
 ST1$Category <- "Other"
 ST1$Category[ST1$Gene %in% GOIs$plastid] <- "Plastid"
 ST1$Category[ST1$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
@@ -2492,7 +2463,7 @@ write.csv(ST1, paste0(PathToTables,"SupplementalTable1.csv"), row.names = F)
 ```
 
 #Supplemental Table 4
-```{r ST4}
+```{r setup dataframe ST4}
 #combine RIL and 6 hybrids Protein
 tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
 #combine RIL and 6 hybrids RNA
@@ -2529,69 +2500,69 @@ SupT4$Category[SupT4$Gene %in% GOIs$acs6] <- "Ethylene biosynthesis - ACS6"
 SupT4$Category[SupT4$Gene %in% GOIs$AtACO1hom] <- "Ethylene biosynthesis - AtACO1 homolog"
 SupT4$Category[SupT4$Gene %in% GOIs$AtACO2hom] <- "Ethylene biosynthesis - AtACO2 homolog"
 SupT4$Category[SupT4$Gene %in% GOIs$AtSAM1AtSAM2hom] <- "Ethylene biosynthesis - AtSAM1/2 homolog"
-
 #Re-order
 SupT4 <- SupT4[(order(-SupT4$Protein_PearsonCor)),]
+
 write.csv(SupT4[,c(1,2,5,3,4)], paste0(PathToTables,"SupplementalTable4.csv"), row.names = F)
 ```
 #Supplemental Table 8
-```{r SDS4}
-GOI.df <- as.data.frame(unlist(GOIs, use.names = F))
-colnames(GOI.df) <- "Accession"
-GOI.df$Accession <- as.character(GOI.df$Accession)
-GOI.df$Group <- NA
-GOI.df$Source <- NA
-GOI.df[(GOI.df$Accession %in% GOIs$plastid),"Group"] <- "Plastid-localized"
-GOI.df[(GOI.df$Accession %in% GOIs$plastid),"Source"] <- "Friso et al. (2010)"
-GOI.df[(GOI.df$Accession %in% GOIs$PhANGs),"Group"] <- "PhANGs"
-GOI.df[(GOI.df$Accession %in% KEGG.zma00195.digenomic$Accession),"Source"] <- "KEGG zma00195"
-GOI.df[(GOI.df$Accession %in% KEGG.zma00196$Accession),"Source"] <- "KEGG zma00196"
-GOI.df[(GOI.df$Accession %in% CornCycLightRxns.digenomic$Gene.Accession),"Source"] <- "CornCyc Photosynthesis Light Reactions"
-GOI.df[(GOI.df$Accession %in% NE.Rubisco),"Source"] <- "MaizeGDB"
-GOI.df[(GOI.df$Accession %in% GOIs$PhAPGs),"Group"] <- "PhAPGs"
-GOI.df[(GOI.df$Accession %in% GOIs$PhAPGs),"Source"] <- "NCBI"
-GOI.df[(GOI.df$Accession %in% GOIs$NE.PtRibo),"Group"] <- "NE plastid ribosome"
-GOI.df[(GOI.df$Accession %in% GOIs$NE.PtRibo),"Source"] <- "NCBI and maize-GAMER GO"
-GOI.df[(GOI.df$Accession %in% GOIs$PE.ribo),"Group"] <- "PE plastid ribosome"
-GOI.df[(GOI.df$Accession %in% GOIs$PE.ribo),"Source"] <- "NCBI"
-GOI.df[(GOI.df$Accession %in% GOIs$CytoRibo),"Group"] <- "Cytosolic ribosome"
-GOI.df[(GOI.df$Accession %in% GOIs$CytoRibo),"Source"] <- "NCBI"
-GOI.df[(GOI.df$Accession %in% GOIs$SAMS),"Group"] <- "SAM synthase"
-GOI.df[(GOI.df$Accession %in% GOIs$SAMS),"Source"] <- "CornCyc 2.5.1.6"
-GOI.df[(GOI.df$Accession %in% GOIs$ACS),"Group"] <- "ACC synthase"
-GOI.df[(GOI.df$Accession %in% GOIs$ACS),"Source"] <- "CornCyc 4.4.1.14"
-GOI.df[(GOI.df$Accession %in% GOIs$ACO),"Group"] <- "ACC oxidase"
-GOI.df[(GOI.df$Accession %in% GOIs$ACO),"Source"] <- "CornCyc 1.14.17.4"
-GOI.df[(GOI.df$Accession %in% GOIs$acs2),"Group"] <- "ACS2"
-GOI.df[(GOI.df$Accession %in% GOIs$acs2),"Source"] <- "MaizeGDB"
-GOI.df[(GOI.df$Accession %in% GOIs$acs6),"Group"] <- "ACS6"
-GOI.df[(GOI.df$Accession %in% GOIs$acs6),"Source"] <- "MaizeGDB"
-GOI.df[(GOI.df$Accession %in% GOIs$AtACO1hom),"Group"] <- "AtACO1 homolog"
-GOI.df[(GOI.df$Accession %in% GOIs$AtACO1hom),"Source"] <- "BLAST"
-GOI.df[(GOI.df$Accession %in% GOIs$AtACO2hom),"Group"] <- "AtACO2 homolog"
-GOI.df[(GOI.df$Accession %in% GOIs$AtACO2hom),"Source"] <- "BLAST"
-GOI.df[(GOI.df$Accession %in% GOIs$AtSAM1AtSAM2hom),"Group"] <- "AtSAM1/2 homolog"
-GOI.df[(GOI.df$Accession %in% GOIs$AtSAM1AtSAM2hom),"Source"] <- "BLAST"
-GOI.df[(GOI.df$Accession %in% GOIs$CarbonFixation),"Group"] <- "Carbon fixation"
-GOI.df[(GOI.df$Accession %in% GOIs$CarbonFixation),"Source"] <- "KEGG zma00710"
-GOI.df[(GOI.df$Accession %in% GOIs$TPR),"Group"] <- "TPR"
-GOI.df[(GOI.df$Accession %in% GOIs$TPR),"Source"] <- "NCBI"
-GOI.df[(GOI.df$Accession %in% GOIs$PTAC),"Group"] <- "PTAC"
-GOI.df[(GOI.df$Accession %in% GOIs$PTAC),"Source"] <- "NCBI"
-GOI.df[(GOI.df$Accession %in% GOIs$Oxidoreductase),"Group"] <- "Oxidoreductase"
-GOI.df[(GOI.df$Accession %in% GOIs$Oxidoreductase),"Source"] <- "GAMER GO:0016491"
-GOI.df[(GOI.df$Accession %in% GOIs$BiosynSecMet),"Group"] <- "Biosynthesis of secondary metabolites"
-GOI.df[(GOI.df$Accession %in% GOIs$BiosynSecMet),"Source"] <- "KEGG zma01110"
-GOI.df[(GOI.df$Accession %in% GOIs$Protease),"Group"] <- "Protease"
-GOI.df[(GOI.df$Accession %in% GOIs$Protease),"Source"] <- "GAMER GO:0008233"
-GOI.df[(GOI.df$Accession %in% GOIs$AlphaLinAcidMet),"Group"] <- "Alpha-linoleic acid metabolism"
-GOI.df[(GOI.df$Accession %in% GOIs$AlphaLinAcidMet),"Source"] <- "KEGG zma00592"
-GOI.df[(GOI.df$Accession %in% GOIs$ProteinBioSyn),"Group"] <- "Protein biosynthesis"
-GOI.df[(GOI.df$Accession %in% GOIs$ProteinBioSyn),"Source"] <- "NCBI"
+```{r Setup dataframe ST8}
+ST8 <- as.data.frame(unlist(GOIs, use.names = F))
+colnames(ST8) <- "Accession"
+ST8$Accession <- as.character(ST8$Accession)
+ST8$Group <- NA
+ST8$Source <- NA
+ST8[(ST8$Accession %in% GOIs$plastid),"Group"] <- "Plastid-localized"
+ST8[(ST8$Accession %in% GOIs$plastid),"Source"] <- "Friso et al. (2010)"
+ST8[(ST8$Accession %in% GOIs$PhANGs),"Group"] <- "PhANGs"
+ST8[(ST8$Accession %in% KEGG.zma00195.digenomic$Accession),"Source"] <- "KEGG zma00195"
+ST8[(ST8$Accession %in% KEGG.zma00196$Accession),"Source"] <- "KEGG zma00196"
+ST8[(ST8$Accession %in% CornCycLightRxns.digenomic$Gene.Accession),"Source"] <- "CornCyc Photosynthesis Light Reactions"
+ST8[(ST8$Accession %in% NE.Rubisco),"Source"] <- "MaizeGDB"
+ST8[(ST8$Accession %in% GOIs$PhAPGs),"Group"] <- "PhAPGs"
+ST8[(ST8$Accession %in% GOIs$PhAPGs),"Source"] <- "NCBI"
+ST8[(ST8$Accession %in% GOIs$NE.PtRibo),"Group"] <- "NE plastid ribosome"
+ST8[(ST8$Accession %in% GOIs$NE.PtRibo),"Source"] <- "NCBI and maize-GAMER GO"
+ST8[(ST8$Accession %in% GOIs$PE.ribo),"Group"] <- "PE plastid ribosome"
+ST8[(ST8$Accession %in% GOIs$PE.ribo),"Source"] <- "NCBI"
+ST8[(ST8$Accession %in% GOIs$CytoRibo),"Group"] <- "Cytosolic ribosome"
+ST8[(ST8$Accession %in% GOIs$CytoRibo),"Source"] <- "NCBI"
+ST8[(ST8$Accession %in% GOIs$SAMS),"Group"] <- "SAM synthase"
+ST8[(ST8$Accession %in% GOIs$SAMS),"Source"] <- "CornCyc 2.5.1.6"
+ST8[(ST8$Accession %in% GOIs$ACS),"Group"] <- "ACC synthase"
+ST8[(ST8$Accession %in% GOIs$ACS),"Source"] <- "CornCyc 4.4.1.14"
+ST8[(ST8$Accession %in% GOIs$ACO),"Group"] <- "ACC oxidase"
+ST8[(ST8$Accession %in% GOIs$ACO),"Source"] <- "CornCyc 1.14.17.4"
+ST8[(ST8$Accession %in% GOIs$acs2),"Group"] <- "ACS2"
+ST8[(ST8$Accession %in% GOIs$acs2),"Source"] <- "MaizeGDB"
+ST8[(ST8$Accession %in% GOIs$acs6),"Group"] <- "ACS6"
+ST8[(ST8$Accession %in% GOIs$acs6),"Source"] <- "MaizeGDB"
+ST8[(ST8$Accession %in% GOIs$AtACO1hom),"Group"] <- "AtACO1 homolog"
+ST8[(ST8$Accession %in% GOIs$AtACO1hom),"Source"] <- "BLAST"
+ST8[(ST8$Accession %in% GOIs$AtACO2hom),"Group"] <- "AtACO2 homolog"
+ST8[(ST8$Accession %in% GOIs$AtACO2hom),"Source"] <- "BLAST"
+ST8[(ST8$Accession %in% GOIs$AtSAM1AtSAM2hom),"Group"] <- "AtSAM1/2 homolog"
+ST8[(ST8$Accession %in% GOIs$AtSAM1AtSAM2hom),"Source"] <- "BLAST"
+ST8[(ST8$Accession %in% GOIs$CarbonFixation),"Group"] <- "Carbon fixation"
+ST8[(ST8$Accession %in% GOIs$CarbonFixation),"Source"] <- "KEGG zma00710"
+ST8[(ST8$Accession %in% GOIs$TPR),"Group"] <- "TPR"
+ST8[(ST8$Accession %in% GOIs$TPR),"Source"] <- "NCBI"
+ST8[(ST8$Accession %in% GOIs$PTAC),"Group"] <- "PTAC"
+ST8[(ST8$Accession %in% GOIs$PTAC),"Source"] <- "NCBI"
+ST8[(ST8$Accession %in% GOIs$Oxidoreductase),"Group"] <- "Oxidoreductase"
+ST8[(ST8$Accession %in% GOIs$Oxidoreductase),"Source"] <- "GAMER GO:0016491"
+ST8[(ST8$Accession %in% GOIs$BiosynSecMet),"Group"] <- "Biosynthesis of secondary metabolites"
+ST8[(ST8$Accession %in% GOIs$BiosynSecMet),"Source"] <- "KEGG zma01110"
+ST8[(ST8$Accession %in% GOIs$Protease),"Group"] <- "Protease"
+ST8[(ST8$Accession %in% GOIs$Protease),"Source"] <- "GAMER GO:0008233"
+ST8[(ST8$Accession %in% GOIs$AlphaLinAcidMet),"Group"] <- "Alpha-linoleic acid metabolism"
+ST8[(ST8$Accession %in% GOIs$AlphaLinAcidMet),"Source"] <- "KEGG zma00592"
+ST8[(ST8$Accession %in% GOIs$ProteinBioSyn),"Group"] <- "Protein biosynthesis"
+ST8[(ST8$Accession %in% GOIs$ProteinBioSyn),"Source"] <- "NCBI"
 
-GOI.df <- GOI.df[order(GOI.df$Group),]
+ST8 <- ST8[order(ST8$Group),]
 
-write.csv(GOI.df, paste0(PathToTables,"SupplementalTable8.csv"), row.names = F)
+write.csv(ST8, paste0(PathToTables,"SupplementalTable8.csv"), row.names = F)
 ```
 
 
