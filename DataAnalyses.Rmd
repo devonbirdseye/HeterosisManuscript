@@ -1412,11 +1412,11 @@ get_legend<-function(myggplot){
 }
 ```
 ```{r plotting colors}
-colors.p <- c("Other"="grey70", "Plastid-localized"="black", "Cytosolic ribosome"="#EF5107", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd")
+colors.p <- c("Other"="#D8D8D8", "Plastid-localized"="black", "Cytosolic ribosome"="#B50000", "PE plastid ribosome"="#E5A3FF", "NE plastid ribosome"="#6A00EA", "PhAPGs"="#81E401", "PhANGs"="#008275", "Ethylene biosynthesis"="#EF8F6Dvv")
 
-colors.ea <- c("Other"="grey", "SAMS"="black", "ACS"="black", "ACO"="black", "ZmACS2"="#24ff24", "ZmACS6"="#ff6db6", "AtACO1 homolog"="#006ddb", "AtACO2 homolog"="#b66dff", "AtSAM1/AtSAM2 homolog"="#db6d00")
+colors.ea <- c("Other"="#D8D8D8", "SAMS"="black", "ACS"="black", "ACO"="black", "ZmACS2"="#24ff24", "ZmACS6"="#ff6db6", "AtACO1 homolog"="#006ddb", "AtACO2 homolog"="#b66dff", "AtSAM1/AtSAM2 homolog"="#db6d00")
 
-colors.pe <- c("Other"="black", "PE plastid ribosome"="#ef73ef", "NE plastid ribosome"="#a742da", "PhAPGs"="#7ae281", "PhANGs"="#009fa7", "Ethylene biosynthesis"="#fab5bd", "Cytosolic ribosome"="#EF5107")
+colors.pe <- c("Other"="black", "Cytosolic ribosome"="#B50000", "PE plastid ribosome"="#E5A3FF", "NE plastid ribosome"="#6A00EA", "PhAPGs"="#81E401", "PhANGs"="#008275", "Ethylene biosynthesis"="#EF8F6D")
 ```
 #Figure 1
 ```{r setup dataframe tmt.SL.fig1}
@@ -1450,7 +1450,7 @@ tmt.SL.fig1 <- rbind(tmt.SL.fig1,tmt.SL.Par2Par)
 df.lims <- df
 df.lims$l2.ratio[df.lims$l2.ratio <= -1] <- -1
 df.lims$l2.ratio[df.lims$l2.ratio >= 1] <- 1
-###Set GOIs
+###Set GOIsc
 df.lims.plastid <- df.lims
 df.lims.plastid$Category <- "Other"
 df.lims.plastid$Order <- 1
@@ -2180,7 +2180,7 @@ cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim.pv <- pathview(gene.data = cpm.RIL.6H.H
 
 
 
-#Figure S7
+#Figure S6
 ##A
 ```{r setup dataframe tmt.A682B.entrez.nodups.trim}
 #merge with mdb to get entrez 
@@ -2193,7 +2193,7 @@ tmt.A682B.entrez.nodups <- tmt.A682B.entrez.nodups[!duplicated(tmt.A682B.entrez.
 tmt.A682B.entrez.nodups.trim <- data.frame("l2.A682xB73.MP"=tmt.A682B.entrez.nodups$l2.A682xB73.MP)
 rownames(tmt.A682B.entrez.nodups.trim) <- tmt.A682B.entrez.nodups$Entrez
 ```
-```{r plot FigS7A}
+```{r plot FigS6A}
 tmt.A682B.entrez.nodups.trim.pv <- pathview(gene.data = tmt.A682B.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.A682B")
 ```
 ##B
@@ -2208,7 +2208,7 @@ tmt.acs.entrez.nodups <- tmt.acs.entrez.nodups[!duplicated(tmt.acs.entrez.nodups
 tmt.acs.entrez.nodups.trim <- data.frame("l2.ACS.B73"=tmt.acs.entrez.nodups$l2.ACS.B73)
 rownames(tmt.acs.entrez.nodups.trim) <- tmt.acs.entrez.nodups$Entrez
 ```
-```{r plot FigS7B}
+```{r plot FigS6B}
 tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim, pathway.id = "zma00592", species = "zma",  bins = 20, limit = 0.5, out.suffix="tmt.acs")
 ```
 
