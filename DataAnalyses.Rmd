@@ -1216,6 +1216,7 @@ PhAPGs <- c(PEI,PEII,PE.NADH,PE.b6f,PE.ATP,PE.rubisco)
 PE.ribo <- PE$Gene[grep("rps|rpl", PE$Protein)]
 ```
 
+
 ##PhANGs
 ###KEGG - zma00195
 ```{r KEGG.zma00195.digenomic}
@@ -1325,6 +1326,7 @@ AtACO2hom <- "Zm00001d020686"
 AtSAM1AtSAM2hom <- "Zm00001d010920"
 ```
 
+
 ##Carbon fixation
 ```{r CarbonFixation}
 CarbonFixationKEGG <- read.csv(paste0(PathToData, "CarbonFixationKEGG.csv"), stringsAsFactors = F)
@@ -1363,7 +1365,7 @@ length(BiosynSecMet)
 Protease <- gamer$db_object_id[gamer$term_accession=="GO:0008233"]
 ```
 ##Alpha-linoleic acid metabolism
-```{rAlphaLinAcidMetv}
+```{r AlphaLinAcidMet}
 AlphaLinAcidMetKEGG <- read.delim(paste0(PathToData, "AlphaLinAcidMet.txt"))
 colnames(AlphaLinAcidMetKEGG)[4] <- "Entrez"
 AlphaLinAcidMetKEGG$Entrez <- str_replace(AlphaLinAcidMetKEGG$Entrez, ",", "")
@@ -1842,6 +1844,8 @@ tmt.SL.entrez.nodups <- tmt.SL.entrez.nodups[!duplicated(tmt.SL.entrez.nodups$En
 tmt.SL.entrez.nodups.trim <- data.frame("l2.B73xMo17.MP"=tmt.SL.entrez.nodups$l2.B73xMo17.MP)
 rownames(tmt.SL.entrez.nodups.trim) <- tmt.SL.entrez.nodups$Entrez
 ```
+
+
 ```{r plot FigS1}
 tmt.SL.entrez.nodups.trim.pv <- pathview(gene.data = tmt.SL.entrez.nodups.trim, pathway.id = "zma00710", species = "zma",  bins = 20, limit = 1, out.suffix="tmt.SL.BxM")
 ```
@@ -2176,123 +2180,6 @@ cpm.RIL.6H.Hyb2MP.cor.entrez.nodups.trim.pv <- pathview(gene.data = cpm.RIL.6H.H
 
 
 
-#Figure S6
-```{r setup dataframe tmt.SL.acs}
-###Set GOIs
-tmt.SL.acs <- tmt.SL
-tmt.SL.acs$MP1 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
-tmt.SL.acs$MP2 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
-tmt.SL.acs$MP3 <- rowMeans(tmt.SL.acs[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
-tmt.SL.acs$ttest <- ttestFun(tmt.SL.acs, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
-tmt.SL.acs$l10.ttest <- -(log10(tmt.SL.acs$ttest))
-tmt.SL.acs$l2.B73xMo17.MP[tmt.SL.acs$l2.B73xMo17.MP <= -1] <- -1
-tmt.SL.acs$l2.B73xMo17.MP[tmt.SL.acs$l2.B73xMo17.MP >= 1] <- 1
-tmt.SL.acs$Category <- "Other"
-tmt.SL.acs$Order <- 1
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$SAMS),"Category"] <- "SAMS"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$SAMS),"Order"] <- 2
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACS),"Category"] <- "ACS"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACS),"Order"] <- 3
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACO),"Category"] <- "ACO"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$ACO),"Order"] <- 4
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "ZmACS2"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 5
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs6),"Category"] <- "ZmACS6"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$acs6),"Order"] <- 6
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$AtACO1hom),"Category"] <- "AtACO1 homolog"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$AtACO1hom),"Order"] <- 7
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$AtACO2hom),"Category"] <- "AtACO2 homolog"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$AtACO2hom),"Order"] <- 8
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$AtSAM1AtSAM2hom),"Category"] <- "AtSAM1/AtSAM2 homolog"
-tmt.SL.acs[(tmt.SL.acs$Gene %in% GOIs$AtSAM1AtSAM2hom),"Order"] <- 9
-
-###Re-order
-tmt.SL.acs <- tmt.SL.acs[(order(tmt.SL.acs$Order)),]
-###factor
-tmt.SL.acs$Category <- factor(tmt.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACS6","AtACO1 homolog", "AtACO2 homolog", "AtSAM1/AtSAM2 homolog"))
-```
-```{r setup dataframe cpm.SL.acs}
-###Set GOIs
-cpm.SL.acs <- cpm.SL
-cpm.SL.acs$MP1 <- rowMeans(cpm.SL.acs[,c("B73.1","Mo17.1")])
-cpm.SL.acs$MP2 <- rowMeans(cpm.SL.acs[,c("B73.2","Mo17.2")])
-cpm.SL.acs$MP3 <- rowMeans(cpm.SL.acs[,c("B73.3","Mo17.3")])
-cpm.SL.acs$ttest <- ttestFun(cpm.SL.acs, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("MP1", "MP2", "MP3"))
-cpm.SL.acs$l10.ttest <- -(log10(cpm.SL.acs$ttest))
-cpm.SL.acs$l2.B73xMo17.MP[cpm.SL.acs$l2.B73xMo17.MP <= -2.5] <- -2.5
-cpm.SL.acs$l2.B73xMo17.MP[cpm.SL.acs$l2.B73xMo17.MP >= 2.5] <- 2.5
-cpm.SL.acs$Category <- "Other"
-cpm.SL.acs$Order <- 1
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$SAMS),"Category"] <- "SAMS"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$SAMS),"Order"] <- 2
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACS),"Category"] <- "ACS"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACS),"Order"] <- 3
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACO),"Category"] <- "ACO"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$ACO),"Order"] <- 4
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Category"] <- "ZmACS2"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs2),"Order"] <- 5
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs6),"Category"] <- "ZmACS6"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$acs6),"Order"] <- 6
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$AtACO1hom),"Category"] <- "AtACO1 homolog"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$AtACO1hom),"Order"] <- 7
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$AtACO2hom),"Category"] <- "AtACO2 homolog"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$AtACO2hom),"Order"] <- 8
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$AtSAM1AtSAM2hom),"Category"] <- "AtSAM1/AtSAM2 homolog"
-cpm.SL.acs[(cpm.SL.acs$Gene %in% GOIs$AtSAM1AtSAM2hom),"Order"] <- 9
-
-###Re-order
-cpm.SL.acs <- cpm.SL.acs[(order(cpm.SL.acs$Order)),]
-###factor
-cpm.SL.acs$Category <- factor(cpm.SL.acs$Category, levels = c("Other", "SAMS", "ACS", "ACO", "ZmACS2", "ZmACS6","AtACO1 homolog", "AtACO2 homolog", "AtSAM1/AtSAM2 homolog"))
-```
-```{r plot FigS6}
-#Scatterplot - tmt
-tmt.SL.acs.vol <- ggplot(tmt.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=2)+
-  scale_color_manual(values=colors.ea, name="Category")+
-  scale_shape_manual(values=c("Other"= 1, "SAMS"= 22, "ACS"= 23, "ACO"= 24,"ZmACS2"= 18,"ZmACS6"= 18,"AtACO1 homolog"=17,"AtACO2 homolog"=17, "AtSAM1/AtSAM2 homolog"=15))+
-    theme_classic()+
-          ggtitle("A")+
-          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
-          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-          theme(axis.text=element_text(size=10), legend.text=element_text(size=10), axis.title = element_text(size = 10),
-                legend.position="none", legend.title = element_blank(),  plot.title = element_text(size=10, hjust = -.1))+
-    xlab("log2 BxM/MP")+
-    ylab("-log10(p-value)")+
-    theme(aspect.ratio=1)+
-    coord_fixed(expand = F)
-      
-#volterplot - cpm
-cpm.SL.acs.vol <- ggplot(cpm.SL.acs, mapping=aes(x=l2.B73xMo17.MP, y=l10.ttest, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=2)+
-  scale_color_manual(values=colors.ea, name="Category")+
-  scale_shape_manual(values=c("Other"= 1, "SAMS"= 22, "ACS"= 23, "ACO"= 24,"ZmACS2"= 18,"ZmACS6"= 18,"AtACO1 homolog"=17,"AtACO2 homolog"=17, "AtSAM1/AtSAM2 homolog"=15))+
-    theme_classic()+
-          ggtitle("B")+
-          geom_hline(yintercept=1.30103, linetype="dashed", color = "gray50")+
-          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-          theme(axis.text=element_text(size=10), legend.text=element_text(size=10),axis.title = element_text(size = 10),
-                legend.position="bottom", legend.title = element_blank(),  plot.title = element_text(size=10, hjust = -.1))+
-          guides(col=guide_legend(nrow=4))+
-    xlab("log2 BxM/MP")+
-    ylab("-log10(p-value)")+
-    theme(aspect.ratio=1)+
-    coord_fixed(expand = F)
-cpm.SL.acs.vol.legend <- get_legend(cpm.SL.acs.vol)
-cpm.SL.acs.vol <- cpm.SL.acs.vol+theme(legend.position = "none")
-
-#Wrap into panel
-design <- "AB
-           CC"
-plotpanel<-patchwork::wrap_plots(A=tmt.SL.acs.vol, B=cpm.SL.acs.vol, C=cpm.SL.acs.vol.legend,  nrow = 2, heights = c(3,2), design = design)
-ggsave(plot=plotpanel, filename =paste0(PathToPlots, "FigureS6.pdf"), dpi=300, width=4.488189, height=3.5)
-```
-
-
-
-
-
-
 #Figure S7
 ##A
 ```{r setup dataframe tmt.A682B.entrez.nodups.trim}
@@ -2392,65 +2279,90 @@ SupT4 <- SupT4[(order(-SupT4$Protein_PearsonCor)),]
 
 write.csv(SupT4[,c(1,2,5,3,4)], paste0(PathToTables,"SupplementalTable4.csv"), row.names = F)
 ```
-#Supplemental Table 8
-```{r Setup dataframe ST8}
-ST8 <- as.data.frame(unlist(GOIs, use.names = F))
-colnames(ST8) <- "Accession"
-ST8$Accession <- as.character(ST8$Accession)
-ST8$Group <- NA
-ST8$Source <- NA
-ST8[(ST8$Accession %in% GOIs$plastid),"Group"] <- "Plastid-localized"
-ST8[(ST8$Accession %in% GOIs$plastid),"Source"] <- "Friso et al. (2010)"
-ST8[(ST8$Accession %in% GOIs$PhANGs),"Group"] <- "PhANGs"
-ST8[(ST8$Accession %in% KEGG.zma00195.digenomic$Accession),"Source"] <- "KEGG zma00195"
-ST8[(ST8$Accession %in% KEGG.zma00196$Accession),"Source"] <- "KEGG zma00196"
-ST8[(ST8$Accession %in% CornCycLightRxns.digenomic$Gene.Accession),"Source"] <- "CornCyc Photosynthesis Light Reactions"
-ST8[(ST8$Accession %in% NE.Rubisco),"Source"] <- "MaizeGDB"
-ST8[(ST8$Accession %in% GOIs$PhAPGs),"Group"] <- "PhAPGs"
-ST8[(ST8$Accession %in% GOIs$PhAPGs),"Source"] <- "NCBI"
-ST8[(ST8$Accession %in% GOIs$NE.PtRibo),"Group"] <- "NE plastid ribosome"
-ST8[(ST8$Accession %in% GOIs$NE.PtRibo),"Source"] <- "NCBI and maize-GAMER GO"
-ST8[(ST8$Accession %in% GOIs$PE.ribo),"Group"] <- "PE plastid ribosome"
-ST8[(ST8$Accession %in% GOIs$PE.ribo),"Source"] <- "NCBI"
-ST8[(ST8$Accession %in% GOIs$CytoRibo),"Group"] <- "Cytosolic ribosome"
-ST8[(ST8$Accession %in% GOIs$CytoRibo),"Source"] <- "NCBI"
-ST8[(ST8$Accession %in% GOIs$SAMS),"Group"] <- "SAM synthase"
-ST8[(ST8$Accession %in% GOIs$SAMS),"Source"] <- "CornCyc 2.5.1.6"
-ST8[(ST8$Accession %in% GOIs$ACS),"Group"] <- "ACC synthase"
-ST8[(ST8$Accession %in% GOIs$ACS),"Source"] <- "CornCyc 4.4.1.14"
-ST8[(ST8$Accession %in% GOIs$ACO),"Group"] <- "ACC oxidase"
-ST8[(ST8$Accession %in% GOIs$ACO),"Source"] <- "CornCyc 1.14.17.4"
-ST8[(ST8$Accession %in% GOIs$acs2),"Group"] <- "ACS2"
-ST8[(ST8$Accession %in% GOIs$acs2),"Source"] <- "MaizeGDB"
-ST8[(ST8$Accession %in% GOIs$acs6),"Group"] <- "ACS6"
-ST8[(ST8$Accession %in% GOIs$acs6),"Source"] <- "MaizeGDB"
-ST8[(ST8$Accession %in% GOIs$AtACO1hom),"Group"] <- "AtACO1 homolog"
-ST8[(ST8$Accession %in% GOIs$AtACO1hom),"Source"] <- "BLAST"
-ST8[(ST8$Accession %in% GOIs$AtACO2hom),"Group"] <- "AtACO2 homolog"
-ST8[(ST8$Accession %in% GOIs$AtACO2hom),"Source"] <- "BLAST"
-ST8[(ST8$Accession %in% GOIs$AtSAM1AtSAM2hom),"Group"] <- "AtSAM1/2 homolog"
-ST8[(ST8$Accession %in% GOIs$AtSAM1AtSAM2hom),"Source"] <- "BLAST"
-ST8[(ST8$Accession %in% GOIs$CarbonFixation),"Group"] <- "Carbon fixation"
-ST8[(ST8$Accession %in% GOIs$CarbonFixation),"Source"] <- "KEGG zma00710"
-ST8[(ST8$Accession %in% GOIs$TPR),"Group"] <- "TPR"
-ST8[(ST8$Accession %in% GOIs$TPR),"Source"] <- "NCBI"
-ST8[(ST8$Accession %in% GOIs$PTAC),"Group"] <- "PTAC"
-ST8[(ST8$Accession %in% GOIs$PTAC),"Source"] <- "NCBI"
-ST8[(ST8$Accession %in% GOIs$Oxidoreductase),"Group"] <- "Oxidoreductase"
-ST8[(ST8$Accession %in% GOIs$Oxidoreductase),"Source"] <- "GAMER GO:0016491"
-ST8[(ST8$Accession %in% GOIs$BiosynSecMet),"Group"] <- "Biosynthesis of secondary metabolites"
-ST8[(ST8$Accession %in% GOIs$BiosynSecMet),"Source"] <- "KEGG zma01110"
-ST8[(ST8$Accession %in% GOIs$Protease),"Group"] <- "Protease"
-ST8[(ST8$Accession %in% GOIs$Protease),"Source"] <- "GAMER GO:0008233"
-ST8[(ST8$Accession %in% GOIs$AlphaLinAcidMet),"Group"] <- "Alpha-linoleic acid metabolism"
-ST8[(ST8$Accession %in% GOIs$AlphaLinAcidMet),"Source"] <- "KEGG zma00592"
-ST8[(ST8$Accession %in% GOIs$ProteinBioSyn),"Group"] <- "Protein biosynthesis"
-ST8[(ST8$Accession %in% GOIs$ProteinBioSyn),"Source"] <- "NCBI"
-
-ST8 <- ST8[order(ST8$Group),]
-
-write.csv(ST8, paste0(PathToTables,"SupplementalTable8.csv"), row.names = F)
+#Supplemental Table 5
+```{r}
+ST5a <- tmt.SL[tmt.SL$Gene %in% GOIs$EtBio,c("Gene", "Accession", "Protein", "B73xMo17.MP", "ttest.MP")]
+colnames(ST5a) <- c("Gene", "Accession", "Protein", "BxM.Midparent", "p-value")
+ST5a$Expression <- "Protein"
+ST5b <- cpm.SL[cpm.SL$Gene %in% GOIs$EtBio,c("Gene", "B73xMo17.MP", "ttest.MP")]
+colnames(ST5b) <- c("Gene", "BxM.Midparent", "p-value")
+ST5b$Expression <- "RNA"
+ST5b$Accession <- ""
+ST5b$Protein <- ""
+ST5 <- rbind(ST5a, ST5b)
+ST5$Category <- "Other"
+ST5[(ST5$Gene %in% GOIs$SAMS),"Category"] <- "SAMS"
+ST5[(ST5$Gene %in% GOIs$ACS),"Category"] <- "ACS"
+ST5[(ST5$Gene %in% GOIs$ACO),"Category"] <- "ACO"
+ST5[(ST5$Gene %in% GOIs$acs2),"Category"] <- "ZmACS2"
+ST5[(ST5$Gene %in% GOIs$acs6),"Category"] <- "ZmACS6"
+ST5[(ST5$Gene %in% GOIs$AtACO1hom),"Category"] <- "AtACO1 homolog"
+ST5[(ST5$Gene %in% GOIs$AtACO2hom),"Category"] <- "AtACO2 homolog"
+ST5[(ST5$Gene %in% GOIs$AtSAM1AtSAM2hom),"Category"] <- "AtSAM1/AtSAM2 homolog"
+ST5 <- ST5[order(ST5$Category, ST5$Gene, ST5$Expression),]
+write.csv(ST5, paste0(PathToTables,"SupplementalTable5.csv"), row.names = F)
 ```
+
+#Supplemental Table 9
+```{r Setup dataframe ST9}
+ST9 <- as.data.frame(unlist(GOIs, use.names = F))
+colnames(ST9) <- "Accession"
+ST9$Accession <- as.character(ST9$Accession)
+ST9$Group <- NA
+ST9$Source <- NA
+ST9[(ST9$Accession %in% GOIs$plastid),"Group"] <- "Plastid-localized"
+ST9[(ST9$Accession %in% GOIs$plastid),"Source"] <- "Friso et al. (2010)"
+ST9[(ST9$Accession %in% GOIs$PhANGs),"Group"] <- "PhANGs"
+ST9[(ST9$Accession %in% KEGG.zma00195.digenomic$Accession),"Source"] <- "KEGG zma00195"
+ST9[(ST9$Accession %in% KEGG.zma00196$Accession),"Source"] <- "KEGG zma00196"
+ST9[(ST9$Accession %in% CornCycLightRxns.digenomic$Gene.Accession),"Source"] <- "CornCyc Photosynthesis Light Reactions"
+ST9[(ST9$Accession %in% NE.Rubisco),"Source"] <- "MaizeGDB"
+ST9[(ST9$Accession %in% GOIs$PhAPGs),"Group"] <- "PhAPGs"
+ST9[(ST9$Accession %in% GOIs$PhAPGs),"Source"] <- "NCBI"
+ST9[(ST9$Accession %in% GOIs$NE.PtRibo),"Group"] <- "NE plastid ribosome"
+ST9[(ST9$Accession %in% GOIs$NE.PtRibo),"Source"] <- "NCBI and maize-GAMER GO"
+ST9[(ST9$Accession %in% GOIs$PE.ribo),"Group"] <- "PE plastid ribosome"
+ST9[(ST9$Accession %in% GOIs$PE.ribo),"Source"] <- "NCBI"
+ST9[(ST9$Accession %in% GOIs$CytoRibo),"Group"] <- "Cytosolic ribosome"
+ST9[(ST9$Accession %in% GOIs$CytoRibo),"Source"] <- "NCBI"
+ST9[(ST9$Accession %in% GOIs$SAMS),"Group"] <- "SAM synthase"
+ST9[(ST9$Accession %in% GOIs$SAMS),"Source"] <- "CornCyc 2.5.1.6"
+ST9[(ST9$Accession %in% GOIs$ACS),"Group"] <- "ACC synthase"
+ST9[(ST9$Accession %in% GOIs$ACS),"Source"] <- "CornCyc 4.4.1.14"
+ST9[(ST9$Accession %in% GOIs$ACO),"Group"] <- "ACC oxidase"
+ST9[(ST9$Accession %in% GOIs$ACO),"Source"] <- "CornCyc 1.14.17.4"
+ST9[(ST9$Accession %in% GOIs$acs2),"Group"] <- "ACS2"
+ST9[(ST9$Accession %in% GOIs$acs2),"Source"] <- "MaizeGDB"
+ST9[(ST9$Accession %in% GOIs$acs6),"Group"] <- "ACS6"
+ST9[(ST9$Accession %in% GOIs$acs6),"Source"] <- "MaizeGDB"
+ST9[(ST9$Accession %in% GOIs$AtACO1hom),"Group"] <- "AtACO1 homolog"
+ST9[(ST9$Accession %in% GOIs$AtACO1hom),"Source"] <- "BLAST"
+ST9[(ST9$Accession %in% GOIs$AtACO2hom),"Group"] <- "AtACO2 homolog"
+ST9[(ST9$Accession %in% GOIs$AtACO2hom),"Source"] <- "BLAST"
+ST9[(ST9$Accession %in% GOIs$AtSAM1AtSAM2hom),"Group"] <- "AtSAM1/2 homolog"
+ST9[(ST9$Accession %in% GOIs$AtSAM1AtSAM2hom),"Source"] <- "BLAST"
+ST9[(ST9$Accession %in% GOIs$CarbonFixation),"Group"] <- "Carbon fixation"
+ST9[(ST9$Accession %in% GOIs$CarbonFixation),"Source"] <- "KEGG zma00710"
+ST9[(ST9$Accession %in% GOIs$TPR),"Group"] <- "TPR"
+ST9[(ST9$Accession %in% GOIs$TPR),"Source"] <- "NCBI"
+ST9[(ST9$Accession %in% GOIs$PTAC),"Group"] <- "PTAC"
+ST9[(ST9$Accession %in% GOIs$PTAC),"Source"] <- "NCBI"
+ST9[(ST9$Accession %in% GOIs$Oxidoreductase),"Group"] <- "Oxidoreductase"
+ST9[(ST9$Accession %in% GOIs$Oxidoreductase),"Source"] <- "GAMER GO:0016491"
+ST9[(ST9$Accession %in% GOIs$BiosynSecMet),"Group"] <- "Biosynthesis of secondary metabolites"
+ST9[(ST9$Accession %in% GOIs$BiosynSecMet),"Source"] <- "KEGG zma01110"
+ST9[(ST9$Accession %in% GOIs$Protease),"Group"] <- "Protease"
+ST9[(ST9$Accession %in% GOIs$Protease),"Source"] <- "GAMER GO:0008233"
+ST9[(ST9$Accession %in% GOIs$AlphaLinAcidMet),"Group"] <- "Alpha-linoleic acid metabolism"
+ST9[(ST9$Accession %in% GOIs$AlphaLinAcidMet),"Source"] <- "KEGG zma00592"
+ST9[(ST9$Accession %in% GOIs$ProteinBioSyn),"Group"] <- "Protein biosynthesis"
+ST9[(ST9$Accession %in% GOIs$ProteinBioSyn),"Source"] <- "NCBI"
+
+ST9 <- ST9[order(ST9$Group),]
+
+write.csv(ST9, paste0(PathToTables,"SupplementalTable9.csv"), row.names = F)
+```
+
 
 
 
