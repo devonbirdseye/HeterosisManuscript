@@ -1433,8 +1433,6 @@ get_legend<-function(myggplot){
 colors.p <- c("Other"="#D8D8D8", "Plastid-localized"="black", "Cytosolic ribosome"="#B50000", "PE plastid ribosome"="#6A00EA", "NE plastid ribosome"="#E5A3FF", "PhAPGs"="#008275", "PhANGs"="#81E401", "Ethylene biosynthesis"="#EF8F6D")
 
 colors.ea <- c("Other"="#D8D8D8", "SAMS"="black", "ACS"="black", "ACO"="black", "ZmACS2"="#24ff24", "ZmACS6"="#ff6db6", "AtACO1 homolog"="#006ddb", "AtACO2 homolog"="#b66dff", "AtSAM1/AtSAM2 homolog"="#db6d00")
-
-colors.pe <- c("Other"="black", "Cytosolic ribosome"="#B50000", "PE plastid ribosome"="#6A00EA", "NE plastid ribosome"="#E5A3FF", "PhAPGs"="#008275", "PhANGs"="#81E401","Ethylene biosynthesis"="#EF8F6D")
 ```
 
 #Figure 1
@@ -1924,7 +1922,7 @@ tmt.acs.lims.plastid$Category <- factor(tmt.acs.lims.plastid$Category, levels = 
     #scatter plot with marginal density curves
     tmt.acs.lims.plastid.scat <- ggplot(tmt.acs.lims.plastid, mapping=aes(x=l2.A682xB73.MP, y=l2.ACS.B73, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=1)+
-  scale_color_manual(values=colors.pe[c("Other", "Cytosolic ribosome", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome", "Ethylene biosynthesis")], name="Category")+
+  scale_color_manual(values=colors.p[c("Other", "Cytosolic ribosome", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome", "Ethylene biosynthesis")], name="Category")+
       scale_shape_manual(values=c(1,19,19,19,19,19,19))+
     theme_classic()+
       xlim(c(-.75,.75))+
@@ -1945,14 +1943,14 @@ tmt.acs.lims.plastid$Category <- factor(tmt.acs.lims.plastid$Category, levels = 
 ###Add density curves
     densityplotX<-axis_canvas(tmt.acs.lims.plastid.scat, axis="x")+
       geom_density(aes(tmt.acs.lims.plastid[,"l2.A682xB73.MP"], color=tmt.acs.lims.plastid[,"Category"]), size=0.5)+
-    scale_color_manual(values=colors.pe[c("Other", "Cytosolic ribosome", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome", "Ethylene biosynthesis")], name="Category")+
+    scale_color_manual(values=colors.p[c("Other", "Cytosolic ribosome", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome", "Ethylene biosynthesis")], name="Category")+
       geom_vline(xintercept=0, linetype="dashed", color = "gray60", size=0.5)+
       theme_void()+
       theme(legend.title = element_blank())
     #set up marginal density plot Y axis
     densityplotY<-axis_canvas(tmt.acs.lims.plastid.scat, axis="y", coord_flip = T)+
       geom_density(aes(tmt.acs.lims.plastid[,"l2.ACS.B73"], color=tmt.acs.lims.plastid[,"Category"]), size=0.5)+
-      scale_color_manual(values=colors.pe[c("Other", "Cytosolic ribosome", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome", "Ethylene biosynthesis")], name="Category")+
+      scale_color_manual(values=colors.p[c("Other", "Cytosolic ribosome", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome", "Ethylene biosynthesis")], name="Category")+
       scale_linetype_manual(values=c("dotted", "solid"))+
       geom_vline(xintercept=0, linetype="dashed", color = "gray60", size=0.5)+
       theme_void()+
@@ -2761,6 +2759,7 @@ SD10 <- SD10[order(SD10$Group),]
 
 write.csv(SD10, paste0(PathToDatasets,"SupplementalDataset10.csv"), row.names = F)
 ```
+
 
 
 
