@@ -781,153 +781,6 @@ saveRDS(GOIs, "GOIs")
 ```{r read GOI list}
 GOIs <- readRDS("GOIs")
 ```
-#Par2Par
-
-
-```{r setup dataframe tmt.RIL.6H.Par2Par.cor}
-#combine RIL and 6 hybrids Protein
-tmt.RIL.6H.Par2Par <- merge.data.frame(tmt.RIL[,c(6,154:162)], tmt.6H[,c(6,72:77)], by.x = "Accession", by.y = "Accession", all = F)
-#change ratios to absolute values
-tmt.RIL.6H.Par2Par[,2:ncol(tmt.RIL.6H.Par2Par)] <- abs(tmt.RIL.6H.Par2Par[,2:ncol(tmt.RIL.6H.Par2Par)])
-#convert Accession column to gene column
-tmt.RIL.6H.Par2Par$Gene <- substr(tmt.RIL.6H.Par2Par$Accession, start = 1, stop = 14)
-#run correlation function
-tmt.RIL.6H.Par2Par.cor <- CorFun(tmt.RIL.6H.Par2Par, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
-```
-```{r}
-ggplot(tmt.RIL.6H.Par2Par.cor, mapping = aes(x=cor))+
-  geom_density(color="blue")+
-  xlab("Pearson correlation")+
-  theme_bw()+
-  geom_vline(xintercept = 0, linetype=2)
-ggsave("Par2Par.tmt.png", width = 7, height = 5)
-```
-```{r}
-Entrez2 <- Entrez
-colnames(Entrez2)[1] <- "Gene"
-tmt.RIL.6H.Par2Par.cor <- join(tmt.RIL.6H.Par2Par.cor[,c("Gene", "cor")], Entrez2)
-tmt.RIL.6H.Par2Par.cor <- merge.data.frame(tmt.RIL.6H.Par2Par.cor, tmt[,c("Gene","Protein")], by.x = "Gene", by.y = "Gene", all.x = T, all.y = F)
-tmt.RIL.6H.Par2Par.cor <- tmt.RIL.6H.Par2Par.cor[order(-tmt.RIL.6H.Par2Par.cor$cor),]
-write.csv((tmt.RIL.6H.Par2Par.cor), "tmt.RIL.6H.Par2Par.cor.csv", row.names = F)
-
-tmt.RIL.6H.Par2Par.cor.pos <- tmt.RIL.6H.Par2Par.cor[tmt.RIL.6H.Par2Par.cor$cor > .6,]
-write.csv((tmt.RIL.6H.Par2Par.cor.pos), "tmt.RIL.6H.Par2Par.cor.pos.csv", row.names = F)
-```
-
-```{r setup dataframe cpm.RIL.6H.Par2Par.cor}
-#combine RIL and 6 hybrids Protein
-cpm.RIL.6H.Par2Par <- merge.data.frame(cpm.RIL[,c(1,103:111)], cpm.6H[,c(1,60:65)], by.x = "Gene", by.y = "Gene", all = F)
-#change ratios to absolute values
-cpm.RIL.6H.Par2Par[,2:ncol(cpm.RIL.6H.Par2Par)] <- abs(cpm.RIL.6H.Par2Par[,2:ncol(cpm.RIL.6H.Par2Par)])
-#run correlation function
-cpm.RIL.6H.Par2Par.cor <- CorFun(cpm.RIL.6H.Par2Par, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
-```
-```{r}
-ggplot(cpm.RIL.6H.Par2Par.cor, mapping = aes(x=cor))+
-  geom_density(color="blue")+
-  xlab("Pearson correlation")+
-  theme_bw()+
-  geom_vline(xintercept = 0, linetype=2)
-ggsave("Par2Par.cpm.png", height = 5, width = 7)
-```
-```{r}
-Par2Par.tmt.cpm <- merge.data.frame(tmt.RIL.6H.Par2Par.cor[,c("Gene","cor")], cpm.RIL.6H.Par2Par.cor[,c("Gene","cor")], by = "Gene", all = F)
-colnames(Par2Par.tmt.cpm) <- c("Gene","Protein","RNA")
-```
-```{r}
-###Set GOIs
-Par2Par.tmt.cpm.plot <- Par2Par.tmt.cpm
-Par2Par.tmt.cpm.plot$Category <- "Other"
-Par2Par.tmt.cpm.plot$Order <- 1
-Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
-Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
-Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$PhANGs),"Order"] <- 5
-###Re-order
-Par2Par.tmt.cpm.plot <- Par2Par.tmt.cpm.plot[(order(Par2Par.tmt.cpm.plot$Order)),]
-###factor
-Par2Par.tmt.cpm.plot$Category <- factor(Par2Par.tmt.cpm.plot$Category, levels = c("Other",  "NE plastid ribosome", "PhANGs"))
-###Scatterplot
-Par2Par.tmt.cpm.plot.scat <- ggplot(Par2Par.tmt.cpm.plot, mapping=aes(x=Protein, y=RNA, color=Category, shape=Category))+
-    geom_point(aes(color=Category), size=1)+
-  scale_color_manual(values=colors.p[c("Other", "NE plastid ribosome","PhANGs")], name="Category")+
-  scale_shape_manual(values=c(1,19,19))+
-  theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
-    theme_classic()+
-          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-          geom_hline(yintercept=0, linetype="dashed", color = "gray50")+
-          theme(axis.text=element_text(size=8), legend.text=element_text(size=8), axis.title = element_text(size=10),
-                legend.position="bottom", legend.title = element_blank(),  plot.title = element_text(size=10, vjust = -3, hjust = -0.4), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
-    guides(color = guide_legend(nrow = 2))+
-    xlab("Protein Cor")+
-    ylab("RNA Cor")+
-    theme(aspect.ratio=1)+
-    coord_fixed(expand = F)
-legend <- get_legend(Par2Par.tmt.cpm.plot.scat)
-Par2Par.tmt.cpm.plot.scat <- Par2Par.tmt.cpm.plot.scat+theme(legend.position = "none")
-###Add density curves
-    densityplotX<-axis_canvas(Par2Par.tmt.cpm.plot.scat, axis="x")+
-      geom_density(aes(Par2Par.tmt.cpm.plot[,"Protein"], color=Par2Par.tmt.cpm.plot[,"Category"]), size=0.7)+
-    scale_color_manual(values=colors.p[c("Other", "NE plastid ribosome","PhANGs")], name="Category")+
-      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-      theme_void()+
-      theme(legend.title = element_blank())
-    #set up marginal density plot Y axis
-    densityplotY<-axis_canvas(Par2Par.tmt.cpm.plot.scat, axis="y", coord_flip = T)+
-      geom_density(aes(Par2Par.tmt.cpm.plot[,"RNA"], color=Par2Par.tmt.cpm.plot[,"Category"]), size=0.7)+
-      scale_color_manual(values=colors.p[c("Other", "NE plastid ribosome","PhANGs")], name="Category")+
-      scale_linetype_manual(values=c("dotted", "solid"))+
-      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
-      theme_void()+
-      theme(legend.title = element_blank())+
-      coord_flip()
-    #put two plots together
-      A <- insert_xaxis_grob(Par2Par.tmt.cpm.plot.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
-      A <- insert_yaxis_grob(A, densityplotY, grid::unit(0.275, "null"), position = "right")
-      
-des <- "A
-        B"
-Par2Par.tmt.cpm.plot.fig <-patchwork::wrap_plots(A=A, B=legend,  nrow = 1, heights = c(3,1), design = des)
-ggsave(plot=Par2Par.tmt.cpm.plot.fig, filename =paste0(PathToPlots, "Par2Par.tmt.cpm.pdf"), dpi=300, width=4.488189, height=3)
-```
-
-
-
-```{r plot Par2Par}
-#Combine data for plotting
-tmt.RIL.6H.Par2Par.cor <- tmt.RIL.6H.Par2Par.cor[,c("Gene", "cor")]
-#Set GOIs
-tmt.RIL.6H.Par2Par.cor$Category <- "Other"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% TPR),"Category"] <- "TPR"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% PTAC),"Category"] <- "PTAC"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$ProteinBioSyn),"Category"] <- "Protein biosynthesis"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$CarbonFixation),"Category"] <- "Carbon fixation"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$Oxidoreductase),"Category"] <- "Oxidoreductase"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$Protease),"Category"] <- "Protease"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
-tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
-#factor
-tmt.RIL.6H.Par2Par.cor$Category <- factor(tmt.RIL.6H.Par2Par.cor$Category, levels = c("Other", "PE plastid ribosome", "NE plastid ribosome","Cytosolic ribosome", "TPR", "Protein biosynthesis", "PTAC", "PhANGs", "PhAPGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
-#plot
-ggplot(tmt.RIL.6H.Par2Par.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
-  geom_density_ridges_gradient(alpha=0.7) +
-  scale_fill_viridis_c(option = "B")+
-  theme_ridges() +
-  theme(axis.text =element_text(size=8), axis.title = element_text(size=8), legend.position = "none", axis.title.y = element_blank(), axis.title.x = element_text(hjust = 0.5, size=8))+
-  coord_cartesian(expand = F)+
-  xlab("Pearson correlation")+
-  xlim(-1,1)
-
-ggsave(filename =paste0(PathToPlots, "Par2Par_cor.pdf"), dpi=300, width=3.4252, height=4)
-```
-
-
-
 #Define settings and functions for plotting
 ```{r CorFun}
 #using dataframe and vector as input
@@ -1102,8 +955,7 @@ legend =get_legend(f1.scat)
                D"
   r<-patchwork::wrap_plots(A=plotList[[1]], B=plotList[[2]], C=plotList[[3]], D=plotList[[4]], heights = c(1,1,1,0.5), nrow = 4, design = des)
 
-  ggsave(plot=r, filename ="f1.pdf", dpi=300, width=3.4252, height=8)
-#ggsave(plot=r, filename =paste0(PathToPlots, "Figure1.pdf"), dpi=300, width=3.4252, height=8)  
+ggsave(plot=r, filename =paste0(PathToPlots, "Figure1.pdf"), dpi=300, width=3.4252, height=8)  
 ```
 
 #Figure 2
@@ -1137,21 +989,14 @@ f2$l2.parent.parent[f2$l2.parent.parent >= 1] = 1
 ###Set GOIs
 f2 = f2
 f2$Category = "Other"
-f2$Order = 1
 f2[(f2$Gene %in% GOIs$plastid),"Category"] = "Plastid-localized"
-f2[(f2$Gene %in% GOIs$plastid),"Order"] = 2
 f2[(f2$Gene %in% GOIs$PhANGs),"Category"] = "PhANGs"
-f2[(f2$Gene %in% GOIs$PhANGs),"Order"] = 3
 f2[(f2$Gene %in% GOIs$PhAPGs),"Category"] = "PhAPGs"
-f2[(f2$Gene %in% GOIs$PhAPGs),"Order"] = 4
 f2[(f2$Gene %in% GOIs$NE.PtRibo),"Category"] = "NE plastid ribosome"
-f2[(f2$Gene %in% GOIs$NE.PtRibo),"Order"] = 5
 f2[(f2$Gene %in% GOIs$PE.ribo),"Category"] = "PE plastid ribosome"
-f2[(f2$Gene %in% GOIs$PE.ribo),"Order"] = 6
-###Re-order
-f2 = f2[(order(f2$Order)),]
 ###factor
 f2$Category = factor(f2$Category, levels = c("Other", "Plastid-localized", "PhANGs", "PhAPGs", "NE plastid ribosome", "PE plastid ribosome"))
+f2 = f2[(order(f2$Category)),]
     #scatter plot with marginal density curves
     f2.scat = ggplot(f2, mapping=aes(x=l2.HYB.HP, y=l2.parent.parent, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=1)+
@@ -1232,34 +1077,30 @@ ggsave(plot=r, filename =paste0(PathToPlots, "Figure2.pdf"), dpi=300, width=3.42
 #Figure 3
 ```{r setup dataframe tmt.RIL.6H.Hyb2MP.Hyb2HP.cor}
 #combine RIL and 6 hybrids Protein
-tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[c("Accession","l2.B73xMo17.MP","l2.M0014.14B.MP","l2.M0014.14M.MP","l2.M0016.16B.MP","l2.M0016.16M.MP","l2.M0021.21B.MP","l2.M0021.21M.MP","l2.M0317.317B.MP","l2.M0317.317M.MP")], tmt.6H[,c("Accession","l2.B73xMo17.MP","l2.Mo17xB73.MP","l2.B84xB73.MP","l2.B84xMo17.MP","l2.A682xB73.MP","l2.A682xB73.MP","l2.A682xMo17.MP")], by.x = "Accession", by.y = "Accession", all = F)
 #convert Accession column to gene column
 tmt.RIL.6H.Hyb2MP$Gene <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 14)
 #run correlation function
 tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 #Combine data for plotting
-tmt.RIL.6H.Hyb2MP.cor$data <- "Protein"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor <- tmt.RIL.6H.Hyb2MP.cor[,c("Gene", "cor", "data")]
-
-#combine RIL and 6 hybrids RNA
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
-#run correlation function
-cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
-#Combine data for plotting
-cpm.RIL.6H.Hyb2MP.cor$data <- "mRNA"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor <- cpm.RIL.6H.Hyb2MP.cor[,c("Gene", "cor", "data")]
-#Combine RNA and Protein data
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor <- rbind(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor, cpm.RIL.6H.Hyb2MP.Hyb2HP.cor)
-
+f3 <- tmt.RIL.6H.Hyb2MP.cor[,c("Gene", "cor")]
 #Set GOIs
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- "Other"
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% c(GOIs$NE.PtRibo, GOIs$PE.ribo)),"Category"] <- "Plastid ribosome"
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% c(GOIs$PhANGs, GOIs$PhAPGs)),"Category"] <- "Photosynthesis"
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
+f3$Category <- "Other"
+f3[(f3$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
+f3[(f3$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+f3[(f3$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+f3[(f3$Gene %in% GOIs$TPR),"Category"] <- "TPR"
+f3[(f3$Gene %in% GOIs$PTAC),"Category"] <- "PTAC"
+f3[(f3$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+f3[(f3$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+f3[(f3$Gene %in% GOIs$ProteinBioSyn),"Category"] <- "Protein biosynthesis"
+f3[(f3$Gene %in% GOIs$CarbonFixation),"Category"] <- "Carbon fixation"
+f3[(f3$Gene %in% GOIs$Oxidoreductase),"Category"] <- "Oxidoreductase"
+f3[(f3$Gene %in% GOIs$Protease),"Category"] <- "Protease"
+f3[(f3$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
+f3[(f3$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
 
-tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- factor(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category, levels = c("Other", "Plastid ribosome", "Cytosolic ribosome", "Photosynthesis","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
+f3$Category <- factor(f3$Category, levels = c("Other", "PE plastid ribosome", "NE plastid ribosome","Cytosolic ribosome", "TPR", "Protein biosynthesis", "PTAC", "PhANGs", "PhAPGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
 ```
 ```{r Fig3 Statistics}
 GOIs.cor <- GOIs[c(22,20,21,19,16,3,2,18,23,17,6,5,1)]
@@ -1279,66 +1120,16 @@ tmt.RIL.6H.Hyb2MP.cor.Ztest <- tmt.RIL.6H.Hyb2MP.cor.Ztest[,c("variable", "stat"
 tmt.RIL.6H.Hyb2MP.cor.Ztest <- tmt.RIL.6H.Hyb2MP.cor.Ztest[order(tmt.RIL.6H.Hyb2MP.cor.Ztest$variable, tmt.RIL.6H.Hyb2MP.cor.Ztest$stat),]
 tmt.RIL.6H.Hyb2MP.cor.Ztest$figure <- "Figure 3"
 ```
-
-```{r}
-library(BSDA)
-library(reshape2)
-```
-```{r}
-GOIs$BiosynSecMet
-```
-```{r}
-names(GOIs)
-```
-
-
-```{r}
-GOIs.cor <- list("AlphaLinAcidMet"=GOIs$AlphaLinAcidMet, "BiosynSecMet"=GOIs$BiosynSecMet,"Photosynthesis"=c(GOIs$PhANGs, GOIs$PhAPGs), "pRibo"=c(GOIs$PE.ribo, GOIs$NE.PtRibo),"CytoRibo"=GOIs$CytoRibo)
-ZtestResults <- data.frame("Alpha-linoleic acid metabolism"=numeric(), "Biosynthesis of secondary metabolites"=numeric(), "Photosynthesis"=numeric(), "Plastid ribosome"=numeric(),"Cytosolic ribosome"=numeric())
-```
-```{r}
-for(i in 1:length(GOIs.cor)){
-  
-  sigx <- sd(tmt.RIL.6H.Hyb2MP.cor$cor[tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])])
-  sigy <- sd(tmt.RIL.6H.Hyb2MP.cor$cor[!tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])])
-  
-  ztest <- z.test(x = tmt.RIL.6H.Hyb2MP.cor$cor[tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])], y = tmt.RIL.6H.Hyb2MP.cor$cor[!tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])], sigma.x = sigx, sigma.y = sigy)
-  
-  ZtestResults[1,i]<- round(ztest$estimate[[1]], digits = 3)
-  ZtestResults[2,i]<- round(ztest$estimate[[2]], digits = 3)
-  ZtestResults[3,i]<- round(sigx, digits = 3)
-  ZtestResults[4,i]<- round(sigy, digits = 3)
-  ZtestResults[5,i]<- ztest$p.value
-  ZtestResults[6,i]<- round(ztest$statistic[[1]], digits = 3)
-  
-}
-rownames(ZtestResults) <- c("mean.x", "mean.y","sd.x","sd.y", "Pvalue","Zstatistic")
-```
-
-
-
-```{r}
-library(dplyr)
-
-library(kableExtra)
-```
-
-```{r}
-ZtestResults %>%
-  kbl() %>%
-  kable_styling()
-```
-```{r}
-saveRDS(ZtestResults,"ZtestResults")
-```
-
-
-```{r}
-dt <- mtcars[1:5, 1:6]
-
-dt %>%
-  kbl() %>%
-  kable_styling()
+```{r plot Fig3}
+ggplot(f3, mapping=aes(y=Category, x=cor, fill = stat(x)))+
+  geom_density_ridges_gradient(alpha=0.7) +
+  scale_fill_viridis_c(option = "B")+
+  theme_ridges() +
+  theme(axis.text =element_text(size=8), axis.title = element_text(size=8), legend.position = "none", axis.title.y = element_blank(), axis.title.x = element_text(hjust = 0.5, size=8))+
+  coord_cartesian(expand = F)+
+  xlab("Pearson correlation")+
+  xlim(-1,1)
+ggsave(filename =paste0(PathToPlots, "Figure3.pdf"), dpi=300, width=3.4252, height=4)
 ```
 
 
