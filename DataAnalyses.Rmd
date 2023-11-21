@@ -825,7 +825,6 @@ tmt.SL.fig1 <- lapply(tmt.SL.fig1, setNames, c("Gene","l2.ratio", "l10.ttest","p
 #bind
 tmt.SL.fig1 <- do.call("rbind",tmt.SL.fig1)
 ```
-
 ```{r figure 1 statistics}
 #subset GOIs
 GOIs.fig1 <- GOIs[c("PhANGs","PhAPGs","NE.PtRibo","PE.ribo")]
@@ -1280,20 +1279,13 @@ fs1.nodups.trim.pv <- pathview(gene.data = fs1.nodups.trim, pathway.id = "zma007
 ```{r setup fig S2 data}
 #combine seedling leaf (SL) and leaf blade (LB) protein data
 fs2 <- merge.data.frame(tmt.LB[,c("Accession", "l2.B73xMo17.MP", "l2.B73.Mo17")], tmt.SL[,c("Accession", "l2.B73xMo17.MP", "l2.B73.Mo17")], by.x = "Accession", by.y = "Accession", all=F)
-fs2$Gene <- substr(fs2$Accession, start = 1, stop = 14)
 ```
 ```{r plot FigS2}
 #Set plot axis limits
-fs2$l2.B73xMo17.MP.x[fs2$l2.B73xMo17.MP.x <= -1] <- -1
-fs2$l2.B73xMo17.MP.x[fs2$l2.B73xMo17.MP.x >= 1] <- 1
-fs2$l2.B73xMo17.MP.y[fs2$l2.B73xMo17.MP.y <= -1] <- -1
-fs2$l2.B73xMo17.MP.y[fs2$l2.B73xMo17.MP.y >= 1] <- 1
-fs2$l2.B73.Mo17.x[fs2$l2.B73.Mo17.x <= -1] <- -1
-fs2$l2.B73.Mo17.x[fs2$l2.B73.Mo17.x >= 1] <- 1
-fs2$l2.B73.Mo17.y[fs2$l2.B73.Mo17.y <= -1] <- -1
-fs2$l2.B73.Mo17.y[fs2$l2.B73.Mo17.y >= 1] <- 1
+fs2[fs2 <= -1] <- -1
+fs2[fs2 >= 1] <- 1
 #Set GOIs
-fs2 <- fs2
+fs2$Gene <- substr(fs2$Accession, start = 1, stop = 14)
 fs2$Category <- "Other"
 fs2[(fs2$Gene %in% GOIs$plastid),"Category"] <- "Plastid-localized"
 fs2[(fs2$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
