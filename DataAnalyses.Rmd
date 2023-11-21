@@ -1644,34 +1644,32 @@ ggsave(plot=fs5, filename ="fig5.pdf", dpi=300, width=4.488189, height=3)
 
 
 #Figure S6
-
-```{r setup dataframe cpm.RIL.6H.Hyb2MP.Hyb2HP.cor}
+```{r setup data for Fig S6}
 #combine RIL and 6 hybrids Protein
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+fs6.df <- merge.data.frame(select(cpm.RIL, c(Gene, contains(".MP"))), select(cpm.6H, c(Gene, contains(".MP"))), by.x = "Gene", by.y = "Gene", all = F)
 #run correlation function
-cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+fs6.df <- CorFun(fs6.df, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 #Combine data for plotting
-cpm.RIL.6H.Hyb2MP.cor$data <- "Hybrid/MP"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor <- cpm.RIL.6H.Hyb2MP.cor[,c("Gene", "cor", "data")]
+fs6.df$data <- "Hybrid/MP"
+fs6.df <- fs6.df[,c("Gene", "cor", "data")]
 #Set GOIs
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- "Other"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$TPR),"Category"] <- "TPR"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$PTAC),"Category"] <- "PTAC"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$ProteinBioSyn),"Category"] <- "Protein biosynthesis"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$CarbonFixation),"Category"] <- "Carbon fixation"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$Oxidoreductase),"Category"] <- "Oxidoreductase"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$Protease),"Category"] <- "Protease"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$lphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
+fs6.df$Category <- "Other"
+fs6.df[(fs6.df$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
+fs6.df[(fs6.df$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+fs6.df[(fs6.df$Gene %in% GOIs$TPR),"Category"] <- "TPR"
+fs6.df[(fs6.df$Gene %in% GOIs$PTAC),"Category"] <- "PTAC"
+fs6.df[(fs6.df$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+fs6.df[(fs6.df$Gene %in% GOIs$ProteinBioSyn),"Category"] <- "Protein biosynthesis"
+fs6.df[(fs6.df$Gene %in% GOIs$CarbonFixation),"Category"] <- "Carbon fixation"
+fs6.df[(fs6.df$Gene %in% GOIs$Oxidoreductase),"Category"] <- "Oxidoreductase"
+fs6.df[(fs6.df$Gene %in% GOIs$Protease),"Category"] <- "Protease"
+fs6.df[(fs6.df$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
+fs6.df[(fs6.df$Gene %in% GOIs$lphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
 
-cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- factor(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category, levels = c("Other", "NE plastid ribosome","Cytosolic ribosome", "TPR","Protein biosynthesis", "PTAC", "PhANGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
-
+fs6.df$Category <- factor(fs6.df$Category, levels = c("Other", "NE plastid ribosome","Cytosolic ribosome", "TPR","Protein biosynthesis", "PTAC", "PhANGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
 ```
 ```{r plot FigS6}
-ggplot(cpm.RIL.6H.Hyb2MP.Hyb2HP.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
+ggplot(fs6.df, mapping=aes(y=Category, x=cor, fill = stat(x)))+
   geom_density_ridges_gradient(alpha=0.7) +
    scale_fill_viridis_c(option = "B")+
   theme_ridges() +
