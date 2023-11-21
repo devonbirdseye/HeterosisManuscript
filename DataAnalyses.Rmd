@@ -319,9 +319,9 @@ cpm.SL$HP1 <- pmax(cpm.SL$B73.1, cpm.SL$Mo17.1)
 cpm.SL$HP2 <- pmax(cpm.SL$B73.2, cpm.SL$Mo17.2)
 cpm.SL$HP3 <- pmax(cpm.SL$B73.3, cpm.SL$Mo17.3)
 #Define low-parent(LP)
-cpm.SL$HP1 <- pmin(cpm.SL$B73.1, cpm.SL$Mo17.1)
-cpm.SL$HP2 <- pmin(cpm.SL$B73.2, cpm.SL$Mo17.2)
-cpm.SL$HP3 <- pmin(cpm.SL$B73.3, cpm.SL$Mo17.3)
+cpm.SL$LP1 <- pmin(cpm.SL$B73.1, cpm.SL$Mo17.1)
+cpm.SL$LP2 <- pmin(cpm.SL$B73.2, cpm.SL$Mo17.2)
+cpm.SL$LP3 <- pmin(cpm.SL$B73.3, cpm.SL$Mo17.3)
 #Calculate hyb/HP
 cpm.SL$HP <- rowMeans(cpm.SL[,c("HP1", "HP2", "HP3")])
 cpm.SL$l2.B73xMo17.HP <- log2(cpm.SL$B73xMo17/cpm.SL$HP)
@@ -811,22 +811,21 @@ colors.ea <- c("Other"="#D8D8D8", "SAMS"="black", "ACS"="black", "ACO"="black", 
 
 
 #Figure 1
-```{r setup fig1 data}
-#subset
-tmt.SL.Hyb2HP <- tmt.SL[,c("Gene", "l2.B73xMo17.HP", "l10.ttest.HP")]
-tmt.SL.Par2Par <- tmt.SL[,c("Gene", "l2.B73xMo17.MP", "l10.ttest.MP")]
-tmt.SL.Hyb2MP <- tmt.SL[,c("Gene", "l2.B73.Mo17", "l10.ttest.P")]
-#rename column to match
-colnames(tmt.SL.Hyb2HP) <- c("Gene", "l2.ratio", "l10.ttest")
-colnames(tmt.SL.Hyb2MP) <- c("Gene", "l2.ratio", "l10.ttest")
-colnames(tmt.SL.Par2Par) <- c("Gene", "l2.ratio", "l10.ttest")
+```{r}
+#make list of dfs
+tmt.SL.fig1 <- list("Hyb2HP"=tmt.SL[,c("Gene", "l2.B73xMo17.HP", "l10.ttest.HP")],
+                    "Hyb2MP"=tmt.SL[,c("Gene", "l2.B73xMo17.MP", "l10.ttest.MP")],
+                    "Par2Par"=tmt.SL[,c("Gene", "l2.B73.Mo17", "l10.ttest.P")])
 #name plot panels
-tmt.SL.Hyb2HP$plot <- "A"
-tmt.SL.Hyb2MP$plot <- "B"
-tmt.SL.Par2Par$plot <- "C"
+tmt.SL.fig1$Hyb2HP$plot <- "A"
+tmt.SL.fig1$Hyb2MP$plot <- "B"
+tmt.SL.fig1$Par2Par$plot <- "C"
+#rename column to match
+tmt.SL.fig1 <- lapply(tmt.SL.fig1, setNames, c("Gene","l2.ratio", "l10.ttest","plot"))
 #bind
-tmt.SL.fig1 <- do.call("rbind", list(tmt.SL.Hyb2HP, tmt.SL.Hyb2MP, tmt.SL.Par2Par))
+tmt.SL.fig1 <- do.call("rbind",tmt.SL.fig1)
 ```
+
 ```{r figure 1 statistics}
 #subset GOIs
 GOIs.fig1 <- GOIs[c("PhANGs","PhAPGs","NE.PtRibo","PE.ribo")]
@@ -1390,58 +1389,31 @@ fs2.design <- "AB
 fs2ab<-patchwork::wrap_plots(A=A, B=B, C=legend,  nrow = 2, heights = c(3,1.2), design = fs2.design)
 ggsave(plot=fs2ab, filename =paste0(PathToPlots, "FigureS2.pdf"), dpi=300, width=4.488189, height=3)
 ```
+
 #Figure S3
-```{r Setup dataframe S3}
-cpm.SL.B73.1.Mo17.1 <- lm(B73.1~Mo17.1, data = cpm.SL)
-cpm.SL.B73.1.Mo17.1 <- summary(cpm.SL.B73.1.Mo17.1)
-cpm.SL.B73.1.Mo17.1 <- cpm.SL.B73.1.Mo17.1$adj.r.squared
-
-cpm.SL.B73xMo17.1.B73.1 <- lm(B73xMo17.1~B73.1, data = cpm.SL)
-cpm.SL.B73xMo17.1.B73.1 <- summary(cpm.SL.B73xMo17.1.B73.1)
-cpm.SL.B73xMo17.1.B73.1 <- cpm.SL.B73xMo17.1.B73.1$adj.r.squared
-
-cpm.SL.B73xMo17.1.Mo17.1 <- lm(B73xMo17.1~Mo17.1, data = cpm.SL)
-cpm.SL.B73xMo17.1.Mo17.1 <- summary(cpm.SL.B73xMo17.1.Mo17.1)
-cpm.SL.B73xMo17.1.Mo17.1 <- cpm.SL.B73xMo17.1.Mo17.1$adj.r.squared
-
-cpm.SL.B73xMo17.1.B73xMo17.2 <- lm(B73xMo17.1~B73xMo17.2, data = cpm.SL)
-cpm.SL.B73xMo17.1.B73xMo17.2 <- summary(cpm.SL.B73xMo17.1.B73xMo17.2)
-cpm.SL.B73xMo17.1.B73xMo17.2 <- cpm.SL.B73xMo17.1.B73xMo17.2$adj.r.squared
-
-cpm.LB.B73.1.Mo17.1 <- lm(B73.1~Mo17.1, data = cpm.LB)
-cpm.LB.B73.1.Mo17.1 <- summary(cpm.LB.B73.1.Mo17.1)
-cpm.LB.B73.1.Mo17.1 <- cpm.LB.B73.1.Mo17.1$adj.r.squared
-
-cpm.LB.B73xMo17.1.B73.1 <- lm(B73xMo17.1~B73.1, data = cpm.LB)
-cpm.LB.B73xMo17.1.B73.1 <- summary(cpm.LB.B73xMo17.1.B73.1)
-cpm.LB.B73xMo17.1.B73.1 <- cpm.LB.B73xMo17.1.B73.1$adj.r.squared
-
-cpm.LB.B73xMo17.1.Mo17.1 <- lm(B73xMo17.1~Mo17.1, data = cpm.LB)
-cpm.LB.B73xMo17.1.Mo17.1 <- summary(cpm.LB.B73xMo17.1.Mo17.1)
-cpm.LB.B73xMo17.1.Mo17.1 <- cpm.LB.B73xMo17.1.Mo17.1$adj.r.squared
-
-cpm.LB.B73xMo17.1.B73xMo17.2 <- lm(B73xMo17.1~B73xMo17.2, data = cpm.LB)
-cpm.LB.B73xMo17.1.B73xMo17.2 <- summary(cpm.LB.B73xMo17.1.B73xMo17.2)
-cpm.LB.B73xMo17.1.B73xMo17.2 <- cpm.LB.B73xMo17.1.B73xMo17.2$adj.r.squared
-
+```{r Setup data for Fig S3}
 cpm.SL.LB <- merge.data.frame(cpm.SL, cpm.LB, by.x = "Gene", by.y = "Gene", all=F)
-cpm.SL.LB.B73.1.B73.1 <- lm(B73.1.x~B73.1.y, data = cpm.SL.LB)
-cpm.SL.LB.B73.1.B73.1 <- summary(cpm.SL.LB.B73.1.B73.1)
-cpm.SL.LB.B73.1.B73.1 <- cpm.SL.LB.B73.1.B73.1$adj.r.squared
 
-cpm.SL.LB.Mo17.1.Mo17.1 <- lm(Mo17.1.x~Mo17.1.y, data = cpm.SL.LB)
-cpm.SL.LB.Mo17.1.Mo17.1 <- summary(cpm.SL.LB.Mo17.1.Mo17.1)
-cpm.SL.LB.Mo17.1.Mo17.1 <- cpm.SL.LB.Mo17.1.Mo17.1$adj.r.squared
+fs3v <- c(
+  summary(lm(B73.1~Mo17.1, data = cpm.SL))$adj.r.squared,
+  summary(lm(B73xMo17.1~B73.1, data = cpm.SL))$adj.r.squared,
+  summary(lm(B73xMo17.1~Mo17.1, data = cpm.SL))$adj.r.squared,
+  summary(lm(B73xMo17.1~B73xMo17.2, data = cpm.SL))$adj.r.squared,
+  summary(lm(B73.1~Mo17.1, data = cpm.LB))$adj.r.squared,
+  summary(lm(B73xMo17.1~B73.1, data = cpm.LB))$adj.r.squared,
+  summary(lm(B73xMo17.1~Mo17.1, data = cpm.LB))$adj.r.squared,
+  summary(lm(B73xMo17.1~B73xMo17.2, data = cpm.LB))$adj.r.squared,
+  summary(lm(B73.1.x~B73.1.y, data = cpm.SL.LB))$adj.r.squared,
+  summary(lm(Mo17.1.x~Mo17.1.y, data = cpm.SL.LB))$adj.r.squared,
+  summary(lm(B73xMo17.1.x~B73xMo17.1.y, data = cpm.SL.LB))$adj.r.squared
+)
 
-cpm.SL.LB.B73xMo17.1.B73xMo17.1 <- lm(B73xMo17.1.x~B73xMo17.1.y, data = cpm.SL.LB)
-cpm.SL.LB.B73xMo17.1.B73xMo17.1 <- summary(cpm.SL.LB.B73xMo17.1.B73xMo17.1)
-cpm.SL.LB.B73xMo17.1.B73xMo17.1 <- cpm.SL.LB.B73xMo17.1.B73xMo17.1$adj.r.squared
+fs3df <- data.frame("Rsquared"=fs3v, "comparison"=c("SL B73.1 vs SL Mo17.1", "SL BxM.1 vs SL B73.1", "SL BxM.1 vs SL Mo17.1", "SL.BxM.1 vs SL BxM.2", "LB B73.1 vs LB Mo17.1", "LB BxM.1 vs LB B73.1", "LB BxM.1 vs LB Mo17.1", "LB.BxM.1 vs LB BxM.2", "SL B73.1 vs LB B73.1", "SL Mo17.1 vs LB Mo17.1", "SL BxM.1 vs LB BxM.1"))
 
-cpm.SL.LB.R <- data.frame("comparison"=c("SL B73.1 vs SL Mo17.1", "SL BxM.1 vs SL B73.1", "SL BxM.1 vs SL Mo17.1", "SL.BxM.1 vs SL BxM.2", "LB B73.1 vs LB Mo17.1", "LB BxM.1 vs LB B73.1", "LB BxM.1 vs LB Mo17.1", "LB.BxM.1 vs LB BxM.2", "SL B73.1 vs LB B73.1", "SL Mo17.1 vs LB Mo17.1", "SL BxM.1 vs LB BxM.1"), "Rsquared"=c(cpm.SL.B73.1.Mo17.1,cpm.SL.B73xMo17.1.B73.1,cpm.SL.B73xMo17.1.Mo17.1,cpm.SL.B73xMo17.1.B73xMo17.2, cpm.LB.B73.1.Mo17.1,cpm.LB.B73xMo17.1.B73.1,cpm.LB.B73xMo17.1.Mo17.1,cpm.LB.B73xMo17.1.B73xMo17.2, cpm.SL.LB.B73.1.B73.1,cpm.SL.LB.Mo17.1.Mo17.1,cpm.SL.LB.B73xMo17.1.B73xMo17.1))
-cpm.SL.LB.R$comparison <- factor(cpm.SL.LB.R$comparison, levels = cpm.SL.LB.R$comparison)
+fs3df$comparison <- factor(fs3df$comparison, levels = fs3df$comparison)
 ```
 ```{r Plot S3}
-ggplot(cpm.SL.LB.R, mapping = aes(x=comparison, y=Rsquared))+
+ggplot(fs3df, mapping = aes(x=comparison, y=Rsquared))+
   geom_col()+
   theme_bw()+
   ylab("R squared")+
@@ -1450,63 +1422,49 @@ ggplot(cpm.SL.LB.R, mapping = aes(x=comparison, y=Rsquared))+
 ggsave(paste0(PathToPlots,"FigureS3.pdf"), width = 7.007874, height = 6)
 ```
 #Figure S4
-```{r setup dataframe cpm.SL.figs4}
-#copy
-cpm.SL.Hyb2HP <- cpm.SL
-cpm.SL.Par2Par <- cpm.SL
-cpm.SL.Hyb2MP <- cpm.SL
+```{r setup data for figS4}
+#make list of dfs
+cpm.SL.figs4 <- list("Hyb2HP"=cpm.SL[,c("Gene", "l2.B73xMo17.HP", "l10.ttest.HP")],
+                     "Hyb2MP"=cpm.SL[,c("Gene", "l2.B73xMo17.MP", "l10.ttest.MP")],
+                     "Par2Par"=cpm.SL[,c("Gene", "l2.B73.Mo17", "l10.ttest.P")])
 #name plot panels
-cpm.SL.Hyb2HP$plot <- "A"
-cpm.SL.Hyb2MP$plot <- "B"
-cpm.SL.Par2Par$plot <- "C"
-#trim
-cpm.SL.Hyb2HP <- cpm.SL.Hyb2HP[,c("plot", "Gene", "l2.B73xMo17.HP", "l10.ttest.HP")]
-cpm.SL.Hyb2MP <- cpm.SL.Hyb2MP[,c("plot", "Gene", "l2.B73xMo17.MP", "l10.ttest.MP")]
-cpm.SL.Par2Par <- cpm.SL.Par2Par[,c("plot", "Gene", "l2.B73.Mo17", "l10.ttest.P")]
+cpm.SL.figs4$Hyb2HP$plot <- "A"
+cpm.SL.figs4$Hyb2MP$plot <- "B"
+cpm.SL.figs4$Par2Par$plot <- "C"
 #rename column to match
-colnames(cpm.SL.Hyb2HP)[3:4] <- c("l2.ratio", "l10.ttest")
-colnames(cpm.SL.Hyb2MP)[3:4] <- c("l2.ratio", "l10.ttest")
-colnames(cpm.SL.Par2Par)[3:4] <- c("l2.ratio", "l10.ttest")
+cpm.SL.figs4 <- lapply(cpm.SL.figs4, setNames, c("Gene","l2.ratio", "l10.ttest","plot"))
 #bind
-cpm.SL.figs4 <- rbind(cpm.SL.Hyb2HP,cpm.SL.Hyb2MP)
-cpm.SL.figs4 <- rbind(cpm.SL.figs4,cpm.SL.Par2Par)
+cpm.SL.figs4 <- do.call("rbind",cpm.SL.figs4)
 ```
 ```{r plot figs4}
- plot<-unique(cpm.SL.figs4[,"plot"])
-  plotList<-vector(mode = "list", length = length(plot))
-  plotLab<-unique(cpm.SL.figs4[,"plot"])
+plot<-unique(cpm.SL.figs4[,"plot"])
+plotList<-vector(mode = "list", length = length(plot))
   for(i in 1:length(plot)){
-    df<-cpm.SL.figs4[which(cpm.SL.figs4[,"plot"]==plot[i]),]
-    ###Set limits
-df.lims <- df
-df.lims$l2.ratio[df.lims$l2.ratio <= -1] <- -1
-df.lims$l2.ratio[df.lims$l2.ratio >= 1] <- 1
-###Set GOIs
-df.lims.plastid <- df.lims
-df.lims.plastid$Category <- "Other"
-df.lims.plastid$Order <- 1
-df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$plastid),"Category"] <- "Plastid-localized"
-df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$plastid),"Order"] <- 2
-df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$PhANGs),"Order"] <- 3
-df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
-df.lims.plastid[(df.lims.plastid$Gene %in% GOIs$NE.PtRibo),"Order"] <- 4
-
-###Re-order
-df.lims.plastid <- df.lims.plastid[(order(df.lims.plastid$Order)),]
-###factor
-df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome"))
+    figS4<-cpm.SL.figs4[which(cpm.SL.figs4[,"plot"]==plot[i]),]
+    ###Set plot axis limits
+    figS4 <- df
+    figS4$l2.ratio[figS4$l2.ratio <= -1] <- -1
+    figS4$l2.ratio[figS4$l2.ratio >= 1] <- 1
+    ###Set GOIs
+    figS4 <- figS4
+    figS4$Category <- "Other"
+    figS4[(figS4$Gene %in% GOIs$plastid),"Category"] <- "Plastid-localized"
+    figS4[(figS4$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+    figS4[(figS4$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+    ###factor
+    figS4$Category <- factor(figS4$Category, levels = c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome"))
+    figS4 <- figS4[(order(figS4$Category)),]
     #scatter plot with marginal density curves
-    df.lims.plastid.scat <- ggplot(df.lims.plastid, mapping=aes(x=l2.ratio, y=l10.ttest, color=Category, shape=Category))+
+    figS4.scat <- ggplot(figS4, mapping=aes(x=l2.ratio, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=1.5)+
   scale_color_manual(values=colors.p[c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome")], name="Category")+
       scale_shape_manual(values=c(1,19,19,19))+
-    theme_classic()+
+      theme_classic()+
       xlim(c(-1,1))+
       geom_vline(xintercept=0, linetype="dashed", color = "gray40", size=0.5)+
       geom_hline(yintercept= 1.30103, linetype="dashed", color = "gray40", size=0.5)+
       ylab("-log10(p-value)")+
-      ggtitle(plotLab[i])+
+      ggtitle(plot[i])+
       theme(aspect.ratio=1)+
       coord_fixed(expand = F)+
       theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
@@ -1514,27 +1472,27 @@ df.lims.plastid$Category <- factor(df.lims.plastid$Category, levels = c("Other",
         legend.position="bottom", legend.title = element_blank(), plot.title = element_text(size=10, vjust = -3, hjust = -0.2), legend.spacing.x = unit(0.1, 'cm'), legend.spacing.y = unit(-3, 'cm'))+
       guides(col=guide_legend(ncol = 2))
         if(i==1){
-          df.lims.plastid.scat <- df.lims.plastid.scat+ xlab("log2 BxM/HP")
+          figS4.scat <- figS4.scat+ xlab("log2 BxM/HP")
         }
         else if(i==2){
-          df.lims.plastid.scat <- df.lims.plastid.scat+ xlab("log2 BxM/MP")
+          figS4.scat <- figS4.scat+ xlab("log2 BxM/MP")
         }
         else if(i==3){
-          df.lims.plastid.scat <- df.lims.plastid.scat+ xlab("log2 B73/Mo17")
+          figS4.scat <- figS4.scat+ xlab("log2 B73/Mo17")
         }
   
-legend <- get_legend(df.lims.plastid.scat)
-    df.lims.plastid.scat <- df.lims.plastid.scat+theme(legend.position = "none")
-###Add density curves
-    densityplotX<-axis_canvas(df.lims.plastid.scat, axis="x")+
-      geom_density(aes(df.lims.plastid[,"l2.ratio"], color=df.lims.plastid[,"Category"]), size=0.5)+
+    legend <- get_legend(figS4.scat)
+    figS4.scat <- figS4.scat+theme(legend.position = "none")
+    ###Add density curves
+    densityplotX<-axis_canvas(figS4.scat, axis="x")+
+      geom_density(aes(figS4[,"l2.ratio"], color=figS4[,"Category"]), size=0.5)+
     scale_color_manual(values=colors.p[c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome")], name="Category")+
       theme_void()+
       theme(legend.title = element_blank())+
       theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
     #set up marginal density plot Y axis
-    densityplotY<-axis_canvas(df.lims.plastid.scat, axis="y", coord_flip = T)+
-      geom_density(aes(df.lims.plastid[,"l10.ttest"], color=df.lims.plastid[,"Category"]), size=0.5)+
+    densityplotY<-axis_canvas(figS4.scat, axis="y", coord_flip = T)+
+      geom_density(aes(figS4[,"l10.ttest"], color=figS4[,"Category"]), size=0.5)+
       scale_color_manual(values=colors.p[c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome")], name="Category")+
       scale_linetype_manual(values=c("dotted", "solid"))+
       theme_void()+
@@ -1542,7 +1500,7 @@ legend <- get_legend(df.lims.plastid.scat)
       coord_flip(expand = F)+
       theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
     #put two plots together
-      q <- insert_xaxis_grob(df.lims.plastid.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      q <- insert_xaxis_grob(figS4.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
       q <- insert_yaxis_grob(q, densityplotY, grid::unit((0.275), "null"), position = "right")
     if(i==1){
       plotList<-list()
@@ -1553,13 +1511,15 @@ legend <- get_legend(df.lims.plastid.scat)
     }
   }
   plotList <- c(plotList, list(legend))
+  
+#setup layout for panels
        des <- "A
                B
                C
                D"
   r<-patchwork::wrap_plots(A=plotList[[1]], B=plotList[[2]], C=plotList[[3]], D=plotList[[4]], heights = c(1,1,1,0.5), nrow = 4, design = des)
-  ggsave(plot=r, filename =paste0(PathToPlots, "FigureS4.pdf"),
-          dpi=300, width=3.4252, height=8)  
+
+ggsave(plot=r, filename =paste0(PathToPlots, "FigureS4.pdf"), dpi=300, width=3.4252, height=8)  
 ```
 
 #Figure S5
