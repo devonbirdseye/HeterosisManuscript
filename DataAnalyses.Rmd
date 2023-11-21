@@ -49,11 +49,8 @@ ttestFun <- function(df, col1, col2){
   result
 }
 ```
-
-
-
 #Import protein data
-```{r import protein data}
+```{r import protein data, warning=F}
 #Import protein data
 tmt <- read.csv(paste0(PathToData,"SupplementalTable9.csv"), stringsAsFactors = F)
 #re-define protein column to shortened name
@@ -65,26 +62,22 @@ tmt$Gene <- substr(tmt$Accession, start = 1, stop = 14)
 tmt.withPolymorphic <- tmt
 tmt <- tmt[-(grep("only", tmt$Accession)),]
 #Convert to numeric
-for(i in 1:170){
-  tmt[,i] <- as.numeric(tmt[,i])
-}
+tmt[1:170] <- sapply(tmt[1:170],as.numeric)
 ```
 #Subset protein experiments
-```{r subset BxM seedling leaf from original experiment}
+```{r subset BxM seedling leaf}
 #BxM from Original Experiment (OG)
-tmt.SL <- tmt[,c(171:183,12:20)]
+tmt.SL <- select(tmt,c(Group:Gene, SeedlingLeaf.B73.r1:SeedlingLeaf.BM.r3))
 #Remove proteins not detected in one or more samples
 tmt.SL <- na.omit(tmt.SL)
 #Calculate averages of bio reps
-tmt.SL$B73 <- rowMeans(tmt.SL[,c("SeedlingLeaf.B73.r1", "SeedlingLeaf.B73.r2", "SeedlingLeaf.B73.r3")])
-tmt.SL$Mo17 <- rowMeans(tmt.SL[,c("SeedlingLeaf.Mo17.r1", "SeedlingLeaf.Mo17.r2", "SeedlingLeaf.Mo17.r3")])
-tmt.SL$B73xMo17 <- rowMeans(tmt.SL[,c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3")])
+tmt.SL$B73 <- rowMeans(select(tmt.SL,contains("B73")))
+tmt.SL$Mo17 <- rowMeans(select(tmt.SL,contains("Mo17")))
+tmt.SL$B73xMo17 <- rowMeans(select(tmt.SL,contains("BM")))
 tmt.SL$MP <- rowMeans(tmt.SL[,c("B73", "Mo17")])
 #calculate ratios
-tmt.SL$B73xMo17.MP <- tmt.SL$B73xMo17/tmt.SL$MP
-tmt.SL$l2.B73xMo17.MP <- log2(tmt.SL$B73xMo17.MP)
-tmt.SL$B73.Mo17 <- tmt.SL$B73/tmt.SL$Mo17
-tmt.SL$l2.B73.Mo17 <-log2(tmt.SL$B73.Mo17)
+tmt.SL$l2.B73xMo17.MP <- log2(tmt.SL$B73xMo17/tmt.SL$MP)
+tmt.SL$l2.B73.Mo17 <-log2(tmt.SL$B73/tmt.SL$Mo17)
 #Calculate hyb/MP significance
 tmt.SL$MP1 <- rowMeans(tmt.SL[,c("SeedlingLeaf.B73.r1","SeedlingLeaf.Mo17.r1")])
 tmt.SL$MP2 <- rowMeans(tmt.SL[,c("SeedlingLeaf.B73.r2","SeedlingLeaf.Mo17.r2")])
@@ -92,64 +85,32 @@ tmt.SL$MP3 <- rowMeans(tmt.SL[,c("SeedlingLeaf.B73.r3","SeedlingLeaf.Mo17.r3")])
 tmt.SL$ttest.MP <- ttestFun(tmt.SL, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
 tmt.SL$l10.ttest.MP <- -(log10(tmt.SL$ttest.MP))
 #Define high-parent(HP)
-tmt.SL$HP1 <- NA
-for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"HP1"] <- max(c(tmt.SL[i,"SeedlingLeaf.B73.r1"], tmt.SL[i,"SeedlingLeaf.Mo17.r1"]))
-}
-tmt.SL$HP2 <- NA
-for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"HP2"] <- max(c(tmt.SL[i,"SeedlingLeaf.B73.r2"], tmt.SL[i,"SeedlingLeaf.Mo17.r2"]))
-}
-tmt.SL$HP3 <- NA
-for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"HP3"] <- max(c(tmt.SL[i,"SeedlingLeaf.B73.r3"], tmt.SL[i,"SeedlingLeaf.Mo17.r3"]))
-}
-#Define low-parent(LP)
-tmt.SL$LP1 <- NA
-for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"LP1"] <- min(c(tmt.SL[i,"SeedlingLeaf.B73.r1"], tmt.SL[i,"SeedlingLeaf.Mo17.r1"]))
-}
-tmt.SL$LP2 <- NA
-for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"LP2"] <- min(c(tmt.SL[i,"SeedlingLeaf.B73.r2"], tmt.SL[i,"SeedlingLeaf.Mo17.r2"]))
-}
-tmt.SL$LP3 <- NA
-for(i in 1:nrow(tmt.SL)){
-  tmt.SL[i,"LP3"] <- min(c(tmt.SL[i,"SeedlingLeaf.B73.r3"], tmt.SL[i,"SeedlingLeaf.Mo17.r3"]))
-}
+tmt.SL$HP1 <- pmax(tmt.SL$SeedlingLeaf.B73.r1, tmt.SL$SeedlingLeaf.Mo17.r1)
+tmt.SL$HP2 <- pmax(tmt.SL$SeedlingLeaf.B73.r2, tmt.SL$SeedlingLeaf.Mo17.r2)
+tmt.SL$HP3 <- pmax(tmt.SL$SeedlingLeaf.B73.r3, tmt.SL$SeedlingLeaf.Mo17.r3)
 #Calculate hyb/HP
 tmt.SL$HP <- rowMeans(tmt.SL[,c("HP1", "HP2", "HP3")])
-tmt.SL$B73xMo17.HP <- tmt.SL$B73xMo17/tmt.SL$HP
-tmt.SL$l2.B73xMo17.HP <- log2(tmt.SL$B73xMo17.HP)
-#Calculate hyb/LP
-tmt.SL$LP <- rowMeans(tmt.SL[,c("LP1", "LP2", "LP3")])
-tmt.SL$B73xMo17.LP <- tmt.SL$B73xMo17/tmt.SL$LP
-tmt.SL$l2.B73xMo17.LP <- log2(tmt.SL$B73xMo17.LP)
+tmt.SL$l2.B73xMo17.HP <- log2(tmt.SL$B73xMo17/tmt.SL$HP)
 #Calculate hyb/HP significance
 tmt.SL$ttest.HP <- ttestFun(tmt.SL, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("HP1", "HP2", "HP3"))
 tmt.SL$l10.ttest.HP <- -(log10(tmt.SL$ttest.HP))
-#Calculate hyb/LP significance
-tmt.SL$ttest.LP <- ttestFun(tmt.SL, c("SeedlingLeaf.BM.r1", "SeedlingLeaf.BM.r2", "SeedlingLeaf.BM.r3"), c("LP1", "LP2", "LP3"))
-tmt.SL$l10.ttest.LP <- -(log10(tmt.SL$ttest.LP))
 #Calculate Par/Par significance
 tmt.SL$ttest.P <- ttestFun(tmt.SL, c("SeedlingLeaf.B73.r1", "SeedlingLeaf.B73.r2", "SeedlingLeaf.B73.r3"), c("SeedlingLeaf.Mo17.r1", "SeedlingLeaf.Mo17.r2", "SeedlingLeaf.Mo17.r3"))
 tmt.SL$l10.ttest.P <- -(log10(tmt.SL$ttest.P))
 ```
-```{r subset BxM mature leaf blade from original experiment}
+```{r subset BxM mature leaf blade}
 #BxM from Original Experiment (OG)
-tmt.LB <- tmt[,c(171:183,22:30)]
+tmt.LB <- select(tmt,c(Group:Gene, MatureLeaf.B73.r1:MatureLeaf.BM.r3))
 #Remove proteins not detected in one or more samples
 tmt.LB <- na.omit(tmt.LB)
 #Calculate averages of bio reps
-tmt.LB$B73 <- rowMeans(tmt.LB[,c("MatureLeaf.B73.r1", "MatureLeaf.B73.r2", "MatureLeaf.B73.r3")])
-tmt.LB$Mo17 <- rowMeans(tmt.LB[,c("MatureLeaf.Mo17.r1", "MatureLeaf.Mo17.r2", "MatureLeaf.Mo17.r3")])
-tmt.LB$B73xMo17 <- rowMeans(tmt.LB[,c("MatureLeaf.BM.r1", "MatureLeaf.BM.r2", "MatureLeaf.BM.r3")])
+tmt.LB$B73 <- rowMeans(select(tmt.LB,contains("B73")))
+tmt.LB$Mo17 <- rowMeans(select(tmt.LB,contains("Mo17")))
+tmt.LB$B73xMo17 <- rowMeans(select(tmt.LB,contains("BM")))
 tmt.LB$MP <- rowMeans(tmt.LB[,c("B73", "Mo17")])
 #calculate ratios
-tmt.LB$B73xMo17.MP <- tmt.LB$B73xMo17/tmt.LB$MP
-tmt.LB$l2.B73xMo17.MP <- log2(tmt.LB$B73xMo17.MP)
-tmt.LB$B73.Mo17 <- tmt.LB$B73/tmt.LB$Mo17
-tmt.LB$l2.B73.Mo17 <-log2(tmt.LB$B73.Mo17)
+tmt.LB$l2.B73xMo17.MP <- log2(tmt.LB$B73xMo17/tmt.LB$MP)
+tmt.LB$l2.B73.Mo17 <-log2(tmt.LB$B73/tmt.LB$Mo17)
 #Calculate hyb/MP significance
 tmt.LB$MP1 <- rowMeans(tmt.LB[,c("MatureLeaf.B73.r1","MatureLeaf.Mo17.r1")])
 tmt.LB$MP2 <- rowMeans(tmt.LB[,c("MatureLeaf.B73.r2","MatureLeaf.Mo17.r2")])
@@ -157,22 +118,12 @@ tmt.LB$MP3 <- rowMeans(tmt.LB[,c("MatureLeaf.B73.r3","MatureLeaf.Mo17.r3")])
 tmt.LB$ttest.MP <- ttestFun(tmt.LB, c("MatureLeaf.BM.r1", "MatureLeaf.BM.r2", "MatureLeaf.BM.r3"), c("MP1", "MP2", "MP3"))
 tmt.LB$l10.ttest.MP <- -(log10(tmt.LB$ttest.MP))
 #Define high-parent(HP)
-tmt.LB$HP1 <- NA
-for(i in 1:nrow(tmt.LB)){
-  tmt.LB[i,"HP1"] <- max(c(tmt.LB[i,"MatureLeaf.B73.r1"], tmt.LB[i,"MatureLeaf.Mo17.r1"]))
-}
-tmt.LB$HP2 <- NA
-for(i in 1:nrow(tmt.LB)){
-  tmt.LB[i,"HP2"] <- max(c(tmt.LB[i,"MatureLeaf.B73.r2"], tmt.LB[i,"MatureLeaf.Mo17.r2"]))
-}
-tmt.LB$HP3 <- NA
-for(i in 1:nrow(tmt.LB)){
-tmt.LB[i,"HP3"] <- max(c(tmt.LB[i,"MatureLeaf.B73.r3"], tmt.LB[i,"MatureLeaf.Mo17.r3"]))
-}
+tmt.LB$HP1 <- pmax(tmt.LB$MatureLeaf.B73.r1, tmt.LB$MatureLeaf.Mo17.r1)
+tmt.LB$HP2 <- pmax(tmt.LB$MatureLeaf.B73.r2, tmt.LB$MatureLeaf.Mo17.r2)
+tmt.LB$HP3 <- pmax(tmt.LB$MatureLeaf.B73.r3, tmt.LB$MatureLeaf.Mo17.r3)
 #Calculate hyb/HP
 tmt.LB$HP <- rowMeans(tmt.LB[,c("HP1", "HP2", "HP3")])
-tmt.LB$B73xMo17.HP <- tmt.LB$B73xMo17/tmt.LB$HP
-tmt.LB$l2.B73xMo17.HP <- log2(tmt.LB$B73xMo17.HP)
+tmt.LB$l2.B73xMo17.HP <- log2(tmt.LB$B73xMo17/tmt.LB$HP)
 #Calculate hyb/HP significance
 tmt.LB$ttest.HP <- ttestFun(tmt.LB, c("MatureLeaf.BM.r1", "MatureLeaf.BM.r2", "MatureLeaf.BM.r3"), c("HP1", "HP2", "HP3"))
 tmt.LB$l10.ttest.HP <- -(log10(tmt.LB$ttest.HP))
@@ -180,291 +131,83 @@ tmt.LB$l10.ttest.HP <- -(log10(tmt.LB$ttest.HP))
 tmt.LB$ttest.P <- ttestFun(tmt.LB, c("MatureLeaf.B73.r1", "MatureLeaf.B73.r2", "MatureLeaf.B73.r3"), c("MatureLeaf.Mo17.r1", "MatureLeaf.Mo17.r2", "MatureLeaf.Mo17.r3"))
 tmt.LB$l10.ttest.P <- -(log10(tmt.LB$ttest.P))
 ```
-```{r subset all hybrids from 6-hybrid experiment}
+```{r subset 6-hybrid experiment}
 #Subset all hybrids from 6-hybrid experiment (6H)
-tmt.6H <- tmt[,c(171:183,31:60)]
+tmt.6H <- select(tmt,c(Group:Gene, contains("X6Hybrid")))
 #Remove proteins not detected in one or more samples
 tmt.6H <- na.omit(tmt.6H)
 #calculate averages
-tmt.6H$B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r1", "X6Hybrid.B73.r2", "X6Hybrid.B73.r3")])
-tmt.6H$Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r1", "X6Hybrid.Mo17.r2", "X6Hybrid.Mo17.r3")])
-tmt.6H$B73xMo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3")])
-tmt.6H$Mo17xB73 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17xB73.r1", "X6Hybrid.Mo17xB73.r2", "X6Hybrid.Mo17xB73.r3")])
-tmt.6H$B84 <- rowMeans(tmt.6H[,c("X6Hybrid.B84.r1", "X6Hybrid.B84.r2", "X6Hybrid.B84.r3")])
-tmt.6H$B84xB73 <- rowMeans(tmt.6H[,c("X6Hybrid.B84xB73.r1", "X6Hybrid.B84xB73.r2", "X6Hybrid.B84xB73.r3")])
-tmt.6H$B84xMo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B84xMo17.r1", "X6Hybrid.B84xMo17.r2", "X6Hybrid.B84xMo17.r3")])
-tmt.6H$A682 <- rowMeans(tmt.6H[,c("X6Hybrid.A682.r1", "X6Hybrid.A682.r2", "X6Hybrid.A682.r3")])
-tmt.6H$A682xB73 <- rowMeans(tmt.6H[,c("X6Hybrid.A682xB73.r1", "X6Hybrid.A682xB73.r2", "X6Hybrid.A682xB73.r3")])
-tmt.6H$A682xMo17 <- rowMeans(tmt.6H[,c("X6Hybrid.A682xMo17.r1", "X6Hybrid.A682xMo17.r2", "X6Hybrid.A682xMo17.r3")])
+tmt.6H$B73 <- rowMeans(select(tmt.6H,contains(".B73.")))
+tmt.6H$Mo17 <- rowMeans(select(tmt.6H,contains(".Mo17.")))
+tmt.6H$B73xMo17 <- rowMeans(select(tmt.6H,contains(".B73xMo17.")))
+tmt.6H$Mo17xB73 <- rowMeans(select(tmt.6H,contains(".Mo17xB73.")))
+tmt.6H$B84 <- rowMeans(select(tmt.6H,contains(".B84.")))
+tmt.6H$B84xB73 <- rowMeans(select(tmt.6H,contains(".B84xB73.")))
+tmt.6H$B84xMo17 <- rowMeans(select(tmt.6H,contains(".B84xMo17.")))
+tmt.6H$A682 <- rowMeans(select(tmt.6H,contains(".A682.")))
+tmt.6H$A682xB73 <- rowMeans(select(tmt.6H,contains(".A682xB73.")))
+tmt.6H$A682xMo17 <- rowMeans(select(tmt.6H,contains(".A682xMo17.")))
 #Calculate hyb/MP ratios
-tmt.6H$B73xMo17.MP <- tmt.6H$B73xMo17/rowMeans(tmt.6H[,c("B73", "Mo17")])
-tmt.6H$Mo17xB73.MP <- tmt.6H$Mo17xB73/rowMeans(tmt.6H[,c("B73", "Mo17")])
-tmt.6H$B84xB73.MP <- tmt.6H$B84xB73/rowMeans(tmt.6H[,c("B84", "B73")])
-tmt.6H$B84xMo17.MP <- tmt.6H$B84xMo17/rowMeans(tmt.6H[,c("B84", "Mo17")])
-tmt.6H$A682xB73.MP <- tmt.6H$A682xB73/rowMeans(tmt.6H[,c("A682", "B73")])
-tmt.6H$A682xMo17.MP <- tmt.6H$A682xMo17/rowMeans(tmt.6H[,c("A682", "Mo17")])
+tmt.6H$l2.B73xMo17.MP <- log2(tmt.6H$B73xMo17/rowMeans(tmt.6H[,c("B73", "Mo17")]))
+tmt.6H$l2.Mo17xB73.MP <- log2(tmt.6H$Mo17xB73/rowMeans(tmt.6H[,c("B73", "Mo17")]))
+tmt.6H$l2.B84xB73.MP <- log2(tmt.6H$B84xB73/rowMeans(tmt.6H[,c("B84", "B73")]))
+tmt.6H$l2.B84xMo17.MP <- log2(tmt.6H$B84xMo17/rowMeans(tmt.6H[,c("B84", "Mo17")]))
+tmt.6H$l2.A682xB73.MP <- log2(tmt.6H$A682xB73/rowMeans(tmt.6H[,c("A682", "B73")]))
+tmt.6H$l2.A682xMo17.MP <- log2(tmt.6H$A682xMo17/rowMeans(tmt.6H[,c("A682", "Mo17")]))
 #Calculate parent/parent ratios
-tmt.6H$B73.Mo17 <- tmt.6H$B73/tmt.6H$Mo17
-tmt.6H$Mo17.B73 <- tmt.6H$Mo17/tmt.6H$B73
-tmt.6H$B84.B73 <- tmt.6H$B84/tmt.6H$B73
-tmt.6H$B84.Mo17 <- tmt.6H$B84/tmt.6H$Mo17
-tmt.6H$A682.B73 <- tmt.6H$A682/tmt.6H$B73
-tmt.6H$A682.Mo17 <- tmt.6H$A682/tmt.6H$Mo17
-#Calculate log2 of all ratios
-tmt.6H$l2.B73xMo17.MP <- log2(tmt.6H$B73xMo17.MP)
-tmt.6H$l2.Mo17xB73.MP <- log2(tmt.6H$Mo17xB73.MP)
-tmt.6H$l2.B84xB73.MP <- log2(tmt.6H$B84xB73.MP)
-tmt.6H$l2.B84xMo17.MP <- log2(tmt.6H$B84xMo17.MP)
-tmt.6H$l2.A682xB73.MP <- log2(tmt.6H$A682xB73.MP)
-tmt.6H$l2.A682xMo17.MP <- log2(tmt.6H$A682xMo17.MP)
-tmt.6H$l2.B73.Mo17 <- log2(tmt.6H$B73.Mo17)
-tmt.6H$l2.Mo17.B73 <- log2(tmt.6H$Mo17.B73)
-tmt.6H$l2.B84.B73 <- log2(tmt.6H$B84.B73)
-tmt.6H$l2.B84.Mo17 <- log2(tmt.6H$B84.Mo17)
-tmt.6H$l2.A682.B73 <- log2(tmt.6H$A682.B73)
-tmt.6H$l2.A682.Mo17 <- log2(tmt.6H$A682.Mo17)
-#Calculate hyb/MP ttest
+tmt.6H$l2.B73.Mo17 <- log2(tmt.6H$B73/tmt.6H$Mo17)
+tmt.6H$l2.Mo17.B73 <- log2(tmt.6H$Mo17/tmt.6H$B73)
+tmt.6H$l2.B84.B73 <- log2(tmt.6H$B84/tmt.6H$B73)
+tmt.6H$l2.B84.Mo17 <- log2(tmt.6H$B84/tmt.6H$Mo17)
+tmt.6H$l2.A682.B73 <- log2(tmt.6H$A682/tmt.6H$B73)
+tmt.6H$l2.A682.Mo17 <- log2(tmt.6H$A682/tmt.6H$Mo17)
+#Calculate hyb/MP pval
 ##Calculate MP reps
 tmt.6H$MP1.B73Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r1","X6Hybrid.Mo17.r1")])
 tmt.6H$MP2.B73Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r2","X6Hybrid.Mo17.r2")])
 tmt.6H$MP3.B73Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r3","X6Hybrid.Mo17.r3")])
+
 tmt.6H$MP1.B84B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r1","X6Hybrid.B84.r1")])
 tmt.6H$MP2.B84B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r2","X6Hybrid.B84.r2")])
 tmt.6H$MP3.B84B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r3","X6Hybrid.B84.r3")])
+
 tmt.6H$MP1.B84Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r1","X6Hybrid.B84.r1")])
 tmt.6H$MP2.B84Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r2","X6Hybrid.B84.r2")])
 tmt.6H$MP3.B84Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r3","X6Hybrid.B84.r3")])
+
 tmt.6H$MP1.A682B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r1","X6Hybrid.A682.r1")])
 tmt.6H$MP2.A682B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r2","X6Hybrid.A682.r2")])
 tmt.6H$MP3.A682B73 <- rowMeans(tmt.6H[,c("X6Hybrid.B73.r3","X6Hybrid.A682.r3")])
+
 tmt.6H$MP1.A682Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r1","X6Hybrid.A682.r1")])
 tmt.6H$MP2.A682Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r2","X6Hybrid.A682.r2")])
 tmt.6H$MP3.A682Mo17 <- rowMeans(tmt.6H[,c("X6Hybrid.Mo17.r3","X6Hybrid.A682.r3")])
-##Calculate ttest
+##Calculate pval
 tmt.6H$ttest.B73xMo17.MP <- (ttestFun(tmt.6H, c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3"), c("MP1.B73Mo17", "MP2.B73Mo17", "MP3.B73Mo17")))
 tmt.6H$ttest.Mo17xB73.MP <- (ttestFun(tmt.6H, c("X6Hybrid.Mo17xB73.r1", "X6Hybrid.Mo17xB73.r2", "X6Hybrid.Mo17xB73.r3"), c("MP1.B73Mo17", "MP2.B73Mo17", "MP3.B73Mo17")))
 tmt.6H$ttest.B84xB73.MP <- (ttestFun(tmt.6H, c("X6Hybrid.B84xB73.r1", "X6Hybrid.B84xB73.r2", "X6Hybrid.B84xB73.r3"), c("MP1.B84B73", "MP2.B84B73", "MP3.B84B73")))
 tmt.6H$ttest.B84xMo17.MP <- (ttestFun(tmt.6H, c("X6Hybrid.B84xMo17.r1", "X6Hybrid.B84xMo17.r2", "X6Hybrid.B84xMo17.r3"), c("MP1.B84Mo17", "MP2.B84Mo17", "MP3.B84Mo17")))
 tmt.6H$ttest.A682xB73.MP <- (ttestFun(tmt.6H, c("X6Hybrid.A682xB73.r1", "X6Hybrid.A682xB73.r2", "X6Hybrid.A682xB73.r3"), c("MP1.A682B73", "MP2.A682B73", "MP3.A682B73")))
 tmt.6H$ttest.A682xMo17.MP <- (ttestFun(tmt.6H, c("X6Hybrid.A682xMo17.r1", "X6Hybrid.A682xMo17.r2", "X6Hybrid.A682xMo17.r3"), c("MP1.A682Mo17", "MP2.A682Mo17", "MP3.A682Mo17")))
-#Define High-parent (HP) and Low-Parent (LP)
-tmt.6H$B73.Mo17.HP <- NA
-tmt.6H$B73.Mo17.HP1 <- NA
-tmt.6H$B73.Mo17.HP2 <- NA
-tmt.6H$B73.Mo17.HP3 <- NA
-tmt.6H$B73.Mo17.LP <- NA
-tmt.6H$B73.Mo17.LP1 <- NA
-tmt.6H$B73.Mo17.LP2 <- NA
-tmt.6H$B73.Mo17.LP3 <- NA
-for(i in 1:nrow(tmt.6H)){
-tmt.6H[i,"B73.Mo17.HP"] <- max(c(tmt.6H[i,"B73"], tmt.6H[i,"Mo17"]))
-tmt.6H[i,"B73.Mo17.LP"] <- min(c(tmt.6H[i,"B73"], tmt.6H[i,"Mo17"]))
-if(tmt.6H[i,"B73.Mo17.HP"] == tmt.6H[i,"B73"]){
-  tmt.6H[i,"B73.Mo17.HP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"B73.Mo17.HP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"B73.Mo17.HP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-  tmt.6H[i,"B73.Mo17.LP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"B73.Mo17.LP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"B73.Mo17.LP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-}
-else if(tmt.6H[i,"B73.Mo17.HP"] == tmt.6H[i,"Mo17"]){
-  tmt.6H[i,"B73.Mo17.HP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"B73.Mo17.HP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"B73.Mo17.HP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-  tmt.6H[i,"B73.Mo17.LP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"B73.Mo17.LP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"B73.Mo17.LP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-}
-}
-
-tmt.6H$Mo17.B73.HP <- NA
-tmt.6H$Mo17.B73.HP1 <- NA
-tmt.6H$Mo17.B73.HP2 <- NA
-tmt.6H$Mo17.B73.HP3 <- NA
-tmt.6H$Mo17.B73.LP <- NA
-tmt.6H$Mo17.B73.LP1 <- NA
-tmt.6H$Mo17.B73.LP2 <- NA
-tmt.6H$Mo17.B73.LP3 <- NA
-for(i in 1:nrow(tmt.6H)){
-tmt.6H[i,"Mo17.B73.HP"] <- max(c(tmt.6H[i,"Mo17"], tmt.6H[i,"B73"]))
-tmt.6H[i,"Mo17.B73.LP"] <- min(c(tmt.6H[i,"Mo17"], tmt.6H[i,"B73"]))
-if(tmt.6H[i,"Mo17.B73.HP"] == tmt.6H[i,"B73"]){
-  tmt.6H[i,"Mo17.B73.HP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"Mo17.B73.HP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"Mo17.B73.HP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-  tmt.6H[i,"Mo17.B73.LP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"Mo17.B73.LP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"Mo17.B73.LP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-}
-else if(tmt.6H[i,"Mo17.B73.HP"] == tmt.6H[i,"Mo17"]){
-  tmt.6H[i,"Mo17.B73.HP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"Mo17.B73.HP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"Mo17.B73.HP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-  tmt.6H[i,"Mo17.B73.LP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"Mo17.B73.LP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"Mo17.B73.LP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-}
-}
-
-tmt.6H$B84.B73.HP <- NA
-tmt.6H$B84.B73.HP1 <- NA
-tmt.6H$B84.B73.HP2 <- NA
-tmt.6H$B84.B73.HP3 <- NA
-tmt.6H$B84.B73.LP <- NA
-tmt.6H$B84.B73.LP1 <- NA
-tmt.6H$B84.B73.LP2 <- NA
-tmt.6H$B84.B73.LP3 <- NA
-for(i in 1:nrow(tmt.6H)){
-tmt.6H[i,"B84.B73.HP"] <- max(c(tmt.6H[i,"B84"], tmt.6H[i,"B73"]))
-tmt.6H[i,"B84.B73.LP"] <- min(c(tmt.6H[i,"B84"], tmt.6H[i,"B73"]))
-if(tmt.6H[i,"B84.B73.HP"] == tmt.6H[i,"B84"]){
-  tmt.6H[i,"B84.B73.HP1"] <- tmt.6H[i,"X6Hybrid.B84.r1"]
-  tmt.6H[i,"B84.B73.HP2"] <- tmt.6H[i,"X6Hybrid.B84.r2"]
-  tmt.6H[i,"B84.B73.HP3"] <- tmt.6H[i,"X6Hybrid.B84.r3"]
-  tmt.6H[i,"B84.B73.LP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"B84.B73.LP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"B84.B73.LP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-}
-else if(tmt.6H[i,"B84.B73.HP"] == tmt.6H[i,"B73"]){
-  tmt.6H[i,"B84.B73.HP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"B84.B73.HP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"B84.B73.HP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-  tmt.6H[i,"B84.B73.LP1"] <- tmt.6H[i,"X6Hybrid.B84.r1"]
-  tmt.6H[i,"B84.B73.LP2"] <- tmt.6H[i,"X6Hybrid.B84.r2"]
-  tmt.6H[i,"B84.B73.LP3"] <- tmt.6H[i,"X6Hybrid.B84.r3"]
-}
-}
-
-tmt.6H$B84.Mo17.HP <- NA
-tmt.6H$B84.Mo17.HP1 <- NA
-tmt.6H$B84.Mo17.HP2 <- NA
-tmt.6H$B84.Mo17.HP3 <- NA
-tmt.6H$B84.Mo17.LP <- NA
-tmt.6H$B84.Mo17.LP1 <- NA
-tmt.6H$B84.Mo17.LP2 <- NA
-tmt.6H$B84.Mo17.LP3 <- NA
-for(i in 1:nrow(tmt.6H)){
-tmt.6H[i,"B84.Mo17.HP"] <- max(c(tmt.6H[i,"B84"], tmt.6H[i,"Mo17"]))
-tmt.6H[i,"B84.Mo17.LP"] <- min(c(tmt.6H[i,"B84"], tmt.6H[i,"Mo17"]))
-if(tmt.6H[i,"B84.Mo17.HP"] == tmt.6H[i,"B84"]){
-  tmt.6H[i,"B84.Mo17.HP1"] <- tmt.6H[i,"X6Hybrid.B84.r1"]
-  tmt.6H[i,"B84.Mo17.HP2"] <- tmt.6H[i,"X6Hybrid.B84.r2"]
-  tmt.6H[i,"B84.Mo17.HP3"] <- tmt.6H[i,"X6Hybrid.B84.r3"]
-  tmt.6H[i,"B84.Mo17.LP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"B84.Mo17.LP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"B84.Mo17.LP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-}
-else if(tmt.6H[i,"B84.Mo17.HP"] == tmt.6H[i,"Mo17"]){
-  tmt.6H[i,"B84.Mo17.HP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"B84.Mo17.HP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"B84.Mo17.HP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-  tmt.6H[i,"B84.Mo17.LP1"] <- tmt.6H[i,"X6Hybrid.B84.r1"]
-  tmt.6H[i,"B84.Mo17.LP2"] <- tmt.6H[i,"X6Hybrid.B84.r2"]
-  tmt.6H[i,"B84.Mo17.LP3"] <- tmt.6H[i,"X6Hybrid.B84.r3"]
-}
-}
-
-tmt.6H$A682.B73.HP <- NA
-tmt.6H$A682.B73.HP1 <- NA
-tmt.6H$A682.B73.HP2 <- NA
-tmt.6H$A682.B73.HP3 <- NA
-tmt.6H$A682.B73.LP <- NA
-tmt.6H$A682.B73.LP1 <- NA
-tmt.6H$A682.B73.LP2 <- NA
-tmt.6H$A682.B73.LP3 <- NA
-for(i in 1:nrow(tmt.6H)){
-tmt.6H[i,"A682.B73.HP"] <- max(c(tmt.6H[i,"A682"], tmt.6H[i,"B73"]))
-tmt.6H[i,"A682.B73.LP"] <- min(c(tmt.6H[i,"A682"], tmt.6H[i,"B73"]))
-if(tmt.6H[i,"A682.B73.HP"] == tmt.6H[i,"A682"]){
-  tmt.6H[i,"A682.B73.HP1"] <- tmt.6H[i,"X6Hybrid.A682.r1"]
-  tmt.6H[i,"A682.B73.HP2"] <- tmt.6H[i,"X6Hybrid.A682.r2"]
-  tmt.6H[i,"A682.B73.HP3"] <- tmt.6H[i,"X6Hybrid.A682.r3"]
-  tmt.6H[i,"A682.B73.LP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"A682.B73.LP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"A682.B73.LP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-}
-else if(tmt.6H[i,"A682.B73.HP"] == tmt.6H[i,"B73"]){
-  tmt.6H[i,"A682.B73.HP1"] <- tmt.6H[i,"X6Hybrid.B73.r1"]
-  tmt.6H[i,"A682.B73.HP2"] <- tmt.6H[i,"X6Hybrid.B73.r2"]
-  tmt.6H[i,"A682.B73.HP3"] <- tmt.6H[i,"X6Hybrid.B73.r3"]
-  tmt.6H[i,"A682.B73.LP1"] <- tmt.6H[i,"X6Hybrid.A682.r1"]
-  tmt.6H[i,"A682.B73.LP2"] <- tmt.6H[i,"X6Hybrid.A682.r2"]
-  tmt.6H[i,"A682.B73.LP3"] <- tmt.6H[i,"X6Hybrid.A682.r3"]
-}
-}
-
-tmt.6H$A682.Mo17.HP <- NA
-tmt.6H$A682.Mo17.HP1 <- NA
-tmt.6H$A682.Mo17.HP2 <- NA
-tmt.6H$A682.Mo17.HP3 <- NA
-tmt.6H$A682.Mo17.LP <- NA
-tmt.6H$A682.Mo17.LP1 <- NA
-tmt.6H$A682.Mo17.LP2 <- NA
-tmt.6H$A682.Mo17.LP3 <- NA
-for(i in 1:nrow(tmt.6H)){
-tmt.6H[i,"A682.Mo17.HP"] <- max(c(tmt.6H[i,"A682"], tmt.6H[i,"Mo17"]))
-tmt.6H[i,"A682.Mo17.LP"] <- min(c(tmt.6H[i,"A682"], tmt.6H[i,"Mo17"]))
-if(tmt.6H[i,"A682.Mo17.HP"] == tmt.6H[i,"A682"]){
-  tmt.6H[i,"A682.Mo17.HP1"] <- tmt.6H[i,"X6Hybrid.A682.r1"]
-  tmt.6H[i,"A682.Mo17.HP2"] <- tmt.6H[i,"X6Hybrid.A682.r2"]
-  tmt.6H[i,"A682.Mo17.HP3"] <- tmt.6H[i,"X6Hybrid.A682.r3"]
-  tmt.6H[i,"A682.Mo17.LP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"A682.Mo17.LP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"A682.Mo17.LP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-}
-else if(tmt.6H[i,"A682.Mo17.HP"] == tmt.6H[i,"Mo17"]){
-  tmt.6H[i,"A682.Mo17.HP1"] <- tmt.6H[i,"X6Hybrid.Mo17.r1"]
-  tmt.6H[i,"A682.Mo17.HP2"] <- tmt.6H[i,"X6Hybrid.Mo17.r2"]
-  tmt.6H[i,"A682.Mo17.HP3"] <- tmt.6H[i,"X6Hybrid.Mo17.r3"]
-  tmt.6H[i,"A682.Mo17.LP1"] <- tmt.6H[i,"X6Hybrid.A682.r1"]
-  tmt.6H[i,"A682.Mo17.LP2"] <- tmt.6H[i,"X6Hybrid.A682.r2"]
-  tmt.6H[i,"A682.Mo17.LP3"] <- tmt.6H[i,"X6Hybrid.A682.r3"]
-}
-}
+#Define high-parent(HP)
+tmt.6H$HP.B73Mo17 <- pmax(tmt.6H$B73, tmt.6H$Mo17)
+tmt.6H$HP.B84B73 <- pmax(tmt.6H$B73, tmt.6H$B84)
+tmt.6H$HP.B84Mo17 <- pmax(tmt.6H$Mo17, tmt.6H$B84)
+tmt.6H$HP.A682B73 <- pmax(tmt.6H$B73, tmt.6H$A682)
+tmt.6H$HP.A682Mo17 <- pmax(tmt.6H$Mo17, tmt.6H$A682)
 #Calculate Hyb/HP
-tmt.6H$B73xMo17.HP <- tmt.6H$B73xMo17/tmt.6H$B73.Mo17.HP
-tmt.6H$Mo17xB73.HP <- tmt.6H$Mo17xB73/tmt.6H$Mo17.B73.HP
-tmt.6H$B84xB73.HP <- tmt.6H$B84xB73/tmt.6H$B84.B73.HP
-tmt.6H$B84xMo17.HP <- tmt.6H$B84xMo17/tmt.6H$B84.Mo17.HP
-tmt.6H$A682xB73.HP <- tmt.6H$A682xB73/tmt.6H$A682.B73.HP
-tmt.6H$A682xMo17.HP <- tmt.6H$A682xMo17/tmt.6H$A682.Mo17.HP
-tmt.6H$l2.B73xMo17.HP <- log2(tmt.6H$B73xMo17/tmt.6H$B73.Mo17.HP)
-tmt.6H$l2.Mo17xB73.HP <- log2(tmt.6H$Mo17xB73/tmt.6H$Mo17.B73.HP)
-tmt.6H$l2.B84xB73.HP <- log2(tmt.6H$B84xB73/tmt.6H$B84.B73.HP)
-tmt.6H$l2.B84xMo17.HP <- log2(tmt.6H$B84xMo17/tmt.6H$B84.Mo17.HP)
-tmt.6H$l2.A682xB73.HP <- log2(tmt.6H$A682xB73/tmt.6H$A682.B73.HP)
-tmt.6H$l2.A682xMo17.HP <- log2(tmt.6H$A682xMo17/tmt.6H$A682.Mo17.HP)
-#Calculate Hyb/LP
-tmt.6H$B73xMo17.LP <- tmt.6H$B73xMo17/tmt.6H$B73.Mo17.LP
-tmt.6H$Mo17xB73.LP <- tmt.6H$Mo17xB73/tmt.6H$Mo17.B73.LP
-tmt.6H$B84xB73.LP <- tmt.6H$B84xB73/tmt.6H$B84.B73.LP
-tmt.6H$B84xMo17.LP <- tmt.6H$B84xMo17/tmt.6H$B84.Mo17.LP
-tmt.6H$A682xB73.LP <- tmt.6H$A682xB73/tmt.6H$A682.B73.LP
-tmt.6H$A682xMo17.LP <- tmt.6H$A682xMo17/tmt.6H$A682.Mo17.LP
-tmt.6H$l2.B73xMo17.LP <- log2(tmt.6H$B73xMo17/tmt.6H$B73.Mo17.LP)
-tmt.6H$l2.Mo17xB73.LP <- log2(tmt.6H$Mo17xB73/tmt.6H$Mo17.B73.LP)
-tmt.6H$l2.B84xB73.LP <- log2(tmt.6H$B84xB73/tmt.6H$B84.B73.LP)
-tmt.6H$l2.B84xMo17.LP <- log2(tmt.6H$B84xMo17/tmt.6H$B84.Mo17.LP)
-tmt.6H$l2.A682xB73.LP <- log2(tmt.6H$A682xB73/tmt.6H$A682.B73.LP)
-tmt.6H$l2.A682xMo17.LP <- log2(tmt.6H$A682xMo17/tmt.6H$A682.Mo17.LP)
-#Calculate hyb/HP ttest
-tmt.6H$ttest.B73xMo17.HP <- (ttestFun(tmt.6H, c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3"), c("B73.Mo17.HP1", "B73.Mo17.HP2", "B73.Mo17.HP3")))
-tmt.6H$ttest.Mo17xB73.HP <- (ttestFun(tmt.6H, c("X6Hybrid.Mo17xB73.r1", "X6Hybrid.Mo17xB73.r2", "X6Hybrid.Mo17xB73.r3"), c("Mo17.B73.HP1", "Mo17.B73.HP2", "Mo17.B73.HP3")))
-tmt.6H$ttest.B84xB73.HP <- (ttestFun(tmt.6H, c("X6Hybrid.B84xB73.r1", "X6Hybrid.B84xB73.r2", "X6Hybrid.B84xB73.r3"), c("B84.B73.HP1", "B84.B73.HP2", "B84.B73.HP3")))
-tmt.6H$ttest.B84xMo17.HP <- (ttestFun(tmt.6H, c("X6Hybrid.B84xMo17.r1", "X6Hybrid.B84xMo17.r2", "X6Hybrid.B84xMo17.r3"), c("B84.Mo17.HP1", "B84.Mo17.HP2", "B84.Mo17.HP3")))
-tmt.6H$ttest.A682xB73.HP <- (ttestFun(tmt.6H, c("X6Hybrid.A682xB73.r1", "X6Hybrid.A682xB73.r2", "X6Hybrid.A682xB73.r3"), c("A682.B73.HP1", "A682.B73.HP2", "A682.B73.HP3")))
-tmt.6H$ttest.A682xMo17.HP <- (ttestFun(tmt.6H, c("X6Hybrid.A682xMo17.r1", "X6Hybrid.A682xMo17.r2", "X6Hybrid.A682xMo17.r3"), c("A682.Mo17.HP1", "A682.Mo17.HP2", "A682.Mo17.HP3")))
-#Calculate hyb/LP ttest
-tmt.6H$ttest.B73xMo17.LP <- (ttestFun(tmt.6H, c("X6Hybrid.B73xMo17.r1", "X6Hybrid.B73xMo17.r2", "X6Hybrid.B73xMo17.r3"), c("B73.Mo17.LP1", "B73.Mo17.LP2", "B73.Mo17.LP3")))
-tmt.6H$ttest.Mo17xB73.LP <- (ttestFun(tmt.6H, c("X6Hybrid.Mo17xB73.r1", "X6Hybrid.Mo17xB73.r2", "X6Hybrid.Mo17xB73.r3"), c("Mo17.B73.LP1", "Mo17.B73.LP2", "Mo17.B73.LP3")))
-tmt.6H$ttest.B84xB73.LP <- (ttestFun(tmt.6H, c("X6Hybrid.B84xB73.r1", "X6Hybrid.B84xB73.r2", "X6Hybrid.B84xB73.r3"), c("B84.B73.LP1", "B84.B73.LP2", "B84.B73.LP3")))
-tmt.6H$ttest.B84xMo17.LP <- (ttestFun(tmt.6H, c("X6Hybrid.B84xMo17.r1", "X6Hybrid.B84xMo17.r2", "X6Hybrid.B84xMo17.r3"), c("B84.Mo17.LP1", "B84.Mo17.LP2", "B84.Mo17.LP3")))
-tmt.6H$ttest.A682xB73.LP <- (ttestFun(tmt.6H, c("X6Hybrid.A682xB73.r1", "X6Hybrid.A682xB73.r2", "X6Hybrid.A682xB73.r3"), c("A682.B73.LP1", "A682.B73.LP2", "A682.B73.LP3")))
-tmt.6H$ttest.A682xMo17.LP <- (ttestFun(tmt.6H, c("X6Hybrid.A682xMo17.r1", "X6Hybrid.A682xMo17.r2", "X6Hybrid.A682xMo17.r3"), c("A682.Mo17.LP1", "A682.Mo17.LP2", "A682.Mo17.LP3")))
+tmt.6H$l2.B73xMo17.HP <- log2(tmt.6H$B73xMo17/tmt.6H$HP.B73Mo17)
+tmt.6H$l2.Mo17xB73.HP <- log2(tmt.6H$Mo17xB73/tmt.6H$HP.B73Mo17)
+
+tmt.6H$l2.A682xB73.HP <- log2(tmt.6H$A682xB73/tmt.6H$HP.A682B73)
+tmt.6H$l2.A682xMo17.HP <- log2(tmt.6H$A682xMo17/tmt.6H$HP.A682Mo17)
+
+tmt.6H$l2.B84xB73.HP <- log2(tmt.6H$B84xB73/tmt.6H$HP.B84B73)
+tmt.6H$l2.B84xMo17.HP <- log2(tmt.6H$B84xMo17/tmt.6H$HP.B84Mo17)
 ```
-```{r subset all hybrids from RIL experiment}
+```{r subset RIL experiment}
 #Subset all hybrids from RIL experiment (RIL)
-tmt.RIL <- tmt[,c(171:183,81:170)]
+tmt.RIL <- select(tmt,c(Group:Gene, B73.1:X317M.4))
 #Remove proteins not detected in one or more samples
 tmt.RIL <- na.omit(tmt.RIL)
 #Calculate averages
@@ -492,163 +235,54 @@ tmt.RIL$M0317.317 <- rowMeans(tmt.RIL[,c("X317.1", "X317.2", "X317.3", "X317.4")
 tmt.RIL$M0317.317B <- rowMeans(tmt.RIL[,c("X317B.1", "X317B.2", "X317B.3", "X317B.4")])
 tmt.RIL$M0317.317M <- rowMeans(tmt.RIL[,c("X317M.1", "X317M.2", "X317M.3", "X317M.4")])
 #Calculate hyb/mp ratios
-tmt.RIL$BM.BM.MP <- tmt.RIL$BM.BM/rowMeans(tmt.RIL[,c("BM.B73", "BM.Mo17")], na.rm = T)
-tmt.RIL$M0014.14B.MP <- tmt.RIL$M0014.14B/rowMeans(tmt.RIL[,c("M0014.14", "M0014.B73")], na.rm = T)
-tmt.RIL$M0014.14M.MP <- tmt.RIL$M0014.14M/rowMeans(tmt.RIL[,c("M0014.14", "M0014.Mo17")], na.rm = T)
-tmt.RIL$M0016.16B.MP <- tmt.RIL$M0016.16B/rowMeans(tmt.RIL[,c("M0016.16", "M0016.B73")], na.rm = T)
-tmt.RIL$M0016.16M.MP <- tmt.RIL$M0016.16M/rowMeans(tmt.RIL[,c("M0016.16", "M0016.Mo17")], na.rm = T)
-tmt.RIL$M0021.21B.MP <- tmt.RIL$M0021.21B/rowMeans(tmt.RIL[,c("M0021.21", "M0021.B73")], na.rm = T)
-tmt.RIL$M0021.21M.MP <- tmt.RIL$M0021.21M/rowMeans(tmt.RIL[,c("M0021.21", "M0021.Mo17")], na.rm = T)
-tmt.RIL$M0317.317B.MP <- tmt.RIL$M0317.317B/rowMeans(tmt.RIL[,c("M0317.317", "M0317.B73")], na.rm = T)
-tmt.RIL$M0317.317M.MP <- tmt.RIL$M0317.317M/rowMeans(tmt.RIL[,c("M0317.317", "M0317.Mo17")], na.rm = T)
+tmt.RIL$l2.B73xMo17.MP <- log2(tmt.RIL$BM.BM/rowMeans(tmt.RIL[,c("BM.B73", "BM.Mo17")]))
+tmt.RIL$l2.M0014.14B.MP <- log2(tmt.RIL$M0014.14B/rowMeans(tmt.RIL[,c("M0014.14", "M0014.B73")]))
+tmt.RIL$l2.M0014.14M.MP <- log2(tmt.RIL$M0014.14M/rowMeans(tmt.RIL[,c("M0014.14", "M0014.Mo17")]))
+tmt.RIL$l2.M0016.16B.MP <- log2(tmt.RIL$M0016.16B/rowMeans(tmt.RIL[,c("M0016.16", "M0016.B73")]))
+tmt.RIL$l2.M0016.16M.MP <- log2(tmt.RIL$M0016.16M/rowMeans(tmt.RIL[,c("M0016.16", "M0016.Mo17")]))
+tmt.RIL$l2.M0021.21B.MP <- log2(tmt.RIL$M0021.21B/rowMeans(tmt.RIL[,c("M0021.21", "M0021.B73")]))
+tmt.RIL$l2.M0021.21M.MP <- log2(tmt.RIL$M0021.21M/rowMeans(tmt.RIL[,c("M0021.21", "M0021.Mo17")]))
+tmt.RIL$l2.M0317.317B.MP <- log2(tmt.RIL$M0317.317B/rowMeans(tmt.RIL[,c("M0317.317", "M0317.B73")]))
+tmt.RIL$l2.M0317.317M.MP <- log2(tmt.RIL$M0317.317M/rowMeans(tmt.RIL[,c("M0317.317", "M0317.Mo17")]))
 #Calculate parent/parent ratios
-tmt.RIL$BM.B73.Mo17 <- tmt.RIL$BM.B73/tmt.RIL$BM.Mo17
-tmt.RIL$M0014.14.B73 <- tmt.RIL$M0014.14/tmt.RIL$M0014.B73
-tmt.RIL$M0014.14.Mo17 <- tmt.RIL$M0014.14/tmt.RIL$M0014.Mo17
-tmt.RIL$M0016.16.B73 <- tmt.RIL$M0016.16/tmt.RIL$M0016.B73
-tmt.RIL$M0016.16.Mo17 <- tmt.RIL$M0016.16/tmt.RIL$M0016.Mo17
-tmt.RIL$M0021.21.B73 <- tmt.RIL$M0021.21/tmt.RIL$M0021.B73
-tmt.RIL$M0021.21.Mo17 <- tmt.RIL$M0021.21/tmt.RIL$M0021.Mo17
-tmt.RIL$M0317.317.B73 <- tmt.RIL$M0317.317/tmt.RIL$M0317.B73
-tmt.RIL$M0317.317.Mo17 <- tmt.RIL$M0317.317/tmt.RIL$M0317.Mo17
-#Calculate log2 of all ratios
-tmt.RIL$l2.B73xMo17.MP <- log2(tmt.RIL$BM.BM.MP)
-tmt.RIL$l2.M0014.14B.MP <- log2(tmt.RIL$M0014.14B.MP)
-tmt.RIL$l2.M0014.14M.MP <- log2(tmt.RIL$M0014.14M.MP)
-tmt.RIL$l2.M0016.16B.MP <- log2(tmt.RIL$M0016.16B.MP)
-tmt.RIL$l2.M0016.16M.MP <- log2(tmt.RIL$M0016.16M.MP)
-tmt.RIL$l2.M0021.21B.MP <- log2(tmt.RIL$M0021.21B.MP)
-tmt.RIL$l2.M0021.21M.MP <- log2(tmt.RIL$M0021.21M.MP)
-tmt.RIL$l2.M0317.317B.MP <- log2(tmt.RIL$M0317.317B.MP)
-tmt.RIL$l2.M0317.317M.MP <- log2(tmt.RIL$M0317.317M.MP)
-tmt.RIL$l2.B73.Mo17 <- log2(tmt.RIL$BM.B73.Mo17)
-tmt.RIL$l2.M0014.14.B73 <- log2(tmt.RIL$M0014.14.B73)
-tmt.RIL$l2.M0014.14.Mo17  <- log2(tmt.RIL$M0014.14.Mo17)
-tmt.RIL$l2.M0016.16.B73 <- log2(tmt.RIL$M0016.16.B73)
-tmt.RIL$l2.M0016.16.Mo17  <- log2(tmt.RIL$M0016.16.Mo17)
-tmt.RIL$l2.M0021.21.B73 <- log2(tmt.RIL$M0021.21.B73)
-tmt.RIL$l2.M0021.21.Mo17  <- log2(tmt.RIL$M0021.21.Mo17)
-tmt.RIL$l2.M0317.317.B73 <- log2(tmt.RIL$M0317.317.B73)
-tmt.RIL$l2.M0317.317.Mo17  <- log2(tmt.RIL$M0317.317.Mo17)
-#Define High-parent (HP)
-tmt.RIL$BM.B73.Mo17.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"BM.B73.Mo17"] > 1.0){
-    tmt.RIL[i,"BM.B73.Mo17.HP"] <- tmt.RIL[i, "BM.B73"]
-  }
-  else{tmt.RIL[i,"BM.B73.Mo17.HP"] <- tmt.RIL[i, "BM.Mo17"]}
-}
-
-tmt.RIL$M0014.14.B73.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0014.14.B73"] > 1.0){
-    tmt.RIL[i,"M0014.14.B73.HP"] <- tmt.RIL[i, "M0014.14"]
-  }
-  else{tmt.RIL[i,"M0014.14.B73.HP"] <- tmt.RIL[i, "M0014.B73"]}
-}
-
-tmt.RIL$M0014.14.Mo17.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0014.14.Mo17"] > 1.0){
-    tmt.RIL[i,"M0014.14.Mo17.HP"] <- tmt.RIL[i, "M0014.14"]
-  }
-  else{tmt.RIL[i,"M0014.14.Mo17.HP"] <- tmt.RIL[i, "M0014.Mo17"]}
-}
-
-tmt.RIL$M0016.16.B73.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0016.16.B73"] > 1.0){
-    tmt.RIL[i,"M0016.16.B73.HP"] <- tmt.RIL[i, "M0016.16"]
-  }
-  else{tmt.RIL[i,"M0016.16.B73.HP"] <- tmt.RIL[i, "M0016.B73"]}
-}
-
-tmt.RIL$M0016.16.Mo17.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0016.16.Mo17"] > 1.0){
-    tmt.RIL[i,"M0016.16.Mo17.HP"] <- tmt.RIL[i, "M0016.16"]
-  }
-  else{tmt.RIL[i,"M0016.16.Mo17.HP"] <- tmt.RIL[i, "M0016.Mo17"]}
-}
-
-tmt.RIL$M0021.21.B73.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0021.21.B73"] > 1.0){
-    tmt.RIL[i,"M0021.21.B73.HP"] <- tmt.RIL[i, "M0021.21"]
-  }
-  else{tmt.RIL[i,"M0021.21.B73.HP"] <- tmt.RIL[i, "M0021.B73"]}
-}
-
-tmt.RIL$M0021.21.Mo17.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0021.21.Mo17"] > 1.0){
-    tmt.RIL[i,"M0021.21.Mo17.HP"] <- tmt.RIL[i, "M0021.21"]
-  }
-  else{tmt.RIL[i,"M0021.21.Mo17.HP"] <- tmt.RIL[i, "M0021.Mo17"]}
-}
-
-tmt.RIL$M0317.317.B73.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0317.317.B73"] > 1.0){
-    tmt.RIL[i,"M0317.317.B73.HP"] <- tmt.RIL[i, "M0317.317"]
-  }
-  else{tmt.RIL[i,"M0317.317.B73.HP"] <- tmt.RIL[i, "M0317.B73"]}
-}
-
-tmt.RIL$M0317.317.Mo17.HP <- NA
-for(i in 1:nrow(tmt.RIL)){
-  if(tmt.RIL[i,"M0317.317.Mo17"] > 1.0){
-    tmt.RIL[i,"M0317.317.Mo17.HP"] <- tmt.RIL[i, "M0317.317"]
-  }
-  else{tmt.RIL[i,"M0317.317.Mo17.HP"] <- tmt.RIL[i, "M0317.Mo17"]}
-}
-#Calculate hyb/HP
-tmt.RIL$B73xMo17.HP <- tmt.RIL$BM.BM/tmt.RIL$BM.B73.Mo17.HP
-tmt.RIL$M0014xB73.HP <- tmt.RIL$M0014.14B/tmt.RIL$M0014.14.B73.HP
-tmt.RIL$M0014xMo17.HP <- tmt.RIL$M0014.14M/tmt.RIL$M0014.14.Mo17.HP
-tmt.RIL$M0016xB73.HP <- tmt.RIL$M0016.16B/tmt.RIL$M0016.16.B73.HP
-tmt.RIL$M0016xMo17.HP <- tmt.RIL$M0016.16M/tmt.RIL$M0016.16.Mo17.HP
-tmt.RIL$M0021xB73.HP <- tmt.RIL$M0021.21B/tmt.RIL$M0021.21.B73.HP
-tmt.RIL$M0021xMo17.HP <- tmt.RIL$M0021.21M/tmt.RIL$M0021.21.Mo17.HP
-tmt.RIL$M0317xB73.HP <- tmt.RIL$M0317.317B/tmt.RIL$M0317.317.B73.HP
-tmt.RIL$M0317xMo17.HP <- tmt.RIL$M0317.317M/tmt.RIL$M0317.317.Mo17.HP
-#Calculate log2 hyb/HP
-tmt.RIL$l2.B73xMo17.HP <- log2(tmt.RIL$BM.BM/tmt.RIL$BM.B73.Mo17.HP)
-tmt.RIL$l2.M0014xB73.HP <- log2(tmt.RIL$M0014.14B/tmt.RIL$M0014.14.B73.HP)
-tmt.RIL$l2.M0014xMo17.HP <- log2(tmt.RIL$M0014.14M/tmt.RIL$M0014.14.Mo17.HP)
-tmt.RIL$l2.M0016xB73.HP <- log2(tmt.RIL$M0016.16B/tmt.RIL$M0016.16.B73.HP)
-tmt.RIL$l2.M0016xMo17.HP <- log2(tmt.RIL$M0016.16M/tmt.RIL$M0016.16.Mo17.HP)
-tmt.RIL$l2.M0021xB73.HP <- log2(tmt.RIL$M0021.21B/tmt.RIL$M0021.21.B73.HP)
-tmt.RIL$l2.M0021xMo17.HP <- log2(tmt.RIL$M0021.21M/tmt.RIL$M0021.21.Mo17.HP)
-tmt.RIL$l2.M0317xB73.HP <- log2(tmt.RIL$M0317.317B/tmt.RIL$M0317.317.B73.HP)
-tmt.RIL$l2.M0317xMo17.HP <- log2(tmt.RIL$M0317.317M/tmt.RIL$M0317.317.Mo17.HP)
+tmt.RIL$l2.B73.Mo17 <- log2(tmt.RIL$BM.B73/tmt.RIL$BM.Mo17)
+tmt.RIL$l2.M0014.14.B73 <- log2(tmt.RIL$M0014.14/tmt.RIL$M0014.B73)
+tmt.RIL$l2.M0014.14.Mo17  <- log2(tmt.RIL$M0014.14/tmt.RIL$M0014.Mo17)
+tmt.RIL$l2.M0016.16.B73 <- log2(tmt.RIL$M0016.16/tmt.RIL$M0016.B73)
+tmt.RIL$l2.M0016.16.Mo17  <- log2(tmt.RIL$M0016.16/tmt.RIL$M0016.Mo17)
+tmt.RIL$l2.M0021.21.B73 <- log2(tmt.RIL$M0021.21/tmt.RIL$M0021.B73)
+tmt.RIL$l2.M0021.21.Mo17  <- log2(tmt.RIL$M0021.21/tmt.RIL$M0021.Mo17)
+tmt.RIL$l2.M0317.317.B73 <- log2(tmt.RIL$M0317.317/tmt.RIL$M0317.B73)
+tmt.RIL$l2.M0317.317.Mo17  <- log2(tmt.RIL$M0317.317/tmt.RIL$M0317.Mo17)
 ```
 ```{r subset acs mutant experiment}
 #Subset acs mutant experiment (acs)
-tmt.acs <- tmt[,c(171:183,1:10)]
+tmt.acs <- select(tmt,c(Group:Gene, contains("acs")))
 #Remove proteins not detected in one or more samples
 tmt.acs <- na.omit(tmt.acs)
 #Calculate averages of bio reps - acs
-tmt.acs$B73avg <- rowMeans(tmt.acs[,c("B73.acs.B73.r1", "B73.acs.B73.r2", "B73.acs.B73.r3", "B73.acs.B73.r4", "B73.acs.B73.r5")])
-tmt.acs$ACSavg <- rowMeans(tmt.acs[,c("B73.acs.acs.r1", "B73.acs.acs.r2", "B73.acs.acs.r3", "B73.acs.acs.r4", "B73.acs.acs.r5")])
-#calculate ratio
-tmt.acs$ACS.B73 <- tmt.acs$ACSavg/tmt.acs$B73avg
-#calculate log2
-tmt.acs$l2.ACS.B73 <- log2(tmt.acs$ACS.B73)
+tmt.acs$B73avg <- rowMeans(select(tmt.acs,contains("B73.r")))
+tmt.acs$ACSavg <- rowMeans(select(tmt.acs,contains("acs.r")))
+#calculate log2 ratio
+tmt.acs$l2.ACS.B73 <- log2(tmt.acs$ACSavg/tmt.acs$B73avg)
 #calculate p-value
 tmt.acs$ttest <- ttestFun(tmt.acs, 14:18, 19:23)
-#merge with BxM from original SL data (OG)
-tmt.acs.OG <- merge.data.frame(tmt.acs, tmt.SL[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
-#merge with BxM from original LB data
-tmt.acs.LB <- merge.data.frame(tmt.acs, tmt.LB[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
-#merge with BxM from 6-hybrid data (6H)
-tmt.acs.6H <- merge.data.frame(tmt.acs, tmt.6H[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
-#merge with BxM from RIL data (RIL)
-tmt.acs.RIL <- merge.data.frame(tmt.acs, tmt.RIL[,c("Accession", "l2.B73xMo17.MP")], by.x = "Accession", by.y = "Accession", all=F)
 ```
-
-
-
+#Save protein dataframes
+```{r save Protein dfs}
+saveRDS(tmt.SL, "tmt.SL")
+saveRDS(tmt.LB, "tmt.LB")
+saveRDS(tmt.6H, "tmt.6H")
+saveRDS(tmt.RIL, "tmt.RIL")
+saveRDS(tmt.acs, "tmt.acs")
+```
+```{r read Protein dfs}
+tmt.SL <- readRDS("tmt.SL")
+tmt.LB <- readRDS("tmt.LB")
+tmt.6H <- readRDS("tmt.6H")
+tmt.RIL <- readRDS("tmt.RIL")
+tmt.acs <- readRDS("tmt.acs")
+```
 #Import RNA data
 ```{r import RNA data}
 #Original experiment
@@ -663,7 +297,7 @@ cpm.RIL <- read.csv(paste0(PathToData, "SupplementalTable8.csv"), stringsAsFacto
 #Original experiment seedling leaf BxM
 cpm.SL <- as.data.frame(cpm.OG.data[,c("gid","BR193","BR194","BR195","BR196","BR197","BR198","BR199", "BR200","BR201")])
 colnames(cpm.SL) <- c("Gene", "B73.1", "B73.2", "B73.3", "Mo17.1", "Mo17.2", "Mo17.3", "B73xMo17.1", "B73xMo17.2", "B73xMo17.3")
-#Remove genes not detected in one or mor rep
+#Remove genes not detected in one or more rep
 cpm.SL[cpm.SL==0] <- NA
 cpm.SL <- na.omit(cpm.SL)
 #Calculate averages of bio reps
@@ -671,10 +305,8 @@ cpm.SL$B73 <- rowMeans(cpm.SL[,c("B73.1", "B73.2", "B73.3")])
 cpm.SL$Mo17 <- rowMeans(cpm.SL[,c("Mo17.1", "Mo17.2", "Mo17.3")])
 cpm.SL$B73xMo17 <- rowMeans(cpm.SL[,c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3")])
 #calculate ratios
-cpm.SL$B73xMo17.MP <- cpm.SL$B73xMo17/rowMeans(cpm.SL[,c("B73", "Mo17")])
-cpm.SL$l2.B73xMo17.MP <- log2(cpm.SL$B73xMo17.MP)
-cpm.SL$B73.Mo17 <- cpm.SL$B73/cpm.SL$Mo17
-cpm.SL$l2.B73.Mo17 <-log2(cpm.SL$B73.Mo17)
+cpm.SL$l2.B73xMo17.MP <- log2(cpm.SL$B73xMo17/rowMeans(cpm.SL[,c("B73", "Mo17")]))
+cpm.SL$l2.B73.Mo17 <-log2(cpm.SL$B73/cpm.SL$Mo17)
 #Calculate hyb/MP significance
 cpm.SL$MP1 <- rowMeans(cpm.SL[,c("B73.1","Mo17.1")])
 cpm.SL$MP2 <- rowMeans(cpm.SL[,c("B73.2","Mo17.2")])
@@ -709,12 +341,10 @@ for(i in 1:nrow(cpm.SL)){
 }
 #Calculate hyb/HP
 cpm.SL$HP <- rowMeans(cpm.SL[,c("HP1", "HP2", "HP3")])
-cpm.SL$B73xMo17.HP <- cpm.SL$B73xMo17/cpm.SL$HP
-cpm.SL$l2.B73xMo17.HP <- log2(cpm.SL$B73xMo17.HP)
+cpm.SL$l2.B73xMo17.HP <- log2(cpm.SL$B73xMo17/cpm.SL$HP)
 #Calculate hyb/LP
 cpm.SL$LP <- rowMeans(cpm.SL[,c("LP1", "LP2", "LP3")])
-cpm.SL$B73xMo17.LP <- cpm.SL$B73xMo17/cpm.SL$LP
-cpm.SL$l2.B73xMo17.LP <- log2(cpm.SL$B73xMo17.LP)
+cpm.SL$l2.B73xMo17.LP <- log2(cpm.SL$B73xMo17/cpm.SL$LP)
 #Calculate hyb/HP significance
 cpm.SL$ttest.HP <- ttestFun(cpm.SL, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("HP1", "HP2", "HP3"))
 cpm.SL$l10.ttest.HP <- -(log10(cpm.SL$ttest.HP))
@@ -739,10 +369,8 @@ cpm.LB$B73 <- rowMeans(cpm.LB[,c("B73.1", "B73.2", "B73.3")])
 cpm.LB$Mo17 <- rowMeans(cpm.LB[,c("Mo17.1", "Mo17.2", "Mo17.3")])
 cpm.LB$B73xMo17 <- rowMeans(cpm.LB[,c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3")])
 #calculate ratios
-cpm.LB$B73xMo17.MP <- cpm.LB$B73xMo17/rowMeans(cpm.LB[,c("B73", "Mo17")])
-cpm.LB$l2.B73xMo17.MP <- log2(cpm.LB$B73xMo17.MP)
-cpm.LB$B73.Mo17 <- cpm.LB$B73/cpm.LB$Mo17
-cpm.LB$l2.B73.Mo17 <-log2(cpm.LB$B73.Mo17)
+cpm.LB$l2.B73xMo17.MP <- log2(cpm.LB$B73xMo17/rowMeans(cpm.LB[,c("B73", "Mo17")]))
+cpm.LB$l2.B73.Mo17 <-log2(cpm.LB$B73/cpm.LB$Mo17)
 #Calculate hyb/MP significance
 cpm.LB$MP1 <- rowMeans(cpm.LB[,c("B73.1","Mo17.1")])
 cpm.LB$MP2 <- rowMeans(cpm.LB[,c("B73.2","Mo17.2")])
@@ -764,8 +392,7 @@ for(i in 1:nrow(cpm.LB)){
 }
 #Calculate hyb/HP
 cpm.LB$HP <- rowMeans(cpm.LB[,c("HP1", "HP2", "HP3")])
-cpm.LB$B73xMo17.HP <- cpm.LB$B73xMo17/cpm.LB$HP
-cpm.LB$l2.B73xMo17.HP <- log2(cpm.LB$B73xMo17.HP)
+cpm.LB$l2.B73xMo17.HP <- log2(cpm.LB$B73xMo17/cpm.LB$HP)
 #Calculate hyb/HP significance
 cpm.LB$ttest.HP <- ttestFun(cpm.LB, c("B73xMo17.1", "B73xMo17.2", "B73xMo17.3"), c("HP1", "HP2", "HP3"))
 cpm.LB$l10.ttest.HP <- -(log10(cpm.LB$ttest.HP))
@@ -780,323 +407,89 @@ cpm.LB.protein <- cpm.LB[cpm.LB$Gene%in%tmt.LB$Gene,]
 cpm.6H[cpm.6H==0] <- NA
 cpm.6H <- na.omit(cpm.6H)
 #Calculate averages
-cpm.6H$B73 <- rowMeans(cpm.6H[,c("B73.2", "B73.3", "B73.4")], na.rm = T)
-cpm.6H$B84 <- rowMeans(cpm.6H[,c("B84.2", "B84.3", "B84.4")], na.rm = T)
-cpm.6H$Mo17 <- rowMeans(cpm.6H[,c("Mo17.2", "Mo17.3", "Mo17.4")], na.rm = T)
-cpm.6H$A682 <- rowMeans(cpm.6H[,c("A682.2", "A682.3", "A682.4")], na.rm = T)
-cpm.6H$B73xMo17 <- rowMeans(cpm.6H[,c("B73xMo17.2", "B73xMo17.3", "B73xMo17.4")], na.rm = T)
-cpm.6H$Mo17xB73 <- rowMeans(cpm.6H[,c("Mo17xB73.2", "Mo17xB73.3", "Mo17xB73.4")], na.rm = T)
-cpm.6H$B84xB73 <- rowMeans(cpm.6H[,c("B84xB73.2", "B84xB73.3", "B84xB73.4")], na.rm = T)
-cpm.6H$B84xMo17 <- rowMeans(cpm.6H[,c("B84xMo17.2", "B84xMo17.3", "B84xMo17.4")], na.rm = T)
-cpm.6H$A682xB73 <- rowMeans(cpm.6H[,c("A682xB73.2", "A682xB73.3", "A682xB73.4")], na.rm = T)
-cpm.6H$A682xMo17 <- rowMeans(cpm.6H[,c("A682xMo17.2", "A682xMo17.3", "A682xMo17.4")], na.rm = T)
+cpm.6H$B73 <- rowMeans(cpm.6H[,c("B73.2", "B73.3", "B73.4")])
+cpm.6H$B84 <- rowMeans(cpm.6H[,c("B84.2", "B84.3", "B84.4")])
+cpm.6H$Mo17 <- rowMeans(cpm.6H[,c("Mo17.2", "Mo17.3", "Mo17.4")])
+cpm.6H$A682 <- rowMeans(cpm.6H[,c("A682.2", "A682.3", "A682.4")])
+cpm.6H$B73xMo17 <- rowMeans(cpm.6H[,c("B73xMo17.2", "B73xMo17.3", "B73xMo17.4")])
+cpm.6H$Mo17xB73 <- rowMeans(cpm.6H[,c("Mo17xB73.2", "Mo17xB73.3", "Mo17xB73.4")])
+cpm.6H$B84xB73 <- rowMeans(cpm.6H[,c("B84xB73.2", "B84xB73.3", "B84xB73.4")])
+cpm.6H$B84xMo17 <- rowMeans(cpm.6H[,c("B84xMo17.2", "B84xMo17.3", "B84xMo17.4")])
+cpm.6H$A682xB73 <- rowMeans(cpm.6H[,c("A682xB73.2", "A682xB73.3", "A682xB73.4")])
+cpm.6H$A682xMo17 <- rowMeans(cpm.6H[,c("A682xMo17.2", "A682xMo17.3", "A682xMo17.4")])
 #calculate ratio of hybrid to midparent
-cpm.6H$B73xMo17.MP <- cpm.6H$B73xMo17/rowMeans(cpm.6H[,c("B73","Mo17")], na.rm = T)
-cpm.6H$Mo17xB73.MP <- cpm.6H$Mo17xB73/rowMeans(cpm.6H[,c("B73","Mo17")], na.rm = T)
-cpm.6H$B84xB73.MP <- cpm.6H$B84xB73/rowMeans(cpm.6H[,c("B84","B73")], na.rm = T)
-cpm.6H$B84xMo17.MP <- cpm.6H$B84xMo17/rowMeans(cpm.6H[,c("B84","Mo17")], na.rm = T)
-cpm.6H$A682xB73.MP <- cpm.6H$A682xB73/rowMeans(cpm.6H[,c("A682","B73")], na.rm = T)
-cpm.6H$A682xMo17.MP <- cpm.6H$A682xMo17/rowMeans(cpm.6H[,c("A682","Mo17")], na.rm = T)
+cpm.6H$l2.B73xMo17.MP <- log2(cpm.6H$B73xMo17/rowMeans(cpm.6H[,c("B73","Mo17")]))
+cpm.6H$l2.Mo17xB73.MP <- log2(cpm.6H$Mo17xB73/rowMeans(cpm.6H[,c("B73","Mo17")]))
+cpm.6H$l2.B84xB73.MP <- log2(cpm.6H$B84xB73/rowMeans(cpm.6H[,c("B84","B73")]))
+cpm.6H$l2.B84xMo17.MP <- log2(cpm.6H$B84xMo17/rowMeans(cpm.6H[,c("B84","Mo17")]))
+cpm.6H$l2.A682xB73.MP <- log2(cpm.6H$A682xB73/rowMeans(cpm.6H[,c("A682","B73")]))
+cpm.6H$l2.A682xMo17.MP <- log2(cpm.6H$A682xMo17/rowMeans(cpm.6H[,c("A682","Mo17")]))
 #Calculate ratio of parent to parent
-cpm.6H$B73.Mo17 <- cpm.6H$B73/cpm.6H$Mo17
-cpm.6H$Mo17.B73 <- cpm.6H$Mo17/cpm.6H$B73
-cpm.6H$B84.B73 <- cpm.6H$B84/cpm.6H$B73
-cpm.6H$B84.Mo17 <- cpm.6H$B84/cpm.6H$Mo17
-cpm.6H$A682.B73 <- cpm.6H$A682/cpm.6H$B73
-cpm.6H$A682.Mo17 <- cpm.6H$A682/cpm.6H$Mo17
-#Change Inf
-#calculate log2 of ratios
-cpm.6H$l2.B73xMo17.MP <- log2(cpm.6H$B73xMo17.MP)
-cpm.6H$l2.Mo17xB73.MP <- log2(cpm.6H$Mo17xB73.MP)
-cpm.6H$l2.B84xB73.MP <- log2(cpm.6H$B84xB73.MP)
-cpm.6H$l2.B84xMo17.MP <- log2(cpm.6H$B84xMo17.MP)
-cpm.6H$l2.A682xB73.MP <- log2(cpm.6H$A682xB73.MP )
-cpm.6H$l2.A682xMo17.MP <- log2(cpm.6H$A682xMo17.MP)
-cpm.6H$l2.B73.Mo17 <- log2(cpm.6H$B73.Mo17)
-cpm.6H$l2.Mo17.B73 <- log2(cpm.6H$Mo17.B73)
-cpm.6H$l2.B84.B73 <- log2(cpm.6H$B84.B73)
-cpm.6H$l2.B84.Mo17 <- log2(cpm.6H$B84.Mo17)
-cpm.6H$l2.A682.B73 <- log2(cpm.6H$A682.B73)
-cpm.6H$l2.A682.Mo17 <- log2(cpm.6H$A682.Mo17)
-##Remove genes that weren't detected as protein
+cpm.6H$l2.B73.Mo17 <- log2(cpm.6H$B73/cpm.6H$Mo17)
+cpm.6H$l2.Mo17.B73 <- log2(cpm.6H$Mo17/cpm.6H$B73)
+cpm.6H$l2.B84.B73 <- log2(cpm.6H$B84/cpm.6H$B73)
+cpm.6H$l2.B84.Mo17 <- log2(cpm.6H$B84/cpm.6H$Mo17)
+cpm.6H$l2.A682.B73 <- log2(cpm.6H$A682/cpm.6H$B73)
+cpm.6H$l2.A682.Mo17 <- log2(cpm.6H$A682/cpm.6H$Mo17)
+#Subset to genes with detected protein
 cpm.6H.protein <- cpm.6H[cpm.6H$Gene%in%tmt.6H$Gene,]
-#Define High-parent (HP)
-cpm.6H$B73.Mo17.HP <- NA
-cpm.6H$B73.Mo17.HP1 <- NA
-cpm.6H$B73.Mo17.HP2 <- NA
-cpm.6H$B73.Mo17.HP3 <- NA
-for(i in 1:nrow(cpm.6H)){
-cpm.6H[i,"B73.Mo17.HP"] <- max(c(cpm.6H[i,"B73"], cpm.6H[i,"Mo17"]))
-if(cpm.6H[i,"B73.Mo17.HP"] == cpm.6H[i,"B73"]){
-  cpm.6H[i,"B73.Mo17.HP1"] <- cpm.6H[i,"B73.2"]
-  cpm.6H[i,"B73.Mo17.HP2"] <- cpm.6H[i,"B73.3"]
-  cpm.6H[i,"B73.Mo17.HP3"] <- cpm.6H[i,"B73.4"]
-}
-else if(cpm.6H[i,"B73.Mo17.HP"] == cpm.6H[i,"Mo17"]){
-  cpm.6H[i,"B73.Mo17.HP1"] <- cpm.6H[i,"Mo17.2"]
-  cpm.6H[i,"B73.Mo17.HP2"] <- cpm.6H[i,"Mo17.3"]
-  cpm.6H[i,"B73.Mo17.HP3"] <- cpm.6H[i,"Mo17.4"]
-}
-}
-
-cpm.6H$Mo17.B73.HP <- NA
-cpm.6H$Mo17.B73.HP1 <- NA
-cpm.6H$Mo17.B73.HP2 <- NA
-cpm.6H$Mo17.B73.HP3 <- NA
-for(i in 1:nrow(cpm.6H)){
-cpm.6H[i,"Mo17.B73.HP"] <- max(c(cpm.6H[i,"Mo17"], cpm.6H[i,"B73"]))
-if(cpm.6H[i,"Mo17.B73.HP"] == cpm.6H[i,"Mo17"]){
-  cpm.6H[i,"Mo17.B73.HP1"] <- cpm.6H[i,"Mo17.2"]
-  cpm.6H[i,"Mo17.B73.HP2"] <- cpm.6H[i,"Mo17.3"]
-  cpm.6H[i,"Mo17.B73.HP3"] <- cpm.6H[i,"Mo17.4"]
-}
-else if(cpm.6H[i,"Mo17.B73.HP"] == cpm.6H[i,"B73"]){
-  cpm.6H[i,"Mo17.B73.HP1"] <- cpm.6H[i,"B73.2"]
-  cpm.6H[i,"Mo17.B73.HP2"] <- cpm.6H[i,"B73.3"]
-  cpm.6H[i,"Mo17.B73.HP3"] <- cpm.6H[i,"B73.4"]
-}
-}
-
-cpm.6H$B84.B73.HP <- NA
-cpm.6H$B84.B73.HP1 <- NA
-cpm.6H$B84.B73.HP2 <- NA
-cpm.6H$B84.B73.HP3 <- NA
-for(i in 1:nrow(cpm.6H)){
-cpm.6H[i,"B84.B73.HP"] <- max(c(cpm.6H[i,"B84"], cpm.6H[i,"B73"]))
-if(cpm.6H[i,"B84.B73.HP"] == cpm.6H[i,"B84"]){
-  cpm.6H[i,"B84.B73.HP1"] <- cpm.6H[i,"B84.2"]
-  cpm.6H[i,"B84.B73.HP2"] <- cpm.6H[i,"B84.3"]
-  cpm.6H[i,"B84.B73.HP3"] <- cpm.6H[i,"B84.4"]
-}
-else if(cpm.6H[i,"B84.B73.HP"] == cpm.6H[i,"B73"]){
-  cpm.6H[i,"B84.B73.HP1"] <- cpm.6H[i,"B73.2"]
-  cpm.6H[i,"B84.B73.HP2"] <- cpm.6H[i,"B73.3"]
-  cpm.6H[i,"B84.B73.HP3"] <- cpm.6H[i,"B73.4"]
-}
-}
-
-cpm.6H$B84.Mo17.HP <- NA
-cpm.6H$B84.Mo17.HP1 <- NA
-cpm.6H$B84.Mo17.HP2 <- NA
-cpm.6H$B84.Mo17.HP3 <- NA
-for(i in 1:nrow(cpm.6H)){
-cpm.6H[i,"B84.Mo17.HP"] <- max(c(cpm.6H[i,"B84"], cpm.6H[i,"Mo17"]))
-if(cpm.6H[i,"B84.Mo17.HP"] == cpm.6H[i,"B84"]){
-  cpm.6H[i,"B84.Mo17.HP1"] <- cpm.6H[i,"B84.2"]
-  cpm.6H[i,"B84.Mo17.HP2"] <- cpm.6H[i,"B84.3"]
-  cpm.6H[i,"B84.Mo17.HP3"] <- cpm.6H[i,"B84.4"]
-}
-else if(cpm.6H[i,"B84.Mo17.HP"] == cpm.6H[i,"Mo17"]){
-  cpm.6H[i,"B84.Mo17.HP1"] <- cpm.6H[i,"Mo17.2"]
-  cpm.6H[i,"B84.Mo17.HP2"] <- cpm.6H[i,"Mo17.3"]
-  cpm.6H[i,"B84.Mo17.HP3"] <- cpm.6H[i,"Mo17.4"]
-}
-}
-
-cpm.6H$A682.B73.HP <- NA
-cpm.6H$A682.B73.HP1 <- NA
-cpm.6H$A682.B73.HP2 <- NA
-cpm.6H$A682.B73.HP3 <- NA
-for(i in 1:nrow(cpm.6H)){
-cpm.6H[i,"A682.B73.HP"] <- max(c(cpm.6H[i,"A682"], cpm.6H[i,"B73"]))
-if(cpm.6H[i,"A682.B73.HP"] == cpm.6H[i,"A682"]){
-  cpm.6H[i,"A682.B73.HP1"] <- cpm.6H[i,"A682.2"]
-  cpm.6H[i,"A682.B73.HP2"] <- cpm.6H[i,"A682.3"]
-  cpm.6H[i,"A682.B73.HP3"] <- cpm.6H[i,"A682.4"]
-}
-else if(cpm.6H[i,"A682.B73.HP"] == cpm.6H[i,"B73"]){
-  cpm.6H[i,"A682.B73.HP1"] <- cpm.6H[i,"B73.2"]
-  cpm.6H[i,"A682.B73.HP2"] <- cpm.6H[i,"B73.3"]
-  cpm.6H[i,"A682.B73.HP3"] <- cpm.6H[i,"B73.4"]
-}
-}
-
-cpm.6H$A682.Mo17.HP <- NA
-cpm.6H$A682.Mo17.HP1 <- NA
-cpm.6H$A682.Mo17.HP2 <- NA
-cpm.6H$A682.Mo17.HP3 <- NA
-for(i in 1:nrow(cpm.6H)){
-cpm.6H[i,"A682.Mo17.HP"] <- max(c(cpm.6H[i,"A682"], cpm.6H[i,"Mo17"]))
-if(cpm.6H[i,"A682.Mo17.HP"] == cpm.6H[i,"A682"]){
-  cpm.6H[i,"A682.Mo17.HP1"] <- cpm.6H[i,"A682.2"]
-  cpm.6H[i,"A682.Mo17.HP2"] <- cpm.6H[i,"A682.3"]
-  cpm.6H[i,"A682.Mo17.HP3"] <- cpm.6H[i,"A682.4"]
-}
-else if(cpm.6H[i,"A682.Mo17.HP"] == cpm.6H[i,"Mo17"]){
-  cpm.6H[i,"A682.Mo17.HP1"] <- cpm.6H[i,"Mo17.2"]
-  cpm.6H[i,"A682.Mo17.HP2"] <- cpm.6H[i,"Mo17.3"]
-  cpm.6H[i,"A682.Mo17.HP3"] <- cpm.6H[i,"Mo17.4"]
-}
-}
-#Calculate Hyb/HP
-cpm.6H$B73xMo17.HP <- cpm.6H$B73xMo17/cpm.6H$B73.Mo17.HP
-cpm.6H$Mo17xB73.HP <- cpm.6H$Mo17xB73/cpm.6H$Mo17.B73.HP
-cpm.6H$B84xB73.HP <- cpm.6H$B84xB73/cpm.6H$B84.B73.HP
-cpm.6H$B84xMo17.HP <- cpm.6H$B84xMo17/cpm.6H$B84.Mo17.HP
-cpm.6H$A682xB73.HP <- cpm.6H$A682xB73/cpm.6H$A682.B73.HP
-cpm.6H$A682xMo17.HP <- cpm.6H$A682xMo17/cpm.6H$A682.Mo17.HP
-
-cpm.6H$l2.B73xMo17.HP <- log2(cpm.6H$B73xMo17/cpm.6H$B73.Mo17.HP)
-cpm.6H$l2.Mo17xB73.HP <- log2(cpm.6H$Mo17xB73/cpm.6H$Mo17.B73.HP)
-cpm.6H$l2.B84xB73.HP <- log2(cpm.6H$B84xB73/cpm.6H$B84.B73.HP)
-cpm.6H$l2.B84xMo17.HP <- log2(cpm.6H$B84xMo17/cpm.6H$B84.Mo17.HP)
-cpm.6H$l2.A682xB73.HP <- log2(cpm.6H$A682xB73/cpm.6H$A682.B73.HP)
-cpm.6H$l2.A682xMo17.HP <- log2(cpm.6H$A682xMo17/cpm.6H$A682.Mo17.HP)
-#Calculate hyb/HP p-value
-cpm.6H$ttest.B73xMo17.HP <- (ttestFun(cpm.6H, c("B73xMo17.2", "B73xMo17.3", "B73xMo17.4"), c("B73.Mo17.HP1", "B73.Mo17.HP2", "B73.Mo17.HP3")))
-cpm.6H$ttest.Mo17xB73.HP <- (ttestFun(cpm.6H, c("Mo17xB73.2", "Mo17xB73.3", "Mo17xB73.4"), c("Mo17.B73.HP1", "Mo17.B73.HP2", "Mo17.B73.HP3")))
-cpm.6H$ttest.B84xB73.HP <- (ttestFun(cpm.6H, c("B84xB73.2", "B84xB73.3", "B84xB73.4"), c("B84.B73.HP1", "B84.B73.HP2", "B84.B73.HP3")))
-cpm.6H$ttest.B84xMo17.HP <- (ttestFun(cpm.6H, c("B84xMo17.2", "B84xMo17.3", "B84xMo17.4"), c("B84.Mo17.HP1", "B84.Mo17.HP2", "B84.Mo17.HP3")))
-cpm.6H$ttest.A682xB73.HP <- (ttestFun(cpm.6H, c("A682xB73.2", "A682xB73.3", "A682xB73.4"), c("A682.B73.HP1", "A682.B73.HP2", "A682.B73.HP3")))
-cpm.6H$ttest.A682xMo17.HP <- (ttestFun(cpm.6H, c("A682xMo17.2", "A682xMo17.3", "A682xMo17.4"), c("A682.Mo17.HP1", "A682.Mo17.HP2", "A682.Mo17.HP3")))
 ```
 ```{r subset RIL RNA data}
 #Remove genes not detected in one or mor rep
 cpm.RIL[cpm.RIL==0] <- NA
 cpm.RIL <- na.omit(cpm.RIL)
 #Calculate averages
-cpm.RIL$B73 <- rowMeans(cpm.RIL[,c("B73.1", "B73.2", "B73.3", "B73.4")], na.rm = T)
-cpm.RIL$Mo17 <- rowMeans(cpm.RIL[,c("Mo17.1", "Mo17.2", "Mo17.3", "Mo17.4")], na.rm = T)
-cpm.RIL$B73xMo17 <- rowMeans(cpm.RIL[,c("BxM.1", "BxM.2", "BxM.3", "BxM.4")], na.rm = T)
-cpm.RIL$M0014 <- rowMeans(cpm.RIL[,c("M0014.1", "M0014.2", "M0014.3", "M0014.4")], na.rm = T)
-cpm.RIL$M0014xB73 <- rowMeans(cpm.RIL[,c("M0014xB73.1", "M0014xB73.2", "M0014xB73.3", "M0014xB73.4")], na.rm = T)
-cpm.RIL$M0014xMo17 <- rowMeans(cpm.RIL[,c("M0014xMo17.1", "M0014xMo17.2", "M0014xMo17.3", "M0014xMo17.4")], na.rm = T)
-cpm.RIL$M0016 <- rowMeans(cpm.RIL[,c("M0016.1", "M0016.2", "M0016.3", "M0016.4")], na.rm = T)
-cpm.RIL$M0016xB73 <- rowMeans(cpm.RIL[,c("M0016xB73.1", "M0016xB73.2", "M0016xB73.3")], na.rm = T)
-cpm.RIL$M0016xMo17 <- rowMeans(cpm.RIL[,c("M0016xMo17.1", "M0016xMo17.2", "M0016xMo17.3", "M0016xMo17.4")], na.rm = T)
-cpm.RIL$M0021 <- rowMeans(cpm.RIL[,c("M0021.1", "M0021.2", "M0021.3", "M0021.4")], na.rm = T)
-cpm.RIL$M0021xB73 <- rowMeans(cpm.RIL[,c("M0021xB73.1", "M0021xB73.2", "M0021xB73.3", "M0021xB73.4")], na.rm = T)
-cpm.RIL$M0021xMo17 <- rowMeans(cpm.RIL[,c("M0021xMo17.1", "M0021xMo17.2", "M0021xMo17.3", "M0021xMo17.4")], na.rm = T)
-cpm.RIL$M0317 <- rowMeans(cpm.RIL[,c("M0317.1", "M0317.2", "M0317.3", "M0317.4")], na.rm = T)
-cpm.RIL$M0317xB73 <- rowMeans(cpm.RIL[,c("M0317xB73.1", "M0317xB73.2", "M0317xB73.3", "M0317xB73.4")], na.rm = T)
-cpm.RIL$M0317xMo17 <- rowMeans(cpm.RIL[,c("M0317xMo17.1", "M0317xMo17.2", "M0317xMo17.3", "M0317xMo17.4")], na.rm = T)
+cpm.RIL$B73 <- rowMeans(cpm.RIL[,c("B73.1", "B73.2", "B73.3", "B73.4")])
+cpm.RIL$Mo17 <- rowMeans(cpm.RIL[,c("Mo17.1", "Mo17.2", "Mo17.3", "Mo17.4")])
+cpm.RIL$B73xMo17 <- rowMeans(cpm.RIL[,c("BxM.1", "BxM.2", "BxM.3", "BxM.4")])
+cpm.RIL$M0014 <- rowMeans(cpm.RIL[,c("M0014.1", "M0014.2", "M0014.3", "M0014.4")])
+cpm.RIL$M0014xB73 <- rowMeans(cpm.RIL[,c("M0014xB73.1", "M0014xB73.2", "M0014xB73.3", "M0014xB73.4")])
+cpm.RIL$M0014xMo17 <- rowMeans(cpm.RIL[,c("M0014xMo17.1", "M0014xMo17.2", "M0014xMo17.3", "M0014xMo17.4")])
+cpm.RIL$M0016 <- rowMeans(cpm.RIL[,c("M0016.1", "M0016.2", "M0016.3", "M0016.4")])
+cpm.RIL$M0016xB73 <- rowMeans(cpm.RIL[,c("M0016xB73.1", "M0016xB73.2", "M0016xB73.3")])
+cpm.RIL$M0016xMo17 <- rowMeans(cpm.RIL[,c("M0016xMo17.1", "M0016xMo17.2", "M0016xMo17.3", "M0016xMo17.4")])
+cpm.RIL$M0021 <- rowMeans(cpm.RIL[,c("M0021.1", "M0021.2", "M0021.3", "M0021.4")])
+cpm.RIL$M0021xB73 <- rowMeans(cpm.RIL[,c("M0021xB73.1", "M0021xB73.2", "M0021xB73.3", "M0021xB73.4")])
+cpm.RIL$M0021xMo17 <- rowMeans(cpm.RIL[,c("M0021xMo17.1", "M0021xMo17.2", "M0021xMo17.3", "M0021xMo17.4")])
+cpm.RIL$M0317 <- rowMeans(cpm.RIL[,c("M0317.1", "M0317.2", "M0317.3", "M0317.4")])
+cpm.RIL$M0317xB73 <- rowMeans(cpm.RIL[,c("M0317xB73.1", "M0317xB73.2", "M0317xB73.3", "M0317xB73.4")])
+cpm.RIL$M0317xMo17 <- rowMeans(cpm.RIL[,c("M0317xMo17.1", "M0317xMo17.2", "M0317xMo17.3", "M0317xMo17.4")])
 #calculate ratio of hybrid to midparent
-cpm.RIL$B73xMo17.MP <- cpm.RIL$B73xMo17/rowMeans(cpm.RIL[,c("B73","Mo17")], na.rm = T)
-cpm.RIL$M0014xB73.MP <- cpm.RIL$M0014xB73/rowMeans(cpm.RIL[,c("M0014", "B73")], na.rm = T)
-cpm.RIL$M0014xMo17.MP <- cpm.RIL$M0014xMo17/rowMeans(cpm.RIL[,c("M0014", "Mo17")], na.rm = T)
-cpm.RIL$M0016xB73.MP <- cpm.RIL$M0016xB73/rowMeans(cpm.RIL[,c("M0016", "B73")], na.rm = T)
-cpm.RIL$M0016xMo17.MP <- cpm.RIL$M0016xMo17/rowMeans(cpm.RIL[,c("M0016", "Mo17")], na.rm = T)
-cpm.RIL$M0021xB73.MP <- cpm.RIL$M0021xB73/rowMeans(cpm.RIL[,c("M0021", "B73")], na.rm = T)
-cpm.RIL$M0021xMo17.MP <- cpm.RIL$M0021xMo17/rowMeans(cpm.RIL[,c("M0021", "Mo17")], na.rm = T)
-cpm.RIL$M0317xB73.MP <- cpm.RIL$M0317xB73/rowMeans(cpm.RIL[,c("M0317", "B73")], na.rm = T)
-cpm.RIL$M0317xMo17.MP <- cpm.RIL$M0317xMo17/rowMeans(cpm.RIL[,c("M0317", "Mo17")], na.rm = T)
+cpm.RIL$l2.B73xMo17.MP <- log2(cpm.RIL$B73xMo17/rowMeans(cpm.RIL[,c("B73","Mo17")]))
+cpm.RIL$l2.M0014xB73.MP <- log2(cpm.RIL$M0014xB73/rowMeans(cpm.RIL[,c("M0014", "B73")]))
+cpm.RIL$l2.M0014xMo17.MP <- log2(cpm.RIL$M0014xMo17/rowMeans(cpm.RIL[,c("M0014", "Mo17")]))
+cpm.RIL$l2.M0016xB73.MP <- log2(cpm.RIL$M0016xB73/rowMeans(cpm.RIL[,c("M0016", "B73")]))
+cpm.RIL$l2.M0016xMo17.MP <- log2(cpm.RIL$M0016xMo17/rowMeans(cpm.RIL[,c("M0016", "Mo17")]))
+cpm.RIL$l2.M0021xB73.MP <- log2(cpm.RIL$M0021xB73/rowMeans(cpm.RIL[,c("M0021", "B73")]))
+cpm.RIL$l2.M0021xMo17.MP <- log2(cpm.RIL$M0021xMo17/rowMeans(cpm.RIL[,c("M0021", "Mo17")]))
+cpm.RIL$l2.M0317xB73.MP <- log2(cpm.RIL$M0317xB73/rowMeans(cpm.RIL[,c("M0317", "B73")]))
+cpm.RIL$l2.M0317xMo17.MP <- log2(cpm.RIL$M0317xMo17/rowMeans(cpm.RIL[,c("M0317", "Mo17")]))
 #Calculate ratio of parent to parent
-cpm.RIL$B73.Mo17 <- cpm.RIL$B73/cpm.RIL$Mo17
-cpm.RIL$M0014.B73 <- cpm.RIL$M0014/cpm.RIL$B73
-cpm.RIL$M0014.Mo17 <- cpm.RIL$M0014/cpm.RIL$Mo17
-cpm.RIL$M0016.B73 <- cpm.RIL$M0016/cpm.RIL$B73
-cpm.RIL$M0016.Mo17 <- cpm.RIL$M0016/cpm.RIL$Mo17
-cpm.RIL$M0021.B73 <- cpm.RIL$M0021/cpm.RIL$B73
-cpm.RIL$M0021.Mo17 <- cpm.RIL$M0021/cpm.RIL$Mo17
-cpm.RIL$M0317.B73 <- cpm.RIL$M0317/cpm.RIL$B73
-cpm.RIL$M0317.Mo17 <- cpm.RIL$M0317/cpm.RIL$Mo17
-#calculate ratio of hybrid to midparent
-cpm.RIL$l2.B73xMo17.MP <- log2(cpm.RIL$B73xMo17.MP)
-cpm.RIL$l2.M0014xB73.MP <- log2(cpm.RIL$M0014xB73.MP)
-cpm.RIL$l2.M0014xMo17.MP <- log2(cpm.RIL$M0014xMo17.MP)
-cpm.RIL$l2.M0016xB73.MP <- log2(cpm.RIL$M0016xB73.MP)
-cpm.RIL$l2.M0016xMo17.MP <- log2(cpm.RIL$M0016xMo17.MP)
-cpm.RIL$l2.M0021xB73.MP <- log2(cpm.RIL$M0021xB73.MP)
-cpm.RIL$l2.M0021xMo17.MP <- log2(cpm.RIL$M0021xMo17.MP )
-cpm.RIL$l2.M0317xB73.MP <- log2(cpm.RIL$M0317xB73.MP)
-cpm.RIL$l2.M0317xMo17.MP <- log2(cpm.RIL$M0317xMo17.MP)
-#Calculate ratio of parent to parent
-cpm.RIL$l2.B73.Mo17 <- log2(cpm.RIL$B73.Mo17)
-cpm.RIL$l2.M0014.B73 <- log2(cpm.RIL$M0014.B73)
-cpm.RIL$l2.M0014.Mo17 <- log2(cpm.RIL$M0014.Mo17)
-cpm.RIL$l2.M0016.B73 <- log2(cpm.RIL$M0016.B73)
-cpm.RIL$l2.M0016.Mo17 <- log2(cpm.RIL$M0016.Mo17)
-cpm.RIL$l2.M0021.B73 <- log2(cpm.RIL$M0021.B73)
-cpm.RIL$l2.M0021.Mo17 <- log2(cpm.RIL$M0021.Mo17)
-cpm.RIL$l2.M0317.B73 <- log2(cpm.RIL$M0317.B73)
-cpm.RIL$l2.M0317.Mo17 <- log2(cpm.RIL$M0317.Mo17)
-##Remove genes that weren't detected as protein
-cpm.RIL.protein <- cpm.RIL
-cpm.RIL.protein <- cpm.RIL.protein[cpm.RIL.protein$Gene%in%tmt.RIL$Gene,]
-#Define high-parent (HP)
-cpm.RIL$B73.Mo17.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"B73.Mo17"] > 1.0){
-    cpm.RIL[i,"B73.Mo17.HP"] <- cpm.RIL[i, "B73"]
-  }
-  else{cpm.RIL[i,"B73.Mo17.HP"] <- cpm.RIL[i, "Mo17"]}
-}
-
-cpm.RIL$M0014.B73.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0014.B73"] > 1.0){
-    cpm.RIL[i,"M0014.B73.HP"] <- cpm.RIL[i, "M0014"]
-  }
-  else{cpm.RIL[i,"M0014.B73.HP"] <- cpm.RIL[i, "B73"]}
-}
-
-cpm.RIL$M0014.Mo17.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0014.Mo17"] > 1.0){
-    cpm.RIL[i,"M0014.Mo17.HP"] <- cpm.RIL[i, "M0014"]
-  }
-  else{cpm.RIL[i,"M0014.Mo17.HP"] <- cpm.RIL[i, "Mo17"]}
-}
-
-cpm.RIL$M0016.B73.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0016.B73"] > 1.0){
-    cpm.RIL[i,"M0016.B73.HP"] <- cpm.RIL[i, "M0016"]
-  }
-  else{cpm.RIL[i,"M0016.B73.HP"] <- cpm.RIL[i, "B73"]}
-}
-
-cpm.RIL$M0016.Mo17.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0016.Mo17"] > 1.0){
-    cpm.RIL[i,"M0016.Mo17.HP"] <- cpm.RIL[i, "M0016"]
-  }
-  else{cpm.RIL[i,"M0016.Mo17.HP"] <- cpm.RIL[i, "Mo17"]}
-}
-
-cpm.RIL$M0021.B73.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0021.B73"] > 1.0){
-    cpm.RIL[i,"M0021.B73.HP"] <- cpm.RIL[i, "M0021"]
-  }
-  else{cpm.RIL[i,"M0021.B73.HP"] <- cpm.RIL[i, "B73"]}
-}
-
-cpm.RIL$M0021.Mo17.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0021.Mo17"] > 1.0){
-    cpm.RIL[i,"M0021.Mo17.HP"] <- cpm.RIL[i, "M0021"]
-  }
-  else{cpm.RIL[i,"M0021.Mo17.HP"] <- cpm.RIL[i, "Mo17"]}
-}
-
-cpm.RIL$M0317.B73.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0317.B73"] > 1.0){
-    cpm.RIL[i,"M0317.B73.HP"] <- cpm.RIL[i, "M0317"]
-  }
-  else{cpm.RIL[i,"M0317.B73.HP"] <- cpm.RIL[i, "B73"]}
-}
-
-cpm.RIL$M0317.Mo17.HP <- NA
-for(i in 1:nrow(cpm.RIL)){
-  if(cpm.RIL[i,"M0317.Mo17"] > 1.0){
-    cpm.RIL[i,"M0317.Mo17.HP"] <- cpm.RIL[i, "M0317"]
-  }
-  else{cpm.RIL[i,"M0317.Mo17.HP"] <- cpm.RIL[i, "Mo17"]}
-}
-#Calculate hyb/HP
-cpm.RIL$B73xMo17.HP <- cpm.RIL$B73xMo17/cpm.RIL$B73.Mo17.HP
-cpm.RIL$M0014xB73.HP <- cpm.RIL$M0014xB73/cpm.RIL$M0014.B73.HP
-cpm.RIL$M0014xMo17.HP <- cpm.RIL$M0014xMo17/cpm.RIL$M0014.Mo17.HP
-cpm.RIL$M0016xB73.HP <- cpm.RIL$M0016xB73/cpm.RIL$M0016.B73.HP
-cpm.RIL$M0016xMo17.HP <- cpm.RIL$M0016xMo17/cpm.RIL$M0016.Mo17.HP
-cpm.RIL$M0021xB73.HP <- cpm.RIL$M0021xB73/cpm.RIL$M0021.B73.HP
-cpm.RIL$M0021xMo17.HP <- cpm.RIL$M0021xMo17/cpm.RIL$M0021.Mo17.HP
-cpm.RIL$M0317xB73.HP <- cpm.RIL$M0317xB73/cpm.RIL$M0317.B73.HP
-cpm.RIL$M0317xMo17.HP <- cpm.RIL$M0317xMo17/cpm.RIL$M0317.Mo17.HP
+cpm.RIL$l2.B73.Mo17 <- log2(cpm.RIL$B73/cpm.RIL$Mo17)
+cpm.RIL$l2.M0014.B73 <- log2(cpm.RIL$M0014/cpm.RIL$B73)
+cpm.RIL$l2.M0014.Mo17 <- log2(cpm.RIL$M0014/cpm.RIL$Mo17)
+cpm.RIL$l2.M0016.B73 <- log2(cpm.RIL$M0016/cpm.RIL$B73)
+cpm.RIL$l2.M0016.Mo17 <- log2(cpm.RIL$M0016/cpm.RIL$Mo17)
+cpm.RIL$l2.M0021.B73 <- log2(cpm.RIL$M0021/cpm.RIL$B73)
+cpm.RIL$l2.M0021.Mo17 <- log2(cpm.RIL$M0021/cpm.RIL$Mo17)
+cpm.RIL$l2.M0317.B73 <- log2(cpm.RIL$M0317/cpm.RIL$B73)
+cpm.RIL$l2.M0317.Mo17 <- log2(cpm.RIL$M0317/cpm.RIL$Mo17)
+#Subset to genes with detected protein
+cpm.RIL.protein <- cpm.RIL[cpm.RIL$Gene%in%tmt.RIL$Gene,]
 ```
-
+#Save RNA dataframes
+```{r save RNA dfs}
+saveRDS(cpm.SL, "cpm.SL")
+saveRDS(cpm.LB, "cpm.LB")
+saveRDS(cpm.6H, "cpm.6H")
+saveRDS(cpm.RIL, "cpm.RIL")
+```
+```{r read RNA dfs}
+cpm.SL <- readRDS("cpm.SL")
+cpm.LB <- readRDS("cpm.LB")
+cpm.6H <- readRDS("cpm.6H")
+cpm.RIL <- readRDS("cpm.RIL")
+```
 
 
 #Plant Height data
@@ -1106,6 +499,10 @@ PlantHeights <- read.csv(paste0(PathToData, "SupplementalTable4.csv"), stringsAs
 PlantHeights.6h.MP <- PlantHeights$Hyb.MP[PlantHeights$Experiment=="6H"]
 #Make vector of RIL hyb/MP ratios
 PlantHeights.ril.MP <- PlantHeights$Hyb.MP[PlantHeights$Experiment=="RIL"]
+```
+```{r}
+saveRDS(PlantHeights.6h.MP, "PlantHeights.6h.MP")
+saveRDS(PlantHeights.ril.MP,"PlantHeights.ril.MP")
 ```
 
 
@@ -1117,6 +514,8 @@ mgdb <- read.csv(paste0(PathToData,"mgdb.csv"), stringsAsFactors = F, header = F
 colnames(mgdb) <- mgdb[5,]
 mgdb <- mgdb[-c(1:5),]
 ```
+
+
 ```{r organelleEntrez}
 organelleEntrez <- tmt[grep("Zema|Zeam", tmt$Accession),]
 organelleEntrez <- data.frame("Accession"=organelleEntrez$Accession, "Entrez"=NA)
@@ -1409,6 +808,153 @@ saveRDS(GOIs, "GOIs")
 ```{r read GOI list}
 GOIs <- readRDS("GOIs")
 ```
+#Par2Par
+
+
+```{r setup dataframe tmt.RIL.6H.Par2Par.cor}
+#combine RIL and 6 hybrids Protein
+tmt.RIL.6H.Par2Par <- merge.data.frame(tmt.RIL[,c(6,154:162)], tmt.6H[,c(6,72:77)], by.x = "Accession", by.y = "Accession", all = F)
+#change ratios to absolute values
+tmt.RIL.6H.Par2Par[,2:ncol(tmt.RIL.6H.Par2Par)] <- abs(tmt.RIL.6H.Par2Par[,2:ncol(tmt.RIL.6H.Par2Par)])
+#convert Accession column to gene column
+tmt.RIL.6H.Par2Par$Gene <- substr(tmt.RIL.6H.Par2Par$Accession, start = 1, stop = 14)
+#run correlation function
+tmt.RIL.6H.Par2Par.cor <- CorFun(tmt.RIL.6H.Par2Par, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+```
+```{r}
+ggplot(tmt.RIL.6H.Par2Par.cor, mapping = aes(x=cor))+
+  geom_density(color="blue")+
+  xlab("Pearson correlation")+
+  theme_bw()+
+  geom_vline(xintercept = 0, linetype=2)
+ggsave("Par2Par.tmt.png", width = 7, height = 5)
+```
+```{r}
+Entrez2 <- Entrez
+colnames(Entrez2)[1] <- "Gene"
+tmt.RIL.6H.Par2Par.cor <- join(tmt.RIL.6H.Par2Par.cor[,c("Gene", "cor")], Entrez2)
+tmt.RIL.6H.Par2Par.cor <- merge.data.frame(tmt.RIL.6H.Par2Par.cor, tmt[,c("Gene","Protein")], by.x = "Gene", by.y = "Gene", all.x = T, all.y = F)
+tmt.RIL.6H.Par2Par.cor <- tmt.RIL.6H.Par2Par.cor[order(-tmt.RIL.6H.Par2Par.cor$cor),]
+write.csv((tmt.RIL.6H.Par2Par.cor), "tmt.RIL.6H.Par2Par.cor.csv", row.names = F)
+
+tmt.RIL.6H.Par2Par.cor.pos <- tmt.RIL.6H.Par2Par.cor[tmt.RIL.6H.Par2Par.cor$cor > .6,]
+write.csv((tmt.RIL.6H.Par2Par.cor.pos), "tmt.RIL.6H.Par2Par.cor.pos.csv", row.names = F)
+```
+
+```{r setup dataframe cpm.RIL.6H.Par2Par.cor}
+#combine RIL and 6 hybrids Protein
+cpm.RIL.6H.Par2Par <- merge.data.frame(cpm.RIL[,c(1,103:111)], cpm.6H[,c(1,60:65)], by.x = "Gene", by.y = "Gene", all = F)
+#change ratios to absolute values
+cpm.RIL.6H.Par2Par[,2:ncol(cpm.RIL.6H.Par2Par)] <- abs(cpm.RIL.6H.Par2Par[,2:ncol(cpm.RIL.6H.Par2Par)])
+#run correlation function
+cpm.RIL.6H.Par2Par.cor <- CorFun(cpm.RIL.6H.Par2Par, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+```
+```{r}
+ggplot(cpm.RIL.6H.Par2Par.cor, mapping = aes(x=cor))+
+  geom_density(color="blue")+
+  xlab("Pearson correlation")+
+  theme_bw()+
+  geom_vline(xintercept = 0, linetype=2)
+ggsave("Par2Par.cpm.png", height = 5, width = 7)
+```
+```{r}
+Par2Par.tmt.cpm <- merge.data.frame(tmt.RIL.6H.Par2Par.cor[,c("Gene","cor")], cpm.RIL.6H.Par2Par.cor[,c("Gene","cor")], by = "Gene", all = F)
+colnames(Par2Par.tmt.cpm) <- c("Gene","Protein","RNA")
+```
+```{r}
+###Set GOIs
+Par2Par.tmt.cpm.plot <- Par2Par.tmt.cpm
+Par2Par.tmt.cpm.plot$Category <- "Other"
+Par2Par.tmt.cpm.plot$Order <- 1
+Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$NE.PtRibo),"Order"] <- 3
+Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+Par2Par.tmt.cpm.plot[(Par2Par.tmt.cpm.plot$Gene %in% GOIs$PhANGs),"Order"] <- 5
+###Re-order
+Par2Par.tmt.cpm.plot <- Par2Par.tmt.cpm.plot[(order(Par2Par.tmt.cpm.plot$Order)),]
+###factor
+Par2Par.tmt.cpm.plot$Category <- factor(Par2Par.tmt.cpm.plot$Category, levels = c("Other",  "NE plastid ribosome", "PhANGs"))
+###Scatterplot
+Par2Par.tmt.cpm.plot.scat <- ggplot(Par2Par.tmt.cpm.plot, mapping=aes(x=Protein, y=RNA, color=Category, shape=Category))+
+    geom_point(aes(color=Category), size=1)+
+  scale_color_manual(values=colors.p[c("Other", "NE plastid ribosome","PhANGs")], name="Category")+
+  scale_shape_manual(values=c(1,19,19))+
+  theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+    theme_classic()+
+          geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+          geom_hline(yintercept=0, linetype="dashed", color = "gray50")+
+          theme(axis.text=element_text(size=8), legend.text=element_text(size=8), axis.title = element_text(size=10),
+                legend.position="bottom", legend.title = element_blank(),  plot.title = element_text(size=10, vjust = -3, hjust = -0.4), plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))+
+    guides(color = guide_legend(nrow = 2))+
+    xlab("Protein Cor")+
+    ylab("RNA Cor")+
+    theme(aspect.ratio=1)+
+    coord_fixed(expand = F)
+legend <- get_legend(Par2Par.tmt.cpm.plot.scat)
+Par2Par.tmt.cpm.plot.scat <- Par2Par.tmt.cpm.plot.scat+theme(legend.position = "none")
+###Add density curves
+    densityplotX<-axis_canvas(Par2Par.tmt.cpm.plot.scat, axis="x")+
+      geom_density(aes(Par2Par.tmt.cpm.plot[,"Protein"], color=Par2Par.tmt.cpm.plot[,"Category"]), size=0.7)+
+    scale_color_manual(values=colors.p[c("Other", "NE plastid ribosome","PhANGs")], name="Category")+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())
+    #set up marginal density plot Y axis
+    densityplotY<-axis_canvas(Par2Par.tmt.cpm.plot.scat, axis="y", coord_flip = T)+
+      geom_density(aes(Par2Par.tmt.cpm.plot[,"RNA"], color=Par2Par.tmt.cpm.plot[,"Category"]), size=0.7)+
+      scale_color_manual(values=colors.p[c("Other", "NE plastid ribosome","PhANGs")], name="Category")+
+      scale_linetype_manual(values=c("dotted", "solid"))+
+      geom_vline(xintercept=0, linetype="dashed", color = "gray50")+
+      theme_void()+
+      theme(legend.title = element_blank())+
+      coord_flip()
+    #put two plots together
+      A <- insert_xaxis_grob(Par2Par.tmt.cpm.plot.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      A <- insert_yaxis_grob(A, densityplotY, grid::unit(0.275, "null"), position = "right")
+      
+des <- "A
+        B"
+Par2Par.tmt.cpm.plot.fig <-patchwork::wrap_plots(A=A, B=legend,  nrow = 1, heights = c(3,1), design = des)
+ggsave(plot=Par2Par.tmt.cpm.plot.fig, filename =paste0(PathToPlots, "Par2Par.tmt.cpm.pdf"), dpi=300, width=4.488189, height=3)
+```
+
+
+
+```{r plot Par2Par}
+#Combine data for plotting
+tmt.RIL.6H.Par2Par.cor <- tmt.RIL.6H.Par2Par.cor[,c("Gene", "cor")]
+#Set GOIs
+tmt.RIL.6H.Par2Par.cor$Category <- "Other"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% TPR),"Category"] <- "TPR"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% PTAC),"Category"] <- "PTAC"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$ProteinBioSyn),"Category"] <- "Protein biosynthesis"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$CarbonFixation),"Category"] <- "Carbon fixation"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$Oxidoreductase),"Category"] <- "Oxidoreductase"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$Protease),"Category"] <- "Protease"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
+tmt.RIL.6H.Par2Par.cor[(tmt.RIL.6H.Par2Par.cor$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
+#factor
+tmt.RIL.6H.Par2Par.cor$Category <- factor(tmt.RIL.6H.Par2Par.cor$Category, levels = c("Other", "PE plastid ribosome", "NE plastid ribosome","Cytosolic ribosome", "TPR", "Protein biosynthesis", "PTAC", "PhANGs", "PhAPGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
+#plot
+ggplot(tmt.RIL.6H.Par2Par.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
+  geom_density_ridges_gradient(alpha=0.7) +
+  scale_fill_viridis_c(option = "B")+
+  theme_ridges() +
+  theme(axis.text =element_text(size=8), axis.title = element_text(size=8), legend.position = "none", axis.title.y = element_blank(), axis.title.x = element_text(hjust = 0.5, size=8))+
+  coord_cartesian(expand = F)+
+  xlab("Pearson correlation")+
+  xlim(-1,1)
+
+ggsave(filename =paste0(PathToPlots, "Par2Par_cor.pdf"), dpi=300, width=3.4252, height=4)
+```
+
+
+
 #Define settings and functions for plotting
 ```{r CorFun}
 #using dataframe and vector as input
@@ -1435,113 +981,72 @@ colors.p <- c("Other"="#D8D8D8", "Plastid-localized"="black", "Cytosolic ribosom
 colors.ea <- c("Other"="#D8D8D8", "SAMS"="black", "ACS"="black", "ACO"="black", "ZmACS2"="#24ff24", "ZmACS6"="#ff6db6", "AtACO1 homolog"="#006ddb", "AtACO2 homolog"="#b66dff", "AtSAM1/AtSAM2 homolog"="#db6d00")
 ```
 
+
+
 #Figure 1
 ```{r setup dataframe tmt.SL.fig1}
-#copy
-tmt.SL.Hyb2HP <- tmt.SL
-tmt.SL.Par2Par <- tmt.SL
-tmt.SL.Hyb2MP <- tmt.SL
+#subset
+tmt.SL.Hyb2HP <- tmt.SL[,c("Gene", "l2.B73xMo17.HP", "l10.ttest.HP")]
+tmt.SL.Par2Par <- tmt.SL[,c("Gene", "l2.B73xMo17.MP", "l10.ttest.MP")]
+tmt.SL.Hyb2MP <- tmt.SL[,c("Gene", "l2.B73.Mo17", "l10.ttest.P")]
+#rename column to match
+colnames(tmt.SL.Hyb2HP) <- c("Gene", "l2.ratio", "l10.ttest")
+colnames(tmt.SL.Hyb2MP) <- c("Gene", "l2.ratio", "l10.ttest")
+colnames(tmt.SL.Par2Par) <- c("Gene", "l2.ratio", "l10.ttest")
 #name plot panels
 tmt.SL.Hyb2HP$plot <- "A"
 tmt.SL.Hyb2MP$plot <- "B"
 tmt.SL.Par2Par$plot <- "C"
-#trim
-tmt.SL.Hyb2HP <- tmt.SL.Hyb2HP[,c("plot", "Gene", "l2.B73xMo17.HP", "l10.ttest.HP")]
-tmt.SL.Hyb2MP <- tmt.SL.Hyb2MP[,c("plot", "Gene", "l2.B73xMo17.MP", "l10.ttest.MP")]
-tmt.SL.Par2Par <- tmt.SL.Par2Par[,c("plot", "Gene", "l2.B73.Mo17", "l10.ttest.P")]
-#rename column to match
-colnames(tmt.SL.Hyb2HP)[3:4] <- c("l2.ratio", "l10.ttest")
-colnames(tmt.SL.Hyb2MP)[3:4] <- c("l2.ratio", "l10.ttest")
-colnames(tmt.SL.Par2Par)[3:4] <- c("l2.ratio", "l10.ttest")
-#Remove row with infinite value
-tmt.SL.Par2Par <- tmt.SL.Par2Par[!tmt.SL.Par2Par$l2.ratio==Inf,]
 #bind
-tmt.SL.fig1 <- rbind(tmt.SL.Hyb2HP,tmt.SL.Hyb2MP)
-tmt.SL.fig1 <- rbind(tmt.SL.fig1,tmt.SL.Par2Par)
+tmt.SL.fig1 <- do.call("rbind", list(tmt.SL.Hyb2HP, tmt.SL.Hyb2MP, tmt.SL.Par2Par))
 ```
 
-```{r fig1 statistics}
-tmt.SL.Hyb2HP.sigma.x.PhANGs <- sd(tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$PhANGs])
-tmt.SL.Hyb2HP.sigma.x.PhAPGs <- sd(tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$PhAPGs])
-tmt.SL.Hyb2HP.sigma.x.NE.PtRibo <- sd(tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$NE.PtRibo])
-tmt.SL.Hyb2HP.sigma.x.PE.ribo <- sd(tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$PE.ribo])
-tmt.SL.Hyb2HP.sigma.y.PhANGs <- sd(tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$PhANGs])
-tmt.SL.Hyb2HP.sigma.y.PhAPGs <- sd(tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$PhAPGs])
-tmt.SL.Hyb2HP.sigma.y.NE.PtRibo <- sd(tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$NE.PtRibo])
-tmt.SL.Hyb2HP.sigma.y.PE.ribo <- sd(tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$PE.ribo])
-tmt.SL.Hyb2HP.Ztest.PhANGs <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$PhANGs], y = tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$PhANGs], sigma.x = tmt.SL.Hyb2HP.sigma.x.PhANGs, sigma.y = tmt.SL.Hyb2HP.sigma.y.PhANGs)))
-tmt.SL.Hyb2HP.Ztest.PhAPGs <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$PhAPGs], tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$PhAPGs], sigma.x = tmt.SL.Hyb2HP.sigma.x.PhAPGs, sigma.y = tmt.SL.Hyb2HP.sigma.y.PhAPGs)))
-tmt.SL.Hyb2HP.Ztest.NEribo <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$NE.PtRibo], tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$NE.PtRibo], sigma.x = tmt.SL.Hyb2HP.sigma.x.NE.PtRibo, sigma.y = tmt.SL.Hyb2HP.sigma.y.NE.PtRibo)))
-tmt.SL.Hyb2HP.Ztest.PEribo <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2HP$l2.ratio[tmt.SL.Hyb2HP$Gene %in% GOIs$PE.ribo], tmt.SL.Hyb2HP$l2.ratio[!tmt.SL.Hyb2HP$Gene %in% GOIs$PE.ribo], sigma.x = tmt.SL.Hyb2HP.sigma.x.PE.ribo, sigma.y = tmt.SL.Hyb2HP.sigma.y.PE.ribo)))
+```{r figure 1 statistics}
+#subset GOIs
+GOIs.fig1 <- GOIs[c("PhANGs","PhAPGs","NE.PtRibo","PE.ribo")]
+names(GOIs.fig1) <- c("PhANGs","PhAPGs","NEplastidRibosome","PEplastidRibosome")
 
-tmt.SL.Hyb2MP.sigma.x.PhANGs <- sd(tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$PhANGs])
-tmt.SL.Hyb2MP.sigma.x.PhAPGs <- sd(tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$PhAPGs])
-tmt.SL.Hyb2MP.sigma.x.NE.PtRibo <- sd(tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$NE.PtRibo])
-tmt.SL.Hyb2MP.sigma.x.PE.ribo <- sd(tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$PE.ribo])
-tmt.SL.Hyb2MP.sigma.y.PhANGs <- sd(tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$PhANGs])
-tmt.SL.Hyb2MP.sigma.y.PhAPGs <- sd(tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$PhAPGs])
-tmt.SL.Hyb2MP.sigma.y.NE.PtRibo <- sd(tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$NE.PtRibo])
-tmt.SL.Hyb2MP.sigma.y.PE.ribo <- sd(tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$PE.ribo])
-tmt.SL.Hyb2MP.Ztest.PhANGs <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$PhANGs], y = tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$PhANGs], sigma.x = tmt.SL.Hyb2MP.sigma.x.PhANGs, sigma.y = tmt.SL.Hyb2MP.sigma.y.PhANGs)))
-tmt.SL.Hyb2MP.Ztest.PhAPGs <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$PhAPGs], tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$PhAPGs], sigma.x = tmt.SL.Hyb2MP.sigma.x.PhAPGs, sigma.y = tmt.SL.Hyb2MP.sigma.y.PhAPGs)))
-tmt.SL.Hyb2MP.Ztest.NEribo <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$NE.PtRibo], tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$NE.PtRibo], sigma.x = tmt.SL.Hyb2MP.sigma.x.NE.PtRibo, sigma.y = tmt.SL.Hyb2MP.sigma.y.NE.PtRibo)))
-tmt.SL.Hyb2MP.Ztest.PEribo <- as.data.frame(unlist(z.test(x = tmt.SL.Hyb2MP$l2.ratio[tmt.SL.Hyb2MP$Gene %in% GOIs$PE.ribo], tmt.SL.Hyb2MP$l2.ratio[!tmt.SL.Hyb2MP$Gene %in% GOIs$PE.ribo], sigma.x = tmt.SL.Hyb2MP.sigma.x.PE.ribo, sigma.y = tmt.SL.Hyb2MP.sigma.y.PE.ribo)))
+ztestfun <- function(df, name){
+  df.l <- list()
+  for(i in 1:length(GOIs.fig1)){
+      #subset to GOI
+      df.x = df$l2.ratio[df$Gene %in% GOIs.fig1[[i]]]
+      #subset background
+      df.y = df$l2.ratio[!df$Gene %in% GOIs.fig1[[i]]]
+      #Calculate sigma.x
+      sigx = sd(df.x)
+      #Calculate sigma.y
+      sigy = sd(df.y)
+      #Calculate Z test
+      z = z.test(x = df.x, y = df.y, sigma.x = sigx, sigma.y = sigy)
+      #convert to dataframe
+      z <- z%>%
+       unlist()%>%
+       as.data.frame()
+      colnames(z) = "value"
+      z$stat <- rownames(z)
+      z$variable <- paste0(name, "_", names(GOIs.fig1[i]))
+      df.l[[i]] <- z[1:9,]
+  }
+  names(df.l) <- names(GOIs.fig1)
+  df.l
+}
 
-tmt.SL.Par2Par.sigma.x.PhANGs <- sd(tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$PhANGs])
-tmt.SL.Par2Par.sigma.x.PhAPGs <- sd(tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$PhAPGs])
-tmt.SL.Par2Par.sigma.x.NE.PtRibo <- sd(tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$NE.PtRibo])
-tmt.SL.Par2Par.sigma.x.PE.ribo <- sd(tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$PE.ribo])
-tmt.SL.Par2Par.sigma.y.PhANGs <- sd(tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$PhANGs])
-tmt.SL.Par2Par.sigma.y.PhAPGs <- sd(tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$PhAPGs])
-tmt.SL.Par2Par.sigma.y.NE.PtRibo <- sd(tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$NE.PtRibo])
-tmt.SL.Par2Par.sigma.y.PE.ribo <- sd(tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$PE.ribo])
-tmt.SL.Par2Par.Ztest.PhANGs <- as.data.frame(unlist(z.test(x = tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$PhANGs], y = tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$PhANGs], sigma.x = tmt.SL.Par2Par.sigma.x.PhANGs, sigma.y = tmt.SL.Par2Par.sigma.y.PhANGs)))
-tmt.SL.Par2Par.Ztest.PhAPGs <- as.data.frame(unlist(z.test(x = tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$PhAPGs], tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$PhAPGs], sigma.x = tmt.SL.Par2Par.sigma.x.PhAPGs, sigma.y = tmt.SL.Par2Par.sigma.y.PhAPGs)))
-tmt.SL.Par2Par.Ztest.NEribo <- as.data.frame(unlist(z.test(x = tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$NE.PtRibo], tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$NE.PtRibo], sigma.x = tmt.SL.Par2Par.sigma.x.NE.PtRibo, sigma.y = tmt.SL.Par2Par.sigma.y.NE.PtRibo)))
-tmt.SL.Par2Par.Ztest.PEribo <- as.data.frame(unlist(z.test(x = tmt.SL.Par2Par$l2.ratio[tmt.SL.Par2Par$Gene %in% GOIs$PE.ribo], tmt.SL.Par2Par$l2.ratio[!tmt.SL.Par2Par$Gene %in% GOIs$PE.ribo], sigma.x = tmt.SL.Par2Par.sigma.x.PE.ribo, sigma.y = tmt.SL.Par2Par.sigma.y.PE.ribo)))
+#calculate z test for each figure panel
+tmt.SL.Hyb2HP.ztest <- ztestfun(tmt.SL.Hyb2HP, "Hyb/HP")
+tmt.SL.Hyb2MP.ztest <- ztestfun(tmt.SL.Hyb2MP, "Hyb/MP")
+tmt.SL.Par2Par.ztest <- ztestfun(tmt.SL.Par2Par, "B73/Mo17")
 
+#combine statistics into single dataframe
+tmt.SL.Hyb2HP.ztest <- do.call("rbind", tmt.SL.Hyb2HP.ztest)
+tmt.SL.Hyb2MP.ztest <- do.call("rbind", tmt.SL.Hyb2MP.ztest)
+tmt.SL.Par2Par.ztest <- do.call("rbind", tmt.SL.Par2Par.ztest)
 
-
-colnames(tmt.SL.Hyb2HP.Ztest.PhANGs) <- "Hyb/HP_PhANGs"
-colnames(tmt.SL.Hyb2HP.Ztest.PhAPGs) <- "Hyb/HP_PhAPGs"
-colnames(tmt.SL.Hyb2HP.Ztest.NEribo) <- "Hyb/HP_NEplastidRibosome"
-colnames(tmt.SL.Hyb2HP.Ztest.PEribo) <- "Hyb/HP_PEplastidRibosome"
-
-colnames(tmt.SL.Hyb2MP.Ztest.PhANGs) <- "Hyb/MP_PhANGs"
-colnames(tmt.SL.Hyb2MP.Ztest.PhAPGs) <- "Hyb/MP_PhAPGs"
-colnames(tmt.SL.Hyb2MP.Ztest.NEribo) <- "Hyb/MP_NEplastidRibosome"
-colnames(tmt.SL.Hyb2MP.Ztest.PEribo) <- "Hyb/MP_PEplastidRibosome"
-
-colnames(tmt.SL.Par2Par.Ztest.PhANGs) <- "B73/Mo17_PhANGs"
-colnames(tmt.SL.Par2Par.Ztest.PhAPGs) <- "B73/Mo17_PhAPGs"
-colnames(tmt.SL.Par2Par.Ztest.NEribo) <- "B73/Mo17_NEplastidRibosome"
-colnames(tmt.SL.Par2Par.Ztest.PEribo) <- "B73/Mo17_PEplastidRibosome"
-
-tmt.SL.Hyb2HP.Ztest.PhANGs$stat <- rownames(tmt.SL.Hyb2HP.Ztest.PhANGs)
-tmt.SL.Hyb2HP.Ztest.PhAPGs$stat <- rownames(tmt.SL.Hyb2HP.Ztest.PhAPGs)
-tmt.SL.Hyb2HP.Ztest.NEribo$stat <- rownames(tmt.SL.Hyb2HP.Ztest.NEribo)
-tmt.SL.Hyb2HP.Ztest.PEribo$stat <- rownames(tmt.SL.Hyb2HP.Ztest.PEribo)
-
-tmt.SL.Hyb2MP.Ztest.PhANGs$stat <- rownames(tmt.SL.Hyb2MP.Ztest.PhANGs)
-tmt.SL.Hyb2MP.Ztest.PhAPGs$stat <- rownames(tmt.SL.Hyb2MP.Ztest.PhAPGs)
-tmt.SL.Hyb2MP.Ztest.NEribo$stat <- rownames(tmt.SL.Hyb2MP.Ztest.NEribo)
-tmt.SL.Hyb2MP.Ztest.PEribo$stat <- rownames(tmt.SL.Hyb2MP.Ztest.PEribo)
-
-tmt.SL.Par2Par.Ztest.PhANGs$stat <- rownames(tmt.SL.Par2Par.Ztest.PhANGs)
-tmt.SL.Par2Par.Ztest.PhAPGs$stat <- rownames(tmt.SL.Par2Par.Ztest.PhAPGs)
-tmt.SL.Par2Par.Ztest.NEribo$stat <- rownames(tmt.SL.Par2Par.Ztest.NEribo)
-tmt.SL.Par2Par.Ztest.PEribo$stat <- rownames(tmt.SL.Par2Par.Ztest.PEribo)
-
-tmt.SL.Ztest <- Reduce(function(x, y, ...) merge(x, y, all = TRUE, by.x = "stat", by.y = "stat"),list(tmt.SL.Hyb2HP.Ztest.PhANGs[1:9,], tmt.SL.Hyb2HP.Ztest.PhAPGs[1:9,], tmt.SL.Hyb2HP.Ztest.NEribo[1:9,], tmt.SL.Hyb2HP.Ztest.PEribo[1:9,], tmt.SL.Hyb2MP.Ztest.PhANGs[1:9,], tmt.SL.Hyb2MP.Ztest.PhAPGs[1:9,], tmt.SL.Hyb2MP.Ztest.NEribo[1:9,], tmt.SL.Hyb2MP.Ztest.PEribo[1:9,], tmt.SL.Par2Par.Ztest.PhANGs[1:9,], tmt.SL.Par2Par.Ztest.PhAPGs[1:9,], tmt.SL.Par2Par.Ztest.NEribo[1:9,],  tmt.SL.Par2Par.Ztest.PEribo[1:9,]))
-tmt.SL.Ztest <- melt(tmt.SL.Ztest, id.vars = "stat")
-tmt.SL.Ztest <- tmt.SL.Ztest[,c("variable", "stat", "value")]
-tmt.SL.Ztest <- tmt.SL.Ztest[order(tmt.SL.Ztest$variable, tmt.SL.Ztest$stat),]
+tmt.SL.Ztest <- do.call("rbind", list(tmt.SL.Hyb2HP.ztest, tmt.SL.Hyb2MP.ztest, tmt.SL.Par2Par.ztest))
+tmt.SL.Ztest <- tmt.SL.Ztest[order(tmt.SL.Ztest$variable, tmt.SL.Ztest$stat),c("variable","stat","value")]
 tmt.SL.Ztest$figure <- "Figure 1"
+rownames(tmt.SL.Ztest) <- NULL
 ```
-
-
-
-
 
 ```{r plot fig1}
  plot<-unique(tmt.SL.fig1[,"plot"])
@@ -1781,24 +1286,28 @@ tmt.RIL.6H.Hyb2MP$Gene <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 
 #run correlation function
 tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 #Combine data for plotting
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor <- tmt.RIL.6H.Hyb2MP.cor[,c("Gene", "cor")]
-#Set GOIs
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- "Other"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$PE.ribo),"Category"] <- "PE plastid ribosome"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% TPR),"Category"] <- "TPR"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% PTAC),"Category"] <- "PTAC"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$PhAPGs),"Category"] <- "PhAPGs"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$ProteinBioSyn),"Category"] <- "Protein biosynthesis"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$CarbonFixation),"Category"] <- "Carbon fixation"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$Oxidoreductase),"Category"] <- "Oxidoreductase"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$Protease),"Category"] <- "Protease"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
+tmt.RIL.6H.Hyb2MP.cor$data <- "Protein"
+tmt.RIL.6H.Hyb2MP.Hyb2HP.cor <- tmt.RIL.6H.Hyb2MP.cor[,c("Gene", "cor", "data")]
 
-tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- factor(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor$Category, levels = c("Other", "PE plastid ribosome", "NE plastid ribosome","Cytosolic ribosome", "TPR", "Protein biosynthesis", "PTAC", "PhANGs", "PhAPGs", "Carbon fixation","Oxidoreductase","Protease","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
+#combine RIL and 6 hybrids RNA
+cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+#run correlation function
+cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
+#Combine data for plotting
+cpm.RIL.6H.Hyb2MP.cor$data <- "mRNA"
+cpm.RIL.6H.Hyb2MP.Hyb2HP.cor <- cpm.RIL.6H.Hyb2MP.cor[,c("Gene", "cor", "data")]
+#Combine RNA and Protein data
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor <- rbind(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor, cpm.RIL.6H.Hyb2MP.Hyb2HP.cor)
+
+#Set GOIs
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- "Other"
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$CytoRibo),"Category"] <- "Cytosolic ribosome"
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% c(GOIs$NE.PtRibo, GOIs$PE.ribo)),"Category"] <- "Plastid ribosome"
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% c(GOIs$PhANGs, GOIs$PhAPGs)),"Category"] <- "Photosynthesis"
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$BiosynSecMet),"Category"] <- "Biosynthesis of secondary metabolites"
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor[(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Gene %in% GOIs$AlphaLinAcidMet),"Category"] <- "Alpha-linoleic acid metabolism"
+
+tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category <- factor(tmt.cpm.RIL.6H.Hyb2MP.Hyb2HP.cor$Category, levels = c("Other", "Plastid ribosome", "Cytosolic ribosome", "Photosynthesis","Biosynthesis of secondary metabolites","Alpha-linoleic acid metabolism"))
 ```
 ```{r Fig3 Statistics}
 GOIs.cor <- GOIs[c(22,20,21,19,16,3,2,18,23,17,6,5,1)]
@@ -1819,18 +1328,65 @@ tmt.RIL.6H.Hyb2MP.cor.Ztest <- tmt.RIL.6H.Hyb2MP.cor.Ztest[order(tmt.RIL.6H.Hyb2
 tmt.RIL.6H.Hyb2MP.cor.Ztest$figure <- "Figure 3"
 ```
 
+```{r}
+library(BSDA)
+library(reshape2)
+```
+```{r}
+GOIs$BiosynSecMet
+```
+```{r}
+names(GOIs)
+```
 
-```{r plot Fig3}
-ggplot(tmt.RIL.6H.Hyb2MP.Hyb2HP.cor, mapping=aes(y=Category, x=cor, fill = stat(x)))+
-  geom_density_ridges_gradient(alpha=0.7) +
-  scale_fill_viridis_c(option = "B")+
-  theme_ridges() +
-  theme(axis.text =element_text(size=8), axis.title = element_text(size=8), legend.position = "none", axis.title.y = element_blank(), axis.title.x = element_text(hjust = 0.5, size=8))+
-  coord_cartesian(expand = F)+
-  xlab("Pearson correlation")+
-  xlim(-1,1)
 
-ggsave(filename =paste0(PathToPlots, "Figure3.pdf"), dpi=300, width=3.4252, height=4)
+```{r}
+GOIs.cor <- list("AlphaLinAcidMet"=GOIs$AlphaLinAcidMet, "BiosynSecMet"=GOIs$BiosynSecMet,"Photosynthesis"=c(GOIs$PhANGs, GOIs$PhAPGs), "pRibo"=c(GOIs$PE.ribo, GOIs$NE.PtRibo),"CytoRibo"=GOIs$CytoRibo)
+ZtestResults <- data.frame("Alpha-linoleic acid metabolism"=numeric(), "Biosynthesis of secondary metabolites"=numeric(), "Photosynthesis"=numeric(), "Plastid ribosome"=numeric(),"Cytosolic ribosome"=numeric())
+```
+```{r}
+for(i in 1:length(GOIs.cor)){
+  
+  sigx <- sd(tmt.RIL.6H.Hyb2MP.cor$cor[tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])])
+  sigy <- sd(tmt.RIL.6H.Hyb2MP.cor$cor[!tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])])
+  
+  ztest <- z.test(x = tmt.RIL.6H.Hyb2MP.cor$cor[tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])], y = tmt.RIL.6H.Hyb2MP.cor$cor[!tmt.RIL.6H.Hyb2MP.cor$Gene %in% as.vector(GOIs.cor[[i]])], sigma.x = sigx, sigma.y = sigy)
+  
+  ZtestResults[1,i]<- round(ztest$estimate[[1]], digits = 3)
+  ZtestResults[2,i]<- round(ztest$estimate[[2]], digits = 3)
+  ZtestResults[3,i]<- round(sigx, digits = 3)
+  ZtestResults[4,i]<- round(sigy, digits = 3)
+  ZtestResults[5,i]<- ztest$p.value
+  ZtestResults[6,i]<- round(ztest$statistic[[1]], digits = 3)
+  
+}
+rownames(ZtestResults) <- c("mean.x", "mean.y","sd.x","sd.y", "Pvalue","Zstatistic")
+```
+
+
+
+```{r}
+library(dplyr)
+
+library(kableExtra)
+```
+
+```{r}
+ZtestResults %>%
+  kbl() %>%
+  kable_styling()
+```
+```{r}
+saveRDS(ZtestResults,"ZtestResults")
+```
+
+
+```{r}
+dt <- mtcars[1:5, 1:6]
+
+dt %>%
+  kbl() %>%
+  kable_styling()
 ```
 
 
@@ -2632,6 +2188,7 @@ write.csv(SD1, paste0(PathToDatasets,"SupplementalDataset1.csv"), row.names = F)
 SD2 <- rbind(tmt.SL.Ztest, tmt.RIL.6H.Hyb2MP.cor.Ztest, tmt.acs.Ztest)
 write.csv(SD2, paste0(PathToDatasets, "SupplementalDataset2.csv"), row.names = F)
 ```
+
 
 #Supplemental Dataset 5
 ```{r SD5}
