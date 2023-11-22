@@ -1433,22 +1433,22 @@ cpm.SL.figs4 <- do.call("rbind",cpm.SL.figs4)
 plot<-unique(cpm.SL.figs4[,"plot"])
 plotList<-vector(mode = "list", length = length(plot))
   for(i in 1:length(plot)){
-    figS4<-cpm.SL.figs4[which(cpm.SL.figs4[,"plot"]==plot[i]),]
+    figS4=cpm.SL.figs4[which(cpm.SL.figs4[,"plot"]==plot[i]),]
     ###Set plot axis limits
-    figS4 <- df
-    figS4$l2.ratio[figS4$l2.ratio <= -1] <- -1
-    figS4$l2.ratio[figS4$l2.ratio >= 1] <- 1
+    figS4 = df
+    figS4$l2.ratio[figS4$l2.ratio <= -1] = -1
+    figS4$l2.ratio[figS4$l2.ratio >= 1] = 1
     ###Set GOIs
-    figS4 <- figS4
-    figS4$Category <- "Other"
-    figS4[(figS4$Gene %in% GOIs$plastid),"Category"] <- "Plastid-localized"
-    figS4[(figS4$Gene %in% GOIs$PhANGs),"Category"] <- "PhANGs"
-    figS4[(figS4$Gene %in% GOIs$NE.PtRibo),"Category"] <- "NE plastid ribosome"
+    figS4 = figS4
+    figS4$Category = "Other"
+    figS4[(figS4$Gene %in% GOIs$plastid),"Category"] = "Plastid-localized"
+    figS4[(figS4$Gene %in% GOIs$PhANGs),"Category"] = "PhANGs"
+    figS4[(figS4$Gene %in% GOIs$NE.PtRibo),"Category"] = "NE plastid ribosome"
     ###factor
-    figS4$Category <- factor(figS4$Category, levels = c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome"))
-    figS4 <- figS4[(order(figS4$Category)),]
+    figS4$Category = factor(figS4$Category, levels = c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome"))
+    figS4 = figS4[(order(figS4$Category)),]
     #scatter plot with marginal density curves
-    figS4.scat <- ggplot(figS4, mapping=aes(x=l2.ratio, y=l10.ttest, color=Category, shape=Category))+
+    figS4.scat = ggplot(figS4, mapping=aes(x=l2.ratio, y=l10.ttest, color=Category, shape=Category))+
     geom_point(aes(color=Category), size=1.5)+
   scale_color_manual(values=colors.p[c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome")], name="Category")+
       scale_shape_manual(values=c(1,19,19,19))+
@@ -1465,26 +1465,26 @@ plotList<-vector(mode = "list", length = length(plot))
         legend.position="bottom", legend.title = element_blank(), plot.title = element_text(size=10, vjust = -3, hjust = -0.2), legend.spacing.x = unit(0.1, 'cm'), legend.spacing.y = unit(-3, 'cm'))+
       guides(col=guide_legend(ncol = 2))
         if(i==1){
-          figS4.scat <- figS4.scat+ xlab("log2 BxM/HP")
+          figS4.scat = figS4.scat+ xlab("log2 BxM/HP")
         }
         else if(i==2){
-          figS4.scat <- figS4.scat+ xlab("log2 BxM/MP")
+          figS4.scat = figS4.scat+ xlab("log2 BxM/MP")
         }
         else if(i==3){
-          figS4.scat <- figS4.scat+ xlab("log2 B73/Mo17")
+          figS4.scat = figS4.scat+ xlab("log2 B73/Mo17")
         }
   
-    legend <- get_legend(figS4.scat)
-    figS4.scat <- figS4.scat+theme(legend.position = "none")
+    legend = get_legend(figS4.scat)
+    figS4.scat = figS4.scat+theme(legend.position = "none")
     ###Add density curves
-    densityplotX<-axis_canvas(figS4.scat, axis="x")+
+    densityplotX=axis_canvas(figS4.scat, axis="x")+
       geom_density(aes(figS4[,"l2.ratio"], color=figS4[,"Category"]), size=0.5)+
     scale_color_manual(values=colors.p[c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome")], name="Category")+
       theme_void()+
       theme(legend.title = element_blank())+
       theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
     #set up marginal density plot Y axis
-    densityplotY<-axis_canvas(figS4.scat, axis="y", coord_flip = T)+
+    densityplotY=axis_canvas(figS4.scat, axis="y", coord_flip = T)+
       geom_density(aes(figS4[,"l10.ttest"], color=figS4[,"Category"]), size=0.5)+
       scale_color_manual(values=colors.p[c("Other", "Plastid-localized", "PhANGs", "NE plastid ribosome")], name="Category")+
       scale_linetype_manual(values=c("dotted", "solid"))+
@@ -1493,14 +1493,14 @@ plotList<-vector(mode = "list", length = length(plot))
       coord_flip(expand = F)+
       theme(plot.margin=grid::unit(c(-3,-3,0,-3), "mm"))
     #put two plots together
-      q <- insert_xaxis_grob(figS4.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
-      q <- insert_yaxis_grob(q, densityplotY, grid::unit((0.275), "null"), position = "right")
+      q = insert_xaxis_grob(figS4.scat, densityplotX, grid::unit(0.275, "null"), position = "top")
+      q = insert_yaxis_grob(q, densityplotY, grid::unit((0.275), "null"), position = "right")
     if(i==1){
-      plotList<-list()
-      plotList[[1]]<-q
+      plotList=list()
+      plotList[[1]]=q
     }
     else{
-      plotList <- c(plotList, list(q))
+      plotList = c(plotList, list(q))
     }
   }
   plotList <- c(plotList, list(legend))
@@ -1746,27 +1746,34 @@ tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim
 ```
 
 #Supplemental Table 1
+
 ```{r ST1}
-tmt.SL.ST1 <- tmt.SL[tmt.SL$Gene %in% c(GOIs$PhAPGs, GOIs$PE.ribo, GOIs$SigmaFactor, GOIs$PE.rpo, GOIs$PE.other, GOIs$NE.PtRibo, GOIs$NEP, GOIs$PTAC),c("Gene",  "Protein", "B73xMo17.MP", "ttest.MP")]
-cpm.SL.ST1 <- cpm.SL[cpm.SL$Gene %in% c(GOIs$PhAPGs, GOIs$PE.ribo, GOIs$SigmaFactor, GOIs$PE.rpo, GOIs$PE.other, GOIs$NE.PtRibo, GOIs$NEP, GOIs$PTAC),c("Gene", "B73xMo17.MP", "ttest.MP")]
+tmt.SL.ST1 <- tmt.SL[tmt.SL$Gene %in% c(GOIs$PhAPGs, GOIs$PE.ribo, GOIs$SigmaFactor, GOIs$PE.rpo, GOIs$PE.other, GOIs$NE.PtRibo, GOIs$NEP, GOIs$PTAC),c("Gene",  "Protein", "l2.B73xMo17.MP", "ttest.MP")]
+cpm.SL.ST1 <- cpm.SL[cpm.SL$Gene %in% c(GOIs$PhAPGs, GOIs$PE.ribo, GOIs$SigmaFactor, GOIs$PE.rpo, GOIs$PE.other, GOIs$NE.PtRibo, GOIs$NEP, GOIs$PTAC),c("Gene", "l2.B73xMo17.MP", "ttest.MP")]
 
 ST1 <- merge.data.frame(tmt.SL.ST1, cpm.SL.ST1, by.x = "Gene", by.y = "Gene", all = T)
-colnames(ST1) <- c("Gene",  "Protein", "Protein B73xMo17/MP", "Protein p-value", "RNA B73xMo17/MP", "RNA p-value")
+colnames(ST1) <- c("Gene",  "Protein", "Protein log2(B73xMo17/MP)", "Protein p-value", "RNA log2(B73xMo17/MP)", "RNA p-value")
 
 #combine RIL and 6 hybrids Protein
-tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(
+  select(tmt.RIL, c(Accession, l2.B73xMo17.MP:l2.M0317.317M.MP)),
+  select(tmt.6H, c(Accession, l2.B73xMo17.MP:l2.A682xMo17.MP)),
+  by.x = "Accession", by.y = "Accession", all = F)
 #convert Accession column to gene column
 tmt.RIL.6H.Hyb2MP$Gene <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 14)
 #run correlation function
 tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 #combine RIL and 6 hybrids Protein
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+cpm.RIL.6H.Hyb2MP <- merge.data.frame(
+  select(cpm.RIL, c(Gene, l2.B73xMo17.MP:l2.M0317xMo17.MP)),
+  select(cpm.6H, c(Gene, l2.B73xMo17.MP:l2.A682xMo17.MP)),
+  by.x = "Gene", by.y = "Gene", all = F)
 #run correlation function
 cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
-
+#Combine
 ST1 <- merge.data.frame(ST1, tmt.RIL.6H.Hyb2MP.cor[,c("Gene", "cor")], by.x = "Gene", by.y = "Gene", all.x = T, all.y = F)
 ST1 <- merge.data.frame(ST1, cpm.RIL.6H.Hyb2MP.cor[,c("Gene", "cor")], by.x = "Gene", by.y = "Gene", all.x = T, all.y = F)
-
+#asign GOIs
 ST1$Category <- NA
 ST1$Category[ST1$Gene %in% GOIs$PhAPGs] <- "PhAPGs"
 ST1$Category[ST1$Gene %in% GOIs$PE.ribo] <- "PE plastid ribosome"
@@ -1776,9 +1783,6 @@ ST1$Category[ST1$Gene %in% GOIs$PE.rpo] <- "PE plastid RNA polymerase"
 ST1$Category[ST1$Gene %in% GOIs$NEP] <- "NE plastid RNA polymerase"
 ST1$Category[ST1$Gene %in% GOIs$PTAC] <- "PTAC"
 ST1$Category[ST1$Gene %in% GOIs$PE.other] <- "PE other"
-
-colnames(ST1)[7:8] <- c("Protein correlation", "RNA correlation")
-ST1 <- ST1[,c(1,2,9,3,4,7,5,6,8)]
 ST1$Protein[ST1$Gene=="Zm00001d024507"] <- "sig1A"
 ST1$Protein[ST1$Gene=="Zm00001d049494"] <- "sig1B"
 ST1$Protein[ST1$Gene=="Zm00001d049160"] <- "sig2A"
@@ -1786,11 +1790,12 @@ ST1$Protein[ST1$Gene=="Zm00001d028585"] <- "sig2B"
 ST1$Protein[ST1$Gene=="Zm00001d012810"] <- "sig6"
 ST1$Protein[ST1$Gene=="Zm00001d039194"] <- "sig8"
 ST1$Protein[ST1$Gene=="Zm00001d046835"] <- "rpo2"
-
+colnames(ST1)[7:8] <- c("Protein correlation", "RNA correlation")
+#re-order cols
+ST1 <- ST1[,c("Gene","Protein","Category","Protein log2(B73xMo17/MP)","Protein p-value","Protein correlation","RNA log2(B73xMo17/MP)","RNA p-value","RNA correlation")]
 ST1 <- ST1[order(ST1$Category),]
 write.csv(ST1, paste0(PathToTables,"SupplementalTable1.csv"), row.names = F)
 ```
-
 
 
 #Supplemental Dataset 1
