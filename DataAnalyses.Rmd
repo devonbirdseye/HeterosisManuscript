@@ -1746,7 +1746,6 @@ tmt.acs.entrez.nodups.trim.pv <- pathview(gene.data = tmt.acs.entrez.nodups.trim
 ```
 
 #Supplemental Table 1
-
 ```{r ST1}
 tmt.SL.ST1 <- tmt.SL[tmt.SL$Gene %in% c(GOIs$PhAPGs, GOIs$PE.ribo, GOIs$SigmaFactor, GOIs$PE.rpo, GOIs$PE.other, GOIs$NE.PtRibo, GOIs$NEP, GOIs$PTAC),c("Gene",  "Protein", "l2.B73xMo17.MP", "ttest.MP")]
 cpm.SL.ST1 <- cpm.SL[cpm.SL$Gene %in% c(GOIs$PhAPGs, GOIs$PE.ribo, GOIs$SigmaFactor, GOIs$PE.rpo, GOIs$PE.other, GOIs$NE.PtRibo, GOIs$NEP, GOIs$PTAC),c("Gene", "l2.B73xMo17.MP", "ttest.MP")]
@@ -1830,20 +1829,32 @@ write.csv(SD2, paste0(PathToDatasets, "SupplementalDataset2.csv"), row.names = F
 
 
 #Supplemental Dataset 5
+```{r}
+colnames(tmt.RIL)
+```
+```{r}
+
+```
+
 ```{r SD5}
 #combine RIL and 6 hybrids Protein
-tmt.RIL.6H.Hyb2MP <- merge.data.frame(tmt.RIL[,c(6,127:135)], tmt.6H[,c(6,54:59)], by.x = "Accession", by.y = "Accession", all = F)
-#combine RIL and 6 hybrids RNA
-cpm.RIL.6H.Hyb2MP <- merge.data.frame(cpm.RIL[,c(1,76:84)], cpm.6H[,c(1,42:47)], by.x = "Gene", by.y = "Gene", all = F)
+tmt.RIL.6H.Hyb2MP <- merge.data.frame(
+  select(tmt.RIL, c(Accession, l2.B73xMo17.MP:l2.M0317.317M.MP)),
+  select(tmt.6H, c(Accession, l2.B73xMo17.MP:l2.A682xMo17.MP)),
+  by.x = "Accession", by.y = "Accession", all = F)
+#combine RIL and 6 hybrids Protein
+cpm.RIL.6H.Hyb2MP <- merge.data.frame(
+  select(cpm.RIL, c(Gene, l2.B73xMo17.MP:l2.M0317xMo17.MP)),
+  select(cpm.6H, c(Gene, l2.B73xMo17.MP:l2.A682xMo17.MP)),
+  by.x = "Gene", by.y = "Gene", all = F)
 #convert Accession column to gene column
 tmt.RIL.6H.Hyb2MP$Gene <- substr(tmt.RIL.6H.Hyb2MP$Accession, start = 1, stop = 14)
 #run correlation function
 cpm.RIL.6H.Hyb2MP.cor <- CorFun(cpm.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 tmt.RIL.6H.Hyb2MP.cor <- CorFun(tmt.RIL.6H.Hyb2MP, 2:16, c(PlantHeights.ril.MP, PlantHeights.6h.MP))
 #merge RIL and 6 hybrids
-tmt.cpm.RIL.6H.Hyb2MP.cor <- merge.data.frame(tmt.RIL.6H.Hyb2MP.cor[,c(1,17,18)], cpm.RIL.6H.Hyb2MP.cor[,c(1,17)], by.x = "Gene", by.y = "Gene", all=T)
+SupT5 <- merge.data.frame(tmt.RIL.6H.Hyb2MP.cor[,c("Accession","Gene","cor")], cpm.RIL.6H.Hyb2MP.cor[,c("Gene","cor")], by.x = "Gene", by.y = "Gene", all=T)
 #Set GOIs
-SupT5 <- tmt.cpm.RIL.6H.Hyb2MP.cor
 colnames(SupT5) <- c("Gene", "Accession", "Protein_PearsonCor", "RNA_PearsonCor")
 SupT5$Category <- "Other"
 SupT5$Category[SupT5$Gene %in% GOIs$plastid] <- "Plastid"
