@@ -1,0 +1,13 @@
+source("Scripts/Figures/Figure1.R")
+source("Scripts/Figures/Figure2.R")
+source("Scripts/Figures/Figure3.R")
+source("Scripts/Figures/Figure4.R")
+source("Scripts/Figures/FigureS1.R")
+source("Scripts/Figures/FigureS2.R")
+source("Scripts/Figures/FigureS3.R")
+source("Scripts/Figures/FigureS4.R")
+source("Scripts/Figures/FigureS5.R")
+source("Scripts/Figures/FigureS6.R")
+source("Scripts/Figures/FigureS7.R")
+source("Scripts/Figures/FigureS8.R")
+
