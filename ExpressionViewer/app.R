@@ -20,13 +20,10 @@ ScatterplotFun <- function(df, xcol, ycol, xlabel, ylabel, lims, Gene, title){
     df[[ycol]][df[[ycol]] < -lims] <- -lims
     #Set GOIs
     df$Category <- "Other"
-    df$Order <- 1
     df[(df$Gene %in% Gene),"Category"] <- "Gene"
-    df[(df$Gene %in% Gene),"Order"] <- 2
-    #Re-order
-    df <- df[(order(df$Order)),]
     #factor
     df$Category <- factor(df$Category, levels = c("Other", "Gene"))
+    df <- df[(order(df$Category)),]
     #scatterplot
     df.scat <- ggplot(df, mapping=aes(x=get(xcol), y=get(ycol), color=Category, shape=Category))+
         geom_point(aes(color=Category), size=3.5)+
@@ -56,7 +53,7 @@ ui <- fluidPage(
     fluidRow(
         column(width = 6,
             wellPanel(
-                textInput(inputId = "Gene", label = "Genes separated by space or comma", placeholder = "Zm00001d002325"),
+                textInput(inputId = "Gene", label = "Zea mays v4 gene accessions (e.g. Zm00001d002325) separated by space or comma", placeholder = "Zm00001d002325"),
                 radioButtons(inputId = "dataset", label = "Dataset",
                          choices = list("Protein" = 1, "RNA" = 2), 
                          selected = 1)
